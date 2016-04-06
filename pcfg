@@ -1,0 +1,12 @@
+#
+# pcfg <option>=<value>
+
+# pcfg -dl=<prj_list>  
+# pcfg --default_prj_list=<prj_list>
+
+# pcfg -dp=<prj>
+# pcfg --default_project=<prj>
+
+
+
+

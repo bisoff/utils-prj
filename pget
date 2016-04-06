@@ -1,0 +1,37 @@
+#!/bin/bash
+# pget <prj> <msg> # save prj-repo (add/commit/push)
+
+# test 1st param - repo name
+prj=$1
+msg=$2
+
+. lib-prj
+home=$(home) 			# echo home: $home
+host=$(host) 			# echo host: $host
+
+if [[ "$prj" == "" ]]; then 
+	curr_path=`eval echo $(pwd)` #; echo cur_path:$curr_path
+	prj_name=$(find_prj_by_path "$home/.cfg/$host" $curr_path) #; echo prj_name: $prj_name
+	[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $home/.cfg/$host !" && exit
+	# get prj (update)
+	echo "GETTING $prj_name: $curr_path"
+	gul
+	exit
+  fi
+
+# find prj file by current path
+prj_path=$(find_path_by_name "$home/.cfg/$host" $curr_path $prj)
+# TODO: get prj vcs_type (svn, git)
+# TODO: get prj remote
+( # to return current path
+echo "$prj: $prj_path"
+eval cd "$prj_path"
+gul "$msg" 
+)
+
+
+
+# TODO: test uncommited (untracked, changed, deleted, staged)
+
+
+

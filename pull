@@ -1,0 +1,9 @@
+#!/bin/bash
+utility_path=$(echo "`dirname \"$0\"`")
+
+# test prj file
+# get prj path
+# TODO: get prj vcs type (svn, git)
+# get prj remote (if empty get current)
+# TODO: test uncommited (untracked, changed, deleted, staged)
+# pull 

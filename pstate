@@ -1,0 +1,28 @@
+#!/bin/bash 
+# pstate <prj>
+
+prj=$1
+
+. lib-prj
+home=$(home) # echo home: $home
+host=$(host) # echo host: $host
+#default_repos=$(get_repos) #echo default_repos: $default_repos  #repos=$1; 
+
+if [[ "$prj" == "" ]]; then 
+	curr_path=`eval echo $(pwd)` #; echo cur_path:$curr_path
+	prj_name=$(find_prj_by_path "$home/.cfg/$host" $curr_path) #; echo prj_name: $prj_name
+	[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $home/.cfg/$host !" && exit
+	# save prj
+	gis
+	exit
+  fi
+
+# find prj file by current path
+prj_path=$(find_path_by_name "$home/.cfg/$host" $curr_path $prj)
+# TODO: get prj vcs_type (svn, git)
+( # to return current path
+echo "$prj: $prj_path"
+eval cd "$prj_path"
+gis
+)
+

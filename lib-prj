@@ -1,0 +1,87 @@
+#!/bin/bash
+
+home() {
+	#local me=`basename "$0"`
+	dirname ${BASH_SOURCE[0]}
+	#local me=`dirname ${BASH_SOURCE[0]}`
+	#local utility_path=$(echo "`dirname \"$(which $me))\"`")
+	#echo $utility_path # return value
+	}
+
+host () {
+	local host="$(cat $(home)/.cfg/default.cfg | sed -E -n 's/^host=([^#]*)/\1/p' | tr -d '\r')" # host alias (with remove trailing new line came from windows)
+	echo $host # return value
+	}
+
+get_repos () {
+	local repos=$1
+	if [[ "$repos" == "" ]]; then
+		repos="$(cat $(home)/.cfg/default.cfg | sed -E -n 's/^default_list=([^#]*)/\1/p' | tr -d '\r')"
+	 fi
+	echo "$repos" # return value
+	}
+find_prj () {
+	local root=$1
+	local prj=$2
+	[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT] root for project is missed !" 1>&2 && return
+	[[ "$prj" == "" ]] && echo "[LIB: FIND PROJECT] project name is missed !" 1>&2 && return
+	#echo "root:$root"
+	#echo "prj:$prj"
+	(
+	cd $root
+	#pwd
+	for prj_loop in $(find . -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do  #| tr -d '\r'
+		#echo "prj_loop: $prj_loop"
+		if [[ "$prj" == "$prj_loop" ]]; then
+			echo $prj_loop
+			exit
+		  fi
+	  done
+	)
+  }
+
+# тильда в пути в переменной - крэшит параметр для команд (cd ls ..)
+	# eval - http://stackoverflow.com/questions/11065077/eval-command-in-bash-and-its-typical-uses 
+	# re="~(.*)"; if [[ $path =~ $re ]]; then  path=${BASH_REMATCH[1]}; fi; cd $HOME$path
+
+find_prj_by_path () {
+	local root=$1
+	local path=$2
+	[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT BY PATH] root for project is missed !" 1>&2 && return
+	[[ "$path" == "" ]] && echo "[LIB: FIND PROJECT BY PATH] path is missed !" 1>&2 && return
+	#echo "root:$root"
+	#echo "path:$path"
+	(
+	cd $root
+	#pwd
+	for prj_loop in $(find . -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do  
+		#echo "$prj_loop: $prj_path" 1>&2
+		prj_path=`eval echo $(sed -E -n 's/^path=([^#]+).*/\1/p' $home/.cfg/$host/$prj_loop | tr -d '\r')`
+		#echo "prj_path: $prj_path" 1>&2
+		if [[ "$path" == "$prj_path" ]]; then
+			echo $prj_loop
+		  fi
+	  done
+	)
+  }
+
+find_path_by_name () {
+	local root=$1
+	local prj=$2
+	[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT PATH] root for project is missed !" 1>&2 && return
+	[[ "$prj" == "" ]] && echo "[LIB: FIND PROJECT PATH] project name is missed !" 1>&2 && return
+	#echo "root:$root"
+	#echo "prj:$prj"
+	(
+	cd $root
+	#pwd
+	for prj_loop in $(find .  -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do  #| tr -d '\r'
+		#echo "prj_loop: $prj_loop" 1>&2
+		if [[ "$prj" == "$prj_loop" ]]; then
+			local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $home/.cfg/$host/$prj_loop | tr -d '\r')` # remove tilda for home path's
+			echo $prj_path
+			exit
+		  fi
+	  done
+	)
+  }

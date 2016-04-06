@@ -1,0 +1,43 @@
+#!/bin/bash 
+# plist <list>
+
+. lib-prj
+#. lib-git
+home=$(home) # echo home: $home
+host=$(host) # echo host: $host
+repos=$1; repos=$(get_repos $repos) # echo repos: $repos
+
+for prj in $(cat $home/.cfg/$host/$repos.list | tr -d '\r' | sort); do 
+	path=`sed -E -n 's/^path=([^#]+).*/\1/p' $home/.cfg/$host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
+	
+	(
+	eval cd "$path"
+	changes=$(gis | wc -l)	# echo changes: $changes
+	#	echo -e "${grey}$prj: $path${norm}"
+	#  else
+	echo -e "\n${grey_back} $prj: $path ${norm}"
+	if [ $changes -ne 0 ]; then
+		git status -s --untracked-files
+	  fi
+	LOCAL=$(git rev-parse @)
+	REMOTE=$(git rev-parse @{u}) # from local
+	BASE=$(git merge-base @ @{u})
+	#echo LOCAL:$LOCAL REMOTE:$REMOTE BASE:$BASE
+	if [ $LOCAL = $REMOTE ]; then
+		true #"Up-to-date"
+	  elif [ $LOCAL = $BASE ]; then
+	  	echo -e "${yellow} NEED TO PULL !${norm}"
+	  elif [ $REMOTE = $BASE ]; then
+		true # "Need to push"
+	  else 
+	  	echo -e "${red_bright}DIVERGED !!${norm}"
+	  fi
+
+	# [ $LOCAL = $REMOTE ] && echo "Up-to-date"
+	# [ $LOCAL != $REMOTE -a $LOCAL = $BASE ] && echo -e "${yellow} NEED TO PULL !${norm}"
+	# [ $REMOTE = $BASE ] && echo "Need to push"
+	# [ $REMOTE != $BASE -a $LOCAL != $BASE ] && echo -e "${red_bright}DIVERGED !!${norm}"
+	# [ $changes -ne 0 ] && echo
+	)
+  done
+

@@ -1,0 +1,57 @@
+#!/bin/bash
+# pren <prj> [<list>] 		# CASE #1 - rename prj name (find prj by curr_path)
+# pren <prj> [<list>] 		# CASE #2 - upd path of prj (find prj by name)
+# pren -n=<prj> -p=<path> -t=<type> -r=<remote> -s=<set>
+
+new_prj_name=$1
+#list=$2
+
+#new_path=$(pwd) #; echo new_path: $new_path
+curr_path="${PWD/#$HOME/~}" # replace $HOME to ~
+
+# TODO: detect repo type (git/svn/hg - .git foder / .svn folder? / ..) and exit if new_path not a repo 
+
+. lib-prj
+home=$(home) # echo home: $home
+host=$(host) # echo host: $host
+
+if [[ "$list" == "" ]]; then
+	prj_list=$(get_repos).list 
+  else
+  	prj_list="$list.list"
+  fi
+# echo "prj_list: $prj_list"
+# TODO: test prj in list
+#exit
+
+if [[ "$new_prj_name" == "" ]]; then
+	# CASE #1 - rename prj 
+	curr_prj_name=$(find_prj_by_path "$home/.cfg/$host" $curr_path) #; echo curr_prj_name: $curr_prj_name	 #old prj name
+	[[ $curr_prj_name == "" ]] && echo -e "${red}[PROJECT RENAME] Project file not found !${norm}" && exit
+	  #prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $home/.cfg/$host/$new_prj_name | tr -d '\r'` #; echo curr_path: $prj_path
+	mv "$home/.cfg/$host/$curr_prj_name" "$home/.cfg/$host/$new_prj_name" || exit
+	  #echo "list: $home/.cfg/$host/$prj_list"
+	sed -i "s/^$curr_prj_name\$/$new_prj_name/g" "$home/.cfg/$host/$prj_list" || exit # sed -i "s/^jr$/jrhw/g" `echo $home/.cfg/$host/$(get_repos).list`
+  else
+	# CASE #2 - replace path
+	curr_prj_name=prj_name
+	# prj_file=$home/.cfg/$host/$new_prj_name
+	# [[ ! -f $prj_file ]] && echo "[PROJECT RENAME] Project is absent" && exit
+  fi
+
+
+#echo "path=$new_path" 	>  $prj_path
+#echo "type=git" 	>> $prj_file
+#echo "remote=" 		>> $prj_file
+
+plist
+
+# TODO: if file exists but absenr in default list then add
+
+# shift loop
+# if $new_prj_name == "" then folder
+# if $path == "" then pwd
+# if $type == "" then git
+# if $remote == "" then current
+# if $set == "" then default
+

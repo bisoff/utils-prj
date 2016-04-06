@@ -1,0 +1,3 @@
+path=~/libs/lib2
+type=git
+remote=  # empty means current

@@ -1,0 +1,6 @@
+#!/bin/bash
+utility_path=$(echo "`dirname \"$0\"`")
+
+# get set of prj (if $1 == "" then default)
+# get prj list
+# pull all prj
