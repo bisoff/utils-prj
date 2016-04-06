@@ -46,18 +46,17 @@ find_prj () {
 
 find_prj_by_path () {
 	local root=$1
-	local path=$2
+	local path=$2 #; echo "path:$path" 1>&2
 	[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT BY PATH] root for project is missed !" 1>&2 && return
 	[[ "$path" == "" ]] && echo "[LIB: FIND PROJECT BY PATH] path is missed !" 1>&2 && return
 	#echo "root:$root"
-	#echo "path:$path"
+	
 	(
 	cd $root
 	#pwd
 	for prj_loop in $(find . -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do  
 		#echo "$prj_loop: $prj_path" 1>&2
-		prj_path=`eval echo $(sed -E -n 's/^path=([^#]+).*/\1/p' $home/.cfg/$host/$prj_loop | tr -d '\r')`
-		#echo "prj_path: $prj_path" 1>&2
+		prj_path=`eval echo $(sed -E -n 's/^path=([^#]+).*/\1/p' $home/.cfg/$host/$prj_loop | tr -d '\r')` #; echo "prj_path: $prj_path" 1>&2
 		if [[ "$path" == "$prj_path" ]]; then
 			echo $prj_loop
 		  fi
