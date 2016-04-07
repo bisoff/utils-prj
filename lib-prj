@@ -67,10 +67,8 @@ find_prj_by_path () {
 find_path_by_name () {
 	local root=$1
 	local prj=$2
-	[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT PATH] root for project is missed !" 1>&2 && return
-	[[ "$prj" == "" ]] && echo "[LIB: FIND PROJECT PATH] project name is missed !" 1>&2 && return
-	#echo "root:$root"
-	#echo "prj:$prj"
+	[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT PATH] root for project is missed !" 1>&2 && return #; echo "root:$root" 1>&2
+	[[ "$prj" == "" ]] && echo "[LIB: FIND PROJECT PATH] project name is missed !" 1>&2 && return #; echo "prj:$prj" 1>&2
 	(
 	cd $root
 	#pwd
