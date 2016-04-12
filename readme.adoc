@@ -1,3 +1,16 @@
+== What for
+rapid/bulk projects control and sync
+
+== Setup
+
+
+== Prerequisites
+
+requires utils-git library commands
+	cmd_projects_state		gis
+	cmd_save_all_projects		gis,gok
+	cmd_save_project_at_local	gac
+
 == Configure
 
 === Folder/file/content
