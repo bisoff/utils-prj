@@ -14,6 +14,7 @@ if [[ "$prj" == "" ]]; then
 	[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $home/.cfg/$host !" && exit
 	# save prj
 	gis
+	#todo : remote / local / base
 	exit
   fi
 

@@ -1,23 +1,29 @@
 #!/bin/bash
+trace=0
+projects_home=$(home)
+projects_host=$(host)
 
 home() {
 	#local me=`basename "$0"`
 	dirname ${BASH_SOURCE[0]}
-	#local me=`dirname ${BASH_SOURCE[0]}`
-	#local utility_path=$(echo "`dirname \"$(which $me))\"`")
-	#echo $utility_path # return value
 	}
+
+configs(){
+	#echo $(configs)
+	local path=`eval echo ~/.utils-prj`
+	echo "$path"
+	}	
 
 host() {
 	uname -n #$HOSTNAME
 	#local host="$(cat $(home)/.cfg/default | sed -E -n 's/^host=([^#]*)/\1/p' | tr -d '\r')" # host alias (with remove trailing new line came from windows)
-	echo $host # return value
+	#echo $host # return value
 	}
 
 get_repos () {
 	local repos=$1
 	if [[ "$repos" == "" ]]; then
-		repos="$(cat $(home)/.cfg/$host/default | sed -E -n 's/^default_list=([^#]*)/\1/p' | tr -d '\r')"
+		repos="$(eval cat "$(configs)/$host/default" | sed -E -n 's/^default_list=([^#]*)/\1/p' | tr -d '\r')"
 	 fi
 	echo "$repos" # return value
 	}
@@ -58,7 +64,7 @@ find_prj_by_path () {
 	find_path="find"; [[ "$TERM" == "cygwin" ]] && find_path="$EXEPATH/usr/bin/find"
 	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do #; echo "prj_loop: $prj_loop"
 		[ "$trace" == "1" ] && echo -n "$prj_loop: $prj_path " 1>&2
-		prj_path=`eval echo $(sed -E -n 's/^path=([^#]+).*/\1/p' $home/.cfg/$host/$prj_loop | tr -d '\r')` ; [ "$trace" == "1" ] && echo "prj_path: $prj_path" 1>&2
+		prj_path=`eval echo $(sed -E -n 's/^path=([^#]+).*/\1/p' $(configs)/$host/$prj_loop | tr -d '\r')` ; [ "$trace" == "1" ] && echo "prj_path: $prj_path" 1>&2
 		if [[ "$path" == "$prj_path" ]]; then
 			echo $prj_loop
 		  fi
@@ -77,7 +83,7 @@ find_path_by_name () {
 	for prj_loop in $($find_path .  -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do  #| tr -d '\r'
 		#echo "prj_loop: $prj_loop" 1>&2
 		if [[ "$prj" == "$prj_loop" ]]; then
-			local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $home/.cfg/$host/$prj_loop | tr -d '\r')` # remove tilda for home path's
+			local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $(configs)/$host/$prj_loop | tr -d '\r')` # remove tilda for home path's
 			echo $prj_path
 			exit
 		  fi
@@ -85,31 +91,31 @@ find_path_by_name () {
 	)
   }
 
-projects_state(){
-	local prj_list=$1
-	local remote_mode=$2
-	local trace=$3
-	[[ "$trace" == "" ]] && trace=0
-	local home=$(home); [ "$trace" == "1" ] && echo home: $home
-	local host=$(host); [ "$trace" == "1" ] && echo host: $host
-	[[ "$prj_list" == "default" ]] && prj_list=$(get_repos) ; [ "$trace" == "1" ] && echo prj_list: $prj_list
+cmd_projects_state(){
+	local prj_list=$1; [[ "$prj_list" == "" ]] && prj_list=default
+	[ "$remote_mode" == "" ] && remote_mode=0 #$2
+	[[ "$trace" == "" ]] && trace=0 #$3
+	local home=$(home); [ "$trace" == "1" ] && echo -e "home:\t\t$home"
+	local host=$(host); [ "$trace" == "1" ] && echo -e "host:\t\t$host"
+	
+	[[ "$prj_list" == "default" ]] && prj_list=$(get_repos) ; [ "$trace" == "1" ] && echo -e "prj_list:\trace$prj_list"
 	[[ "$remote_mode" == "" ]] && -e "${red}[lib-prj.:projects_state] 'remote_mode' param is not defined !${norm} " && exit
 
-	for prj in $(cat $home/.cfg/$host/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
+	for prj in $(cat $(configs)/$host/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
 		prj=`echo $prj` # normalize
-		prj_file=`echo $home/.cfg/$host/$prj`
+		prj_file=`echo $(configs)/$host/$prj`
 		if [[ ! -f "$prj_file" ]]; then
-			#echo prj: $home/.cfg/$host/$prj
-			#cat $home/.cfg/$host/$prj
+			#echo prj: $(configs)/$host/$prj
+			#cat $(configs)/$host/$prj
 			echo -e "${red} Project file '$prj_file' not found !${norm} "
 			continue
 		  fi
 
-		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $prj_file | tr -d '\r'` ;[ $trace -eq 1 ] && echo path: $path
+		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $prj_file | tr -d '\r'` ;[ $trace -eq 1 ] && echo -e "path:\t\t$path"
 		[[ ! -d $path ]] && echo -e "${red} Project path '$path' not found !${norm} " && continue
 		(
 		eval cd "$path"
-		changes=$(gis | wc -l) ; [ $trace -eq 1 ] && echo changes: $changes
+		changes=$(gis | wc -l) #; [ $trace -eq 1 ] && echo changes: $changes
 		#	echo -e "${grey}$prj: $path${norm}"
 		#  else
 		echo -e "\n${grey_back} $prj_list  $prj \t $path ${norm}"
@@ -137,3 +143,80 @@ projects_state(){
 	  done
 	echo
 }
+
+cmd_add_project(){
+	# cmd_add_project <prj> [<list>] 
+	# cmd_add_project -n=<prj> -p=<path> -t=<type> -r=<remote> -s=<set>
+	local prj_name=$1
+	local prj_list=$2
+
+	[[ "$prj_name" == "" ]] && echo -e "${red}[PROJECT ADD] prj_name name is missed !${norm}" && return 
+	local curr_path="${PWD/#$HOME/~}"; [ "$trace" == "1" ] && echo -e "cur_path:\t$curr_path"
+	
+	# TODO: detect repo type (git/svn/hg - .git foder / .svn folder? / ..)
+	# TODO: exit when curr_path not repo
+
+	home=$(home); [ "$trace" == "1" ] && echo -e "home:\t\t$home"
+	host=$(host); [ "$trace" == "1" ] && echo -e "host:\t\t$host"
+
+	if [[ "$prj_list" == "" ]]; then
+		prj_list_default=$(get_repos); [ "$trace" == "1" ] && echo -e "default_list:\t $prj_list_default"
+		[ "$prj_list_default" == "" ] && echo -e "${red}[PROJECT ADD] prj_list_default not found !${norm}" && return
+		prj_list="$prj_list_default.list"
+	  else
+	  	prj_list="$prj_list.list"
+	  fi
+	[ "$trace" == "1" ] && echo -e "prj_list:\t$prj_list"
+		
+	prj_file="$(configs)/$host/$prj_name"
+	 [ "$trace" == "1" ] && echo -e "prj_file:\t$prj_file"
+	[[ -f $prj_file ]] && echo -e "${red}[PROJECT ADD] Project already exists${norm}" && return
+
+	echo "path=$curr_path" 	> $prj_file
+	echo "type=git" 	>> $prj_file
+	echo "remote=" 		>> $prj_file
+
+	# TODO: test prj_name in list
+	# TODO: detect tail CR and don't append \n
+	prj_list="$(configs)/$host/$prj_list"
+	echo -e "$prj_name" >> "$prj_list"
+	# TODO: if file exists but absenr in default list then add
+
+	# shift loop
+	# if $prj_name == "" then folder
+	# if $path == "" then pwd
+	# if $type == "" then git
+	# if $remote == "" then current
+	# if $set == "" then default
+	}
+
+cmd_save_all_projects(){
+	# psavall <msg> <list>  # save every prj in list (add/commit/push)
+	list=$1
+	msg=$2
+
+	# todo: local home=$projects_home
+	# todo: local host=$projects_host
+	local home=$(home); [ "$trace" == "1" ] && echo -e "home:\t\t$home"
+	local host=$(host); [ "$trace" == "1" ] && echo -e "host:\t\t$host"
+
+	[[ "$list" == "." ]] && list="" # trik to save default
+	[[ "$list" == "" ]] && list=$(get_repos)
+	# echo list: $list  		# get default repos list
+
+	for prj in $(cat $(configs)/$host/$list.list | tr -d '\r'); do 
+		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $(configs)/$host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
+		(
+		eval cd "$path"
+		changes=$(gis | wc -l)	# echo changes: $changes
+		echo -e "\n${grey_back}$prj: $path${norm}"
+		if [ $changes -ne 0 ]; then
+			gok "$msg" # TODO: переделать на использование либы 
+			echo
+		  fi
+		#${red}none${norm}"
+		)
+	  done
+
+	# TODO: test uncommited (untracked, changed, deleted, staged)
+	}

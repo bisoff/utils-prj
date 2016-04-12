@@ -1,8 +1,0 @@
-#!/bin/bash 
-# plist <list>
-
-. lib-prj
-prj_list=$1; [[ "$prj_list" == "" ]] && prj_list=default
-remote_mode=0 # false
-trace=0 # false
-projects_state $prj_list $remote_mode $trace

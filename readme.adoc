@@ -1,3 +1,69 @@
 == Configure
 
-==
+=== Folder/file/content
+.cfg-FOLDER
+	<host1>-FOLDER
+		default-FILE
+			default_list=list1
+		<list1>-FILE
+			<prj_alias_1>
+			<prj_alias_2>
+		<list2>-FILE
+			<prj_alias_2>
+			<prj_alias_3>
+		<prj_alias_1>-FILE
+			path=msys_or_linux_path/to/root/dir/with/project
+			type=git|svn|..
+			remote_default=<default_remote_ex_origin>
+			remote_extra=<extra_remote_ex_bitbucket>
+			remote_extra=<extra_remote_ex_github>
+		<prj_alias_2>-FILE
+			...
+		<prj_alias_3>-FILE
+			...
+	<host2>-FOLDER-FILE
+		default-FILE
+			<prj_alias_1>
+			<prj_alias_2>
+		<list1>-FILE
+		<prj_alias_1>-FILE
+			...
+		<prj_alias_2>-FILE
+			...
+=== Commands
+  setup
+  pcfg
+pel		edit library (lib-prj)
+padd		
+pmove		
+pren		
+
+== State commands
+plist		[<list>]		list projects (from <the_host>.<list|default_list>): <alias>: home path
+pst		
+pstx		
+pstate		gis
+
+== Sync
+pfix		
+pget		
+pgetall		
+psave		
+psaveall	
+  psync		
+
+== Navigate command
+pgo		change dir to project home dir
+
+
+  pdel
+  ped
+  pula
+  pull
+  pusa
+  pcmd ''
+
+== Misc
+lib-prj		utility library
+  p-help	cat readme.adoc
+readme.adoc	the file
