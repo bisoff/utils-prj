@@ -8,15 +8,16 @@ home() {
 	#echo $utility_path # return value
 	}
 
-host () {
-	local host="$(cat $(home)/.cfg/default.cfg | sed -E -n 's/^host=([^#]*)/\1/p' | tr -d '\r')" # host alias (with remove trailing new line came from windows)
+host() {
+	uname -n #$HOSTNAME
+	#local host="$(cat $(home)/.cfg/default.cfg | sed -E -n 's/^host=([^#]*)/\1/p' | tr -d '\r')" # host alias (with remove trailing new line came from windows)
 	echo $host # return value
 	}
 
 get_repos () {
 	local repos=$1
 	if [[ "$repos" == "" ]]; then
-		repos="$(cat $(home)/.cfg/default.cfg | sed -E -n 's/^default_list=([^#]*)/\1/p' | tr -d '\r')"
+		repos="$(cat $(home)/.cfg/$host/default.cfg | sed -E -n 's/^default_list=([^#]*)/\1/p' | tr -d '\r')"
 	 fi
 	echo "$repos" # return value
 	}
