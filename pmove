@@ -1,8 +1,6 @@
 #!/bin/bash
 # pren <prj> [<list>] - upd path of prj (find prj by name)
 # pren -n=<prj> -p=<path> -t=<type> -r=<remote> -s=<set>
-# case 1: find by name
-# case 2: find by path (eval)
 
 # TODO: case 1
 
@@ -28,40 +26,8 @@ if [[ "$list" == "" ]]; then
 # TODO: test prj in list
 #exit
 
-#if [[ "$prj_name" == "" ]]; then
-curr_prj_name=$(find_prj_by_path "$home/.cfg/$host" $(pwd)) #; echo curr_prj_name: $curr_prj_name	 #old prj name
-[[ $curr_prj_name == "" ]] && echo -e "${red}[PROJECT MOVE] Project file not found (by path) !${norm}" && exit
-  #prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $home/.cfg/$host/$prj_name | tr -d '\r'` #; echo curr_path: $prj_path
-#mv "$home/.cfg/$host/$curr_prj_name" "$home/.cfg/$host/$prj_name" || exit
-  #echo "list: $home/.cfg/$host/$prj_list"
-#to="${curr_prj_name/#\//\\/}"
-#sed -i "s|^path=|path=$curr_path|g" "$home/.cfg/$host/$curr_prj_name" || exit # sed -i "s/^jr$/jrhw/g" `echo $home/.cfg/$host/$(get_repos).list`
-#echo sed -E "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$home/.cfg/$host/$curr_prj_name"
-#sed -E -i "s/^\(path=\)\(.*\)$/\1${curr_path//\//\\/}/g" "$home/.cfg/$host/$curr_prj_name" || exit 
-#sed -i s/^path=/path=~/prj/utils-prj/g /Users/a.bysov/prj/utils-prj/.cfg/ok/uj
-sed -E -i '' "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$home/.cfg/$host/$curr_prj_name" || exit 
-#sed -E "s/^(path=)(.*)/\1~\/utils-prj/g" /Users/a.bysov/prj/utils-prj/.cfg/ok/uj
-#sed -E s/^\(path=\)\(.*\)/\1~\/prj\/utils-prj/g /Users/a.bysov/prj/utils-prj/.cfg/ok/uj
-#  else
-	# CASE #2 - replace path
-	#curr_prj_name=prj_name
-	# prj_file=$home/.cfg/$host/$prj_name
-	# [[ ! -f $prj_file ]] && echo "[PROJECT RENAME] Project is absent" && exit
-#  fi
-
-
-#echo "path=$new_path" 	>  $prj_path
-#echo "type=git" 	>> $prj_file
-#echo "remote=" 		>> $prj_file
+[[ ! -f "$home/.cfg/$host/$prj_name" ]] && echo -e "${red}[PROJECT MOVE] Project file not found (by name) !${norm}" && exit
+sed -E -i '' "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$home/.cfg/$host/$curr_path" || exit 
 
 plist
-
-# TODO: if file exists but absenr in default list then add
-
-# shift loop
-# if $prj_name == "" then folder
-# if $path == "" then pwd
-# if $type == "" then git
-# if $remote == "" then current
-# if $set == "" then default
 

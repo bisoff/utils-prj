@@ -2,13 +2,15 @@
 # pget <prj> <msg> # save prj-repo (add/commit/push)
 
 # test 1st param - repo name
+trace=0
 prj=$1
 msg=$2
-
+[ $trace == 1 ] && echo start
 . lib-prj
-home=$(home) 			# echo home: $home
-host=$(host) 			# echo host: $host
+home=$(home) ; [ $trace == 1 ] && echo home: $home
+host=$(host) ; [ $trace == 1 ] && echo host: $host
 
+curr_path=$(pwd) ; [ $trace == 1 ] && echo curr_path: $curr_path	
 if [[ "$prj" == "" ]]; then 
 	curr_path=`eval echo $(pwd)` #; echo cur_path:$curr_path
 	prj_name=$(find_prj_by_path "$home/.cfg/$host" $curr_path) #; echo prj_name: $prj_name
@@ -20,7 +22,8 @@ if [[ "$prj" == "" ]]; then
   fi
 
 # find prj file by current path
-prj_path=$(find_path_by_name "$home/.cfg/$host" $curr_path $prj)
+prj_path=$(find_path_by_name "$home/.cfg/$host" "$prj"); [ $trace == 1 ] && echo prj_path: $prj_path
+[[ "$prj_path" == "" ]] && echo -e "${red}[PROJECT GET] Project path not found (by name: $prj) ! ${norm}" && exit
 # TODO: get prj vcs_type (svn, git)
 # TODO: get prj remote
 ( # to return current path

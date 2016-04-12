@@ -1,2 +1,2 @@
 #!/bin/bash
-ed lib-prj
+ed lib-prj # to find it needs chmod +x lib-prj
