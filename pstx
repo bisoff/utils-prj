@@ -2,50 +2,7 @@
 # plist <list>
 
 . lib-prj
-#. lib-git
-trace=0
-home=$(home) ; [ $trace -eq 1 ] && echo home: $home
-host=$(host) ; [ $trace -eq 1 ] && echo host: $host
-repos=$1
-repos=$(get_repos $repos) #; echo repos: $repos
-
-#cat $home/.cfg/$host/$repos.list | sed -e /^$/d | tr -d '\r' | sort	
-for prj in $(cat $home/.cfg/$host/$repos.list | sed -e /^$/d | tr -d '\r' | sort); do 
-	prj=`echo $prj` # normalize
-	prj_file=`echo $home/.cfg/$host/$prj`
-	if [[ ! -f "$prj_file" ]]; then
-		#echo prj: $home/.cfg/$host/$prj
-		#cat $home/.cfg/$host/$prj
-		echo -e "${red} Project file '$prj_file' not found !${norm} "
-		continue
-	  fi
-
-	path=`sed -E -n 's/^path=([^#]+).*/\1/p' $prj_file | tr -d '\r'` ;[ $trace -eq 1 ] && echo path: $path
-	
-	(
-	eval cd "$path"
-	changes=$(gis | wc -l)	; [ $trace -eq 1 ] && echo changes: $changes
-	#	echo -e "${grey}$prj: $path${norm}"
-	#  else
-	echo -e "\n$grey_back $prj: $path ${norm}"
-	if [ $changes -ne 0 ]; then
-		git status -s --untracked-files
-	  fi
-	#curr_remote=$(current_remote)
-	LOCAL=$(git rev-parse @)
-	REMOTE=$(git rev-parse @{u}) # from local
-	REMOTE=$(git ls-remote 2>/dev/null | awk "/HEAD/ {print \$1}")
-	BASE=$(git merge-base @ @{u})
-	#echo LOCAL:$LOCAL REMOTE:$REMOTE BASE:$BASE
-	if [ $LOCAL = $REMOTE ]; then
-		true #echo "Up-to-date"
-	  elif [ $LOCAL = $BASE ]; then
-		echo -e "${yellow} NEED TO PULL !${norm}"
-	  elif [ $REMOTE = $BASE ]; then
-		true #echo "Need to push"
-	  else
-		echo -e "${red_bright}DIVERGED !!${norm}"
-	  fi
-	)
-	#[ $changes -ne 0 ] && echo
-  done
+prj_list=$1; [[ "$prj_list" == "" ]] && prj_list=default
+remote_mode=1 # true
+trace=0 # false
+projects_state $prj_list $remote_mode $trace

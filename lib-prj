@@ -10,14 +10,14 @@ home() {
 
 host() {
 	uname -n #$HOSTNAME
-	#local host="$(cat $(home)/.cfg/default.cfg | sed -E -n 's/^host=([^#]*)/\1/p' | tr -d '\r')" # host alias (with remove trailing new line came from windows)
+	#local host="$(cat $(home)/.cfg/default | sed -E -n 's/^host=([^#]*)/\1/p' | tr -d '\r')" # host alias (with remove trailing new line came from windows)
 	echo $host # return value
 	}
 
 get_repos () {
 	local repos=$1
 	if [[ "$repos" == "" ]]; then
-		repos="$(cat $(home)/.cfg/$host/default.cfg | sed -E -n 's/^default_list=([^#]*)/\1/p' | tr -d '\r')"
+		repos="$(cat $(home)/.cfg/$host/default | sed -E -n 's/^default_list=([^#]*)/\1/p' | tr -d '\r')"
 	 fi
 	echo "$repos" # return value
 	}
@@ -84,3 +84,56 @@ find_path_by_name () {
 	  done
 	)
   }
+
+projects_state(){
+	local prj_list=$1
+	local remote_mode=$2
+	local trace=$3
+	[[ "$trace" == "" ]] && trace=0
+	local home=$(home); [ "$trace" == "1" ] && echo home: $home
+	local host=$(host); [ "$trace" == "1" ] && echo host: $host
+	[[ "$prj_list" == "default" ]] && prj_list=$(get_repos) ; [ "$trace" == "1" ] && echo prj_list: $prj_list
+	[[ "$remote_mode" == "" ]] && -e "${red}[lib-prj.:projects_state] 'remote_mode' param is not defined !${norm} " && exit
+
+	for prj in $(cat $home/.cfg/$host/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
+		prj=`echo $prj` # normalize
+		prj_file=`echo $home/.cfg/$host/$prj`
+		if [[ ! -f "$prj_file" ]]; then
+			#echo prj: $home/.cfg/$host/$prj
+			#cat $home/.cfg/$host/$prj
+			echo -e "${red} Project file '$prj_file' not found !${norm} "
+			continue
+		  fi
+
+		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $prj_file | tr -d '\r'` ;[ $trace -eq 1 ] && echo path: $path
+		[[ ! -d $path ]] && echo -e "${red} Project path '$path' not found !${norm} " && continue
+		(
+		eval cd "$path"
+		changes=$(gis | wc -l) ; [ $trace -eq 1 ] && echo changes: $changes
+		#	echo -e "${grey}$prj: $path${norm}"
+		#  else
+		echo -e "\n${grey_back} $prj_list  $prj \t $path ${norm}"
+		if [ $changes -ne 0 ]; then
+			git status -s --untracked-files
+		  fi
+		LOCAL=$(git rev-parse @)
+		if [[ "$remote_mode" == "1" ]]; then
+			REMOTE=$(git ls-remote 2>/dev/null | awk "/HEAD/ {print \$1}")
+		  else
+			REMOTE=$(git rev-parse @{u}) # from local
+		  fi
+		BASE=$(git merge-base @ @{u})
+		#echo LOCAL:$LOCAL REMOTE:$REMOTE BASE:$BASE
+		if [ $LOCAL = $REMOTE ]; then
+			true #echo "Up-to-date"
+		  elif [ $LOCAL = $BASE ]; then
+			echo -e "${yellow} NEED TO PULL !${norm}"
+		  elif [ $REMOTE = $BASE ]; then
+			true #echo "Need to push"
+		  else
+			echo -e "${red_bright}DIVERGED !!${norm}"
+		  fi
+		)
+	  done
+	echo
+}
