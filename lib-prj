@@ -29,9 +29,8 @@ find_prj () {
 	#echo "prj:$prj"
 	(
 	cd $root
-	#pwd
-	for prj_loop in $(find . -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do  #| tr -d '\r'
-		#echo "prj_loop: $prj_loop"
+	find_path="find"; [[ "$TERM" == "cygwin" ]] && find_path="$EXEPATH/usr/bin/find"
+	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do #; echo "prj_loop: $prj_loop"
 		if [[ "$prj" == "$prj_loop" ]]; then
 			echo $prj_loop
 			exit
@@ -53,9 +52,8 @@ find_prj_by_path () {
 	
 	(
 	cd $root
-	#pwd
-	for prj_loop in $(find . -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do  
-		#echo "$prj_loop: $prj_path" 1>&2
+	find_path="find"; [[ "$TERM" == "cygwin" ]] && find_path="$EXEPATH/usr/bin/find"
+	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do #; echo "prj_loop: $prj_loop"
 		prj_path=`eval echo $(sed -E -n 's/^path=([^#]+).*/\1/p' $home/.cfg/$host/$prj_loop | tr -d '\r')` #; echo "prj_path: $prj_path" 1>&2
 		if [[ "$path" == "$prj_path" ]]; then
 			echo $prj_loop
@@ -73,8 +71,8 @@ find_path_by_name () {
 	#echo "prj:$prj"
 	(
 	cd $root
-	#pwd
-	for prj_loop in $(find .  -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do  #| tr -d '\r'
+	find_path="find"; [[ "$TERM" == "cygwin" ]] && find_path="$EXEPATH/usr/bin/find"
+	for prj_loop in $($find_path .  -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do  #| tr -d '\r'
 		#echo "prj_loop: $prj_loop" 1>&2
 		if [[ "$prj" == "$prj_loop" ]]; then
 			local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $home/.cfg/$host/$prj_loop | tr -d '\r')` # remove tilda for home path's

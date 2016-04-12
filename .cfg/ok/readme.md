@@ -1,1 +1,0 @@
-ex. at home or virtual machine

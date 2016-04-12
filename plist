@@ -8,7 +8,8 @@ repos=$1; repos=$(get_repos $repos)
 #echo REPO LIST: $repos
 echo "========= $repos ========="
 
-for repo in $(cat $home/.cfg/$host/$repos.list | tr -d '\r' | sort); do 
+for repo in $(cat $home/.cfg/$host/$repos.list | sed -e /^$/d | tr -d '\r' | sort); do 
+	repo=`echo $repo` #normalize
 	path=`sed -E -n 's/^path=([^#]+).*/\1/p' $home/.cfg/$host/$repo | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 	( # to return curr path
 	echo -e "$repo:\t$path"

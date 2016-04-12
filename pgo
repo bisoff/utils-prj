@@ -2,25 +2,29 @@
 # . pgo <project> 
 # . pgo <repo> <in_list?>
 
+trace=0
+
 [ $SHLVL -gt 1 ] && echo "[GO TO PROJECT] Subshell can't change path after exit ! CORRECT USE: '. pgo <project>'" 1>&2 && exit
 #if expr match $parent $(which vim) > /dev/null
 
-me=`dirname ${BASH_SOURCE[0]}` #echo "utility path: $me"
+me=`dirname ${BASH_SOURCE[0]}` ; [ $trace -eq 1 ] && echo "utility path: $me"
 . $me/lib-prj
 
 project="$1" # test 1st param - prj name
 [[ "$project" == "" ]] && echo "[GO TO PROJECT] project name is missed !"
 
-home=$(home) #; echo home: $home
-host=$(host) #; echo host: $host
+home=$(home) ; [ $trace -eq 1 ] && echo home: $home
+host=$(host) ; [ $trace -eq 1 ] && echo host: $host
 	# repos=$1; repos=$(get_repos $repos) # echo repos: $repos
 #echo path: "$home/.cfg/$host" 
 #find_prj "$home/.cfg/$host" $project
-prj_repo=$(find_prj "$home/.cfg/$host" $project) # echo prj_repo: $prj_repo
+prj_repo=$(find_prj "$home/.cfg/$host" $project) ; [ $trace -eq 1 ] &&  echo prj_repo: $prj_repo
 [[ "$prj_repo" == "" ]] && echo "[GO TO PROJECT] project '$project' not found !" && return
 # extract path of repo
-project_path="$(sed -E -n 's/^path=([^#]*)/\1/p' $home/.cfg/$host/$prj_repo | tr -d '\r')" #; echo repo_path: $repo_path
+project_path="$(sed -E -n 's/^path=([^#]*)/\1/p' $home/.cfg/$host/$prj_repo | tr -d '\r')" ; [ $trace -eq 1 ] && echo repo_path: $repo_path
 
 echo "go to: $project_path"
 # ??TODO: test $path exists
 eval cd "$project_path"
+if [ "$ConEmuPID" != "" ]; then $ConEmuBaseDir/ConEmuC -GuiMacro Rename 0 "${PWD##*/}" 1> /dev/null; fi
+if [ "$TERM_PROGRAM" == "Apple_Terminal" ]; then echo -ne "\033]0;${PWD##*/}\007"; fi

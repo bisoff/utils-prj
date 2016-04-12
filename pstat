@@ -3,16 +3,24 @@
 
 . lib-prj
 #. lib-git
-home=$(home) # echo home: $home
-host=$(host) # echo host: $host
+trace=0
+home=$(home) ; [ $trace -eq 1 ] && echo home: $home
+host=$(host) ; [ $trace -eq 1 ] && echo host: $host
 repos=$1; repos=$(get_repos $repos) # echo repos: $repos
 
-for prj in $(cat $home/.cfg/$host/$repos.list | tr -d '\r' | sort); do 
-	path=`sed -E -n 's/^path=([^#]+).*/\1/p' $home/.cfg/$host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
-	
+for prj in $(cat $home/.cfg/$host/$repos.list | sed -e /^$/d | tr -d '\r' | sort); do 
+	prj=`echo $prj` # normalize
+	prj_file=`echo $home/.cfg/$host/$prj`
+	if [[ ! -f "$prj_file" ]]; then
+		#echo prj: $home/.cfg/$host/$prj
+		#cat $home/.cfg/$host/$prj
+		echo -e "${red} Project file '$prj_file' not found !${norm} "
+		continue
+	  fi
+	path=`sed -E -n 's/^path=([^#]+).*/\1/p' $prj_file | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 	(
 	eval cd "$path"
-	changes=$(gis | wc -l)	# echo changes: $changes
+	changes=$(gis | wc -l) ; [ $trace -eq 1 ] && echo changes: $changes
 	#	echo -e "${grey}$prj: $path${norm}"
 	#  else
 	echo -e "\n${grey_back} $prj: $path ${norm}"
