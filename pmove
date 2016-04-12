@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/bash 
+# -x
 # pren <prj> [<list>] - upd path of prj (find prj by name)
 # pren -n=<prj> -p=<path> -t=<type> -r=<remote> -s=<set>
 
@@ -27,7 +28,8 @@ if [[ "$list" == "" ]]; then
 #exit
 
 [[ ! -f "$home/.cfg/$host/$prj_name" ]] && echo -e "${red}[PROJECT MOVE] Project file not found (by name) !${norm}" && exit
-sed -E -i '' "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$home/.cfg/$host/$curr_path" || exit 
+#echo sed -i '' -E "'s/^(path=)(.*)/\1${curr_path//\//\\/}/g'" "$home/.cfg/$host/$prj_name" #;  exit 
+sed -i -E "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$home/.cfg/$host/$prj_name" || exit 
 
 plist
 
