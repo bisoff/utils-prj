@@ -210,7 +210,7 @@ cmd_save_all_projects(){
 	[[ "$list" == "" ]] && list=$(get_repos)
 	# echo list: $list  		# get default repos list
 
-	for prj in $(cat $(configs)/$host/$list.list | tr -d '\r'); do 
+	for prj in $(cat $(configs)/$host/$list.list | tr -d '\r' | sort); do 
 		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $(configs)/$host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 		(
 		eval cd "$path"
@@ -379,7 +379,6 @@ cmd_get_one_project(){
 	)
 	# TODO: test uncommited (untracked, changed, deleted, staged)
 	}
-
 
 cmd_state_of_one_project(){
 	# pstate <prj>
