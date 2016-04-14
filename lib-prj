@@ -548,11 +548,11 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 
 	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$trace_prj.list | tr -d '\r' | sort); do 
 		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
-		trace_prj "prj_path:\t\t$prj_path"
 		(
 		eval cd "$prj_path"
 		changes=$(gis | wc -l)	# echo changes: $changes
-		echo -e "\n${grey_back} $trace_prj  $prj \t $prj_path${norm} "
+		echo -e "${grey_back} $trace_prj  $prj \t $prj_path${norm} "
+		trace_prj "prj_path:\t\t$prj_path"
 		trace_prj "changes:\t\t$changes" # 2> /dev/null 
 		if [[ "$changes" == "0" ]]; then
 			local sync_remote_status=$(get_sync_status remote silent no_trace)
@@ -562,13 +562,11 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 		if [[ "$changes" != "0" || "$sync_remote_status	" == "push" ]]; then
 			[ "$changes" != "0" ] 						&& gok "$msg" # TODO: переделать на использование либы 
 			[[ "$changes" == "0" && "$sync_remote_status" == "push" ]] 	&& gus
-			echo
 		  else
 		  	trace_prj $([ "$changes" != "0" ] && echo -n "changes != 0")
 		  	trace_prj $([ "$sync_remote_status" != "push" ] && echo -n "sync_remote_status != push")
 		  fi
-
-		#${red}none${norm}"
+		echo
 		)
 	  done
 	echo
