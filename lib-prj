@@ -553,7 +553,7 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 		changes=$(gis | wc -l)	# echo changes: $changes
 		trace_prj "changes:\t\t$changes" # 2> /dev/null 
 		echo -e "\n${grey_back} $trace_prj  $prj \t $prj_path${norm} "
-		if [ $changes -ne 0 ]; then
+		if [ "$changes" != "0" ]; then
 			gok "$msg" # TODO: переделать на использование либы 
 			echo
 		  fi
@@ -668,7 +668,6 @@ cmd_pull_all_projects(){	# pgetall <list>|.
 		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 		(
 		eval cd "$prj_path"
-		pwd
 		echo -e "\n ${grey_back} $prj_list  $prj \t $prj_path ${norm}"
 		changes=$(gis | wc -l) 
 		trace_prj "changes:\t\t$changes" # 2> /dev/null 
