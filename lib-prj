@@ -78,7 +78,7 @@ utils-prj-uninstall(){
 get_default_project_list () { 	# [<list>]
 	local project_list=$1
 	if [[ "$project_list" == "" ]]; then
-		project_list="$(eval cat "$utils_prj_configs/$host/default" | sed -E -n 's/^default_list=([^#]*)/\1/p' | tr -d '\r')"
+		project_list="$(eval cat "$utils_prj_configs/$utils_prj_the_host/default" | sed -E -n 's/^default_list=([^#]*)/\1/p' | tr -d '\r')"
 	 fi
 	echo "$project_list" # return value
 	}
@@ -405,16 +405,18 @@ cmd_state_of_one_project(){	# pstate <prj>
 	show_sync_needed_status false
 	)
 	}
-cmd_state_of_all_projects(){	# pst 	<list>|. 	# '.' for default list
+cmd_state_of_all_projects(){	# pst[x] <list>|. 	# '.' for default list
 	local prj_list=$1
 	[ "$prj_list" == "" ] && prj_list=default
 	[ "$remote_mode" == "" ] && remote_mode=false #$2
 	[ "$trace" == "" ] && trace=0 #$3
 	
-	[ "$trace" == "1" ] && echo -e "utils_prj_home:\t$utils_prj_home"
+	[ "$trace" == "1" ] && echo -e "utils_prj_home:\t\t$utils_prj_home"
 	[ "$trace" == "1" ] && echo -e "utils_prj_the_host:\t$utils_prj_the_host"
+	[ "$trace" == "1" ] && echo -e "remote_mode:\t\t$remote_mode"
 	
-	[[ "$prj_list" == "default" ]] && prj_list=$(get_default_project_list) ; [ "$trace" == "1" ] && echo -e "prj_list:\trace$prj_list"
+	[[ "$prj_list" == "default" ]] && prj_list=$(get_default_project_list)
+	[ "$trace" == "1" ] && echo -e "prj_list:\t\ttrace$prj_list"
 	#[[ "$remote_mode" == "" ]] && -e "${red}[lib-prj.:projects_state] 'remote_mode' param is not defined !${norm} " && return
 
 	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
@@ -430,7 +432,7 @@ cmd_state_of_all_projects(){	# pst 	<list>|. 	# '.' for default list
 		prj_file_norm=`eval echo $prj_file` #; echo prj_file_norm: $prj_file_norm
 		#echo sed -E -n 's/^path=([^#]+).*/\1/p' "$prj_file_norm"
 		#set -x
-		path=`sed -E -n 's/^path=([^#]+).*/\1/p' "$prj_file_norm" | tr -d '\r'` ;[ "$trace" == "1" ] && echo -e "path:\t\t$path"
+		path=`sed -E -n 's/^path=([^#]+).*/\1/p' "$prj_file_norm" | tr -d '\r'` ;[ "$trace" == "1" ] && echo -e "path:\t\t\t$path"
 		#set +x
 		prj_path_norm=`eval echo $path` #; echo prj_path_norm: $prj_path_norm
 		[[ ! -d $prj_path_norm ]] && echo -e "${red} Project path '$path' not found !${norm} " && continue
