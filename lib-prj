@@ -143,7 +143,7 @@ get_projectPath_findByName () {	# <prj>
 	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default | sed 's/^\.\///' ); do  #| tr -d '\r'
 		[ "$trace" == "1" ] && echo -e "prj_loop:\t$prj_loop" 1>&2
 		if [[ "$prj" == "$prj_loop" ]]; then
-			local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $utils_prj_configs/$host/$prj_loop | tr -d '\r')` # remove tilda for home path's
+			local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj_loop | tr -d '\r')` # remove tilda for home path's
 			echo $prj_path
 			return
 		  fi
@@ -469,7 +469,8 @@ cmd_save_one_projects(){	# psave <prj>|. [<msg>]
 
 	if [[ "$prj" == "." ]]; then 
 		curr_path=`eval echo $(pwd)` #; echo cur_path:$curr_path
-		prj_name=$(get_projectName_findByPath $curr_path) ; [ "$trace" == "1" ] && echo -e "prj_name:\t$prj_name"
+		prj_name=$(get_projectName_findByPath $curr_path)
+		[ "$trace" == "1" ] && echo -e "prj_name:\t$prj_name"
 		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $utils_prj_configs/$host !" && return
 		# save prj
 		echo "SAVING $prj_name: $curr_path"
@@ -478,9 +479,11 @@ cmd_save_one_projects(){	# psave <prj>|. [<msg>]
 	  fi
 
 	# find prj file by current path
-	local prj_path=$(get_projectPath_findByName $prj); [ "$trace" == "1" ] && echo -e "prj_path:\t$prj_path" #"$utils_prj_configs/$utils_prj_the_host" 
+	local prj_path=$(get_projectPath_findByName $prj)
+	[ "$trace" == "1" ] && echo -e "prj_path:\t$prj_path" #"$utils_prj_configs/$utils_prj_the_host" 
 	[ "$prj_path" == "" ] && echo -e "${red}[SAVE PROJECT] prj_path not found !${norm}" && return
-	local prj_path_norm=`eval echo $prj_path`; [ "$trace" == "1" ] && echo -e "prj_path_norm:\t$prj_path_norm"
+	local prj_path_norm=`eval echo $prj_path`
+	[ "$trace" == "1" ] && echo -e "prj_path_norm:\t$prj_path_norm"
 	#[[ "$prj_path_norm" == "" ]] && echo -e "${red}[SAVE PROJECT] project file '$utils_prj_configs/$utils_prj_the_host/$prj' not found !${norm}" && return
 	[[ ! -d "$prj_path_norm" ]] && echo -e "${red}[SAVE PROJECT] project path '$prj_path_norm' not found !${norm}" && return
 	# TODO: get prj vcs_type (svn, git)
