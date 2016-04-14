@@ -1,123 +1,61 @@
 #!/bin/bash
 #set -x ?? setopt??  to trace one func
+
+# globals: ==============================
 trace=0
-#utils_prj_home=$(home)
-#utils_prj_the_host=$(host)
-#utils_prj_configs=$(configs)
+utils_prj_home=$(dirname ${BASH_SOURCE[0]})
+utils_prj_the_host=$(uname -n)
+utils_prj_configs=`eval echo ~/.utils-prj`
 
-# todo: replace return to return
-# psets
-# psetadd
-# psetdel
-# psetren
-# todo: add matrix of using cmd_<utils-git>
-# todo: when cmd_<utils-git> absent - show not found m and prompt how to install
-# todo: replace all local home=.. by projects_home [ "$trace" == "1" ] && echo -e "projects_home:\t\t$projects_home"
-# todo: replace all local host=...
-# ~ - projects_configs
-# todo: oldpwd for *nix (~/.oldpwd for msys only)
-# todo: how add to man
-# todo: how add to repo 4 install by installer
-# todo: prj type: rsync  svn  simple(compare size / timestamp)
-# todo: reference impl : clone setup psetadd cd padd plist cd- pgo touch pstate pstx pget psave psync pcmd (reset) ...
-	# how todo remote commit (w/o push)
-#while :
-#do
-#    case "$1" in
-#    -h|--help) echo you picked A;;
-#    -*) usage "bad argument $1";;
-#    *) break;;
-#    esac
-#    shift
-#done
+# TODO: =================================
+	# project list commands
+	# psets
+	# psetadd
+	# psetdel
+	# psetren
+	# psetsw
 
-# тильда в пути в переменной - крэшит параметр для команд (cd ls ..)
-	# eval - http://stackoverflow.com/questions/11065077/eval-command-in-bash-and-its-typical-uses 
-	# re="~(.*)"; if [[ $path =~ $re ]]; then  path=${BASH_REMATCH[1]}; fi; cd $HOME$path
+	# correct cmd_edit_host_config
+	# rename list to set in helps ??
+	# pcmd <prj> (execute cmd in prj home folder)
+	# cmd_add_project(){ $3 - home_path
+	# verbose to trace
+	# empty params -> help
+	# pmove to another list
+	# plist add help header
 
-# service functions
-home() {
-	#local me=`basename "$0"`
-	dirname ${BASH_SOURCE[0]}
-	}
-host() {
-	uname -n #$HOSTNAME
-	#local host="$(cat $(home)/.cfg/default | sed -E -n 's/^host=([^#]*)/\1/p' | tr -d '\r')" # host alias (with remove trailing new line came from windows)
-	#echo $host # return value
-	}
-configs(){
-	#echo $(configs)
-	local path=`eval echo ~/.utils-prj`
-	echo "$path"
-	}	
-get_repos () {
-	local repos=$1
-	if [[ "$repos" == "" ]]; then
-		repos="$(eval cat "$(configs)/$host/default" | sed -E -n 's/^default_list=([^#]*)/\1/p' | tr -d '\r')"
-	 fi
-	echo "$repos" # return value
-	}
-find_prj () {
-	local root=$1
-	local prj=$2
-	[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT] root for project is missed !" 1>&2 && return
-	[[ "$prj" == "" ]] && echo "[LIB: FIND PROJECT] project name is missed !" 1>&2 && return
-	#echo "root:$root"
-	#echo "prj:$prj"
-	(
-	cd $root
-	find_path="find"; [[ "$TERM" == "cygwin" ]] && find_path="$EXEPATH/usr/bin/find"
-	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do #; echo "prj_loop: $prj_loop"
-		if [[ "$prj" == "$prj_loop" ]]; then
-			echo $prj_loop
-			return
-		  fi
-	  done
-	)
-  }
-find_prj_by_path () {
-	local trace=$3
-	local root=$1; [ "$trace" == "1" ] && echo "root:$root" 1>&2
-	local path=$2; [ "$trace" == "1" ] && echo "path:$path" 1>&2
-	[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT BY PATH] root for project is missed !" 1>&2 && return
-	[[ "$path" == "" ]] && echo "[LIB: FIND PROJECT BY PATH] path is missed !" 1>&2 && return
-	
-	(
-	cd $root
-	#[ $trace -eq 1] &&  pwd > 2
-	find_path="find"; [[ "$TERM" == "cygwin" ]] && find_path="$EXEPATH/usr/bin/find"
-	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do #; echo "prj_loop: $prj_loop"
-		[ "$trace" == "1" ] && echo -n "$prj_loop: $prj_path " 1>&2
-		prj_path=`eval echo $(sed -E -n 's/^path=([^#]+).*/\1/p' $(configs)/$host/$prj_loop | tr -d '\r')` ; [ "$trace" == "1" ] && echo "prj_path: $prj_path" 1>&2
-		if [[ "$path" == "$prj_path" ]]; then
-			echo $prj_loop
-		  fi
-	  done
-	)
-  }
-find_path_by_name () {
-	local root=$1
-	local prj=$2
-	local third=$3
-	[ "$third" != "" ] && echo "[LIB: FIND PROJECT PATH] third param is invalid!" 1>&2 && ([ "$trace" == "1" ] && echo -e "third:\t$third [find_path_by_name]" 1>&2) && return 
-	[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT PATH] root for project is missed !" 1>&2 && return ; [ "$trace" == "1" ] && echo -e "root:\t\t$root [find_path_by_name]" 1>&2
-	[[ "$prj" == "" ]] && echo "[LIB: FIND PROJECT PATH] project name is missed !" 1>&2 && return ; [ "$trace" == "1" ] && echo -e "prj:\t\t$prj [find_path_by_name]" 1>&2
-	(
-	cd $root
-	local find_path="find"; [[ "$TERM" == "cygwin" ]] && find_path="$EXEPATH/usr/bin/find"
-	for prj_loop in $($find_path .  -maxdepth 1 -type f ! -name "*.*" | sed 's/^\.\///' ); do  #| tr -d '\r'
-		[ "$trace" == "1" ] && echo -e "prj_loop:\t$prj_loop" 1>&2
-		if [[ "$prj" == "$prj_loop" ]]; then
-			local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $(configs)/$host/$prj_loop | tr -d '\r')` # remove tilda for home path's
-			echo $prj_path
-			return
-		  fi
-	  done
-	)
-  }
+	# support named params style: -v -h -n: -p: -l:(-s?) -m:"" 
+	# -n=<prj> -p=<path> -t=<type> -r=<remote> -l(s?)=<list(set?)>
+	#while :
+	#do
+	#    case "$1" in
+	#    -h|--help) ;;
+	#    -*) echo "invalid argument $1";;
+	#    *) break;;
+	#    esac
+	#    shift
+	#done
+		# todo: add matrix of using cmd_<utils-git>
+	# todo: when cmd_<utils-git> absent - show not found msg and prompt how to install
+	# todo: [ "$trace" == "1" ] && echo -e ".."
 
+	# todo: oldpwd for *nix (~/.oldpwd for msys only)
 
-# config functions
+	# todo: how add to man
+	# todo: how add to repo 4 install by installer
+
+	# todo: prj type: rsync  svn  simple(compare size / timestamp)
+
+	# todo: reference impl : clone setup psetadd cd padd plist cd- pgo touch pstate pstx pget psave psync pcmd (reset) ...
+		# how todo remote commit (w/o push)
+
+# release notes: ========================
+	# тильда в переменной для указания в пути домашней папки- крэшит команды (cd, ls ..)
+		# workaround: eval - http://stackoverflow.com/questions/11065077/eval-command-in-bash-and-its-typical-uses 
+		# re="~(.*)"; if [[ $path =~ $re ]]; then  path=${BASH_REMATCH[1]}; fi; cd $HOME$path
+	# to trace just set special var 'trace=1; <cmd>; trace=0'
+
+# install functions======================
 utils-prj-setup(){
 	echo "unreleased"
 	# check utils-git ->  if absent - msg - what commands willn't work
@@ -135,8 +73,108 @@ utils-prj-uninstall(){
 	# replace HOME_UTILS_PRJ in 'include'
 	# add '. ~/.utils-prj/include' to .bash_profile
 	}
-cmd_edit_host_config(){
-	# ped [<list>]
+
+# service functions======================
+get_default_project_list () { 	# [<list>]
+	local project_list=$1
+	if [[ "$project_list" == "" ]]; then
+		project_list="$(eval cat "$utils_prj_configs/$host/default" | sed -E -n 's/^default_list=([^#]*)/\1/p' | tr -d '\r')"
+	 fi
+	echo "$project_list" # return value
+	}
+get_project_name_verified () { 	# <prj>
+	#local root=$1 #echo "root:$root"
+	local prj=$1; [ "$trace" == "1" ] && echo -e "prj:\t\t$prj" 1>&2
+	#[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT] root for project is missed !" 1>&2 && return
+	[[ "$prj" == "" ]] && echo "[LIB: FIND PROJECT] project name is missed !" 1>&2 && return
+	
+	( # to restore path after cd
+	cd "$utils_prj_configs/$utils_prj_the_host" #$root
+	find_path="find" # linux/osx
+	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find" # in windows $EXEPATH ex. C:\app\git - std env by git bash
+	#$(cygpath-m "$EXEPATH") or canonpath after correct
+	[ "$trace" == "1" ] && echo -e "find_path:\t$find_path" 1>&2
+
+	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default | sed 's/^\.\///' ); do # all files w/o extensions
+		[ "$trace" == "1" ] && echo -e "prj_loop:\t$prj_loop" 1>&2
+		if [[ "$prj" == "$prj_loop" ]]; then
+			echo $prj_loop # return alias (name) of project if found
+			return
+		  fi
+	  done
+	)
+  }
+get_projectName_findByPath () { # <project_path>
+	# to test - bp; trace=1;get_projectName_findByPath "/c/app/utils-env"
+	local project_path=$1; 
+	[ "$2" != "" ] && local trace=$2
+	#[ "$trace" == "1" ] && echo -e "root:\t\t$utils_prj_configs/$utils_prj_the_host" 1>&2 # local root=$1; 
+	[ "$trace" == "1" ] && echo -e "project_path:\t$project_path" 1>&2
+	#[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT BY PATH] root for project is missed !" 1>&2 && return
+	[[ "$project_path" == "" ]] && echo "[get_projectName_findByPath] project_path is missed !" 1>&2 && return
+	
+	(
+	cd "$utils_prj_configs/$utils_prj_the_host" #[ $trace -eq 1 ] &&  pwd 
+	find_path="find"
+	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find"
+	[ "$trace" == "1" ] && echo -e "find_path:\t$find_path" 1>&2
+	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default | sed 's/^\.\///' ); do # all files w/o extensions
+		[ "$trace" == "1" ] && echo -e -n "prj_loop:\t$prj_loop " 1>&2
+		looped_path=`eval echo $(sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$host/$prj_loop | tr -d '\r')` 
+		[ "$trace" == "1" ] && echo -e "\tlooped_path:\t$looped_path" 1>&2
+		if [[ "$project_path" == "$looped_path" ]]; then
+			echo $prj_loop
+			return
+		  fi
+	  done
+	)
+  }
+get_projectPath_findByName () {	# <prj>
+	local prj=$1
+	local extra=$2
+	[ "$extra" != "" ] && echo "[get_projectPath_findByName] extra param is invalid!" 1>&2 && ([ "$trace" == "1" ] && echo -e "extra:\t$extra [get_projectPath_findByName]" 1>&2) && return 
+	#[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT PATH] root for project is missed !" 1>&2 && return ; [ "$trace" == "1" ] && echo -e "root:\t\t$root [get_projectPath_findByName]" 1>&2
+	[[ "$prj" == "" ]] && echo "[get_projectPath_findByName] project name is missed !" 1>&2 && return ; [ "$trace" == "1" ] && echo -e "prj:\t\t$prj [get_projectPath_findByName]" 1>&2
+	(
+	cd "$utils_prj_configs/$utils_prj_the_host"
+	local find_path="find"
+	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find"
+	[ "$trace" == "1" ] && echo -e "find_path:\t$find_path" 1>&2
+	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default | sed 's/^\.\///' ); do  #| tr -d '\r'
+		[ "$trace" == "1" ] && echo -e "prj_loop:\t$prj_loop" 1>&2
+		if [[ "$prj" == "$prj_loop" ]]; then
+			local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $utils_prj_configs/$host/$prj_loop | tr -d '\r')` # remove tilda for home path's
+			echo $prj_path
+			return
+		  fi
+	  done
+	)
+  }
+show_sync_needed_status(){	# <remote_mode>
+	local remote_mode=$1
+	[ "$remote_mode" == "" ] && remote_mode=false
+	local LOCAL=$(git rev-parse @)
+	if [[ "$remote_mode" == "true" ]]; then
+		local REMOTE=$(git ls-remote 2>/dev/null | awk "/HEAD/ {print \$1}")
+	  else
+		local REMOTE=$(git rev-parse @{u}) # from local
+	  fi
+	local BASE=$(git merge-base @ @{u})
+	#echo LOCAL:$LOCAL REMOTE:$REMOTE BASE:$BASE
+	if [ $LOCAL = $REMOTE ]; then
+		true #echo "Up-to-date"
+	  elif [ $LOCAL = $BASE ]; then
+		echo -e "${yellow} NEED TO PULL !${norm}"
+	  elif [ $REMOTE = $BASE ]; then
+		true #echo "Need to push"
+	  else
+		echo -e "${red_bright} DIVERGED !!${norm}"
+	  fi
+	}
+
+# config functions ======================
+cmd_edit_host_config(){		# ped	[<list>]
+	# ped [<list>]	
 	# edit default or specified repo list
 
 	utility_path=$(echo "`dirname \"$0\"`")
@@ -153,23 +191,23 @@ cmd_edit_host_config(){
 
 	ed $repos
 	}
-cmd_list_projects(){
+cmd_list_projects(){		# plist	[<list>]
 	# plist <list>
-	home=$(home) # echo home: $home
-	host=$(host) # echo host: $host
-	repos=$1; repos=$(get_repos $repos) 
+	# echo utils_prj_the_host: $utils_prj_the_host
+	prj_list=$1
+	prj_list=$(get_default_project_list $prj_list)  # verify
 	#echo REPO LIST: $repos
 	echo "========= $repos ========="
 
-	for repo in $(cat $(configs)/$host/$repos.list | sed -e /^$/d | tr -d '\r' | sort); do 
-		repo=`echo $repo` #normalize
-		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $(configs)/$host/$repo | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
+	for prj_name in $(cat $utils_prj_configs/$utils_prj_the_host/$repos.list | sed -e /^$/d | tr -d '\r' | sort); do 
+		prj_name=`echo $prj_name` #normalize
+		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj_name | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 		( # to return curr path
-		echo -e "$repo:\t$path"
+		echo -e "$prj_name:\t$path"
 		)
 	  done
 	}
-cmd_add_project(){
+cmd_add_project(){		# padd	<prj> [<list>] 
 	# cmd_add_project <prj> [<list>] 
 	# cmd_add_project -n=<prj> -p=<path> -t=<type> -r=<remote> -s=<set>
 	local prj_name=$1
@@ -181,11 +219,11 @@ cmd_add_project(){
 	# TODO: detect repo type (git/svn/hg - .git foder / .svn folder? / ..)
 	# TODO: return when curr_path not repo
 
-	home=$(home); [ "$trace" == "1" ] && echo -e "home:\t\t$home"
+	home=$(home); [ "$trace" == "1" ] && echo -e "home:\t\t$utils_prj_home"
 	host=$(host); [ "$trace" == "1" ] && echo -e "host:\t\t$host"
 
 	if [[ "$prj_list" == "" ]]; then
-		prj_list_default=$(get_repos); [ "$trace" == "1" ] && echo -e "default_list:\t $prj_list_default"
+		prj_list_default=$(get_default_project_list); [ "$trace" == "1" ] && echo -e "default_list:\t $prj_list_default"
 		[ "$prj_list_default" == "" ] && echo -e "${red}[PROJECT ADD] prj_list_default not found !${norm}" && return
 		prj_list="$prj_list_default.list"
 	  else
@@ -193,7 +231,7 @@ cmd_add_project(){
 	  fi
 	[ "$trace" == "1" ] && echo -e "prj_list:\t$prj_list"
 		
-	prj_file="$(configs)/$host/$prj_name"
+	prj_file="$utils_prj_configs/$host/$prj_name"
 	 [ "$trace" == "1" ] && echo -e "prj_file:\t$prj_file"
 	[[ -f $prj_file ]] && echo -e "${red}[PROJECT ADD] Project already exists${norm}" && return
 
@@ -203,7 +241,7 @@ cmd_add_project(){
 
 	# TODO: test prj_name in list
 	# TODO: detect tail CR and don't append \n
-	prj_list="$(configs)/$host/$prj_list"
+	prj_list="$utils_prj_configs/$host/$prj_list"
 	echo -e "$prj_name" >> "$prj_list"
 	# TODO: if file exists but absenr in default list then add
 
@@ -232,9 +270,8 @@ cmd_delete_project(){
 	# extract path
 	# if path == $path then rm
 	}
-cmd_move_project(){
-	# pren <prj> [<list>] - upd path of prj (find prj by name)
-	# pren -n=<prj> -p=<path> -t=<type> -r=<remote> -s=<set>
+cmd_move_project(){		# pmove	<prj>|. [<list>]
+	# pmove <prj> [<list>] - upd path of prj (find prj by name)
 
 	prj_name=$1
 	#[[ "$prj_name" == "" ]] && echo -e "${red}[PROJECT MOVE] Project name is missed !${norm}" && return
@@ -245,11 +282,10 @@ cmd_move_project(){
 
 	# TODO: detect repo type (git/svn/hg - .git foder / .svn folder? / ..) and return if new_path not a repo 
 
-	home=$(home) # echo home: $home
-	host=$(host) # echo host: $host
+	# echo host: $host
 
 	if [[ "$list" == "" ]]; then
-		prj_list=$(get_repos).list 
+		prj_list=$(get_default_project_list).list 
 	  else
 	  	prj_list="$list.list"
 	  fi
@@ -257,13 +293,13 @@ cmd_move_project(){
 	# TODO: test prj in list
 	#return
 
-	[[ ! -f "$(configs)/$host/$prj_name" ]] && echo -e "${red}[PROJECT MOVE] Project file not found (by name) !${norm}" && return
-	#echo sed -i '' -E "'s/^(path=)(.*)/\1${curr_path//\//\\/}/g'" "$home/.cfg/$host/$prj_name" #;  return 
-	sed -i -E "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$(configs)/$host/$prj_name" || return 
+	[[ ! -f "$utils_prj_configs/$utils_prj_the_host/$prj_name" ]] && echo -e "${red}[PROJECT MOVE] Project file not found (by name) !${norm}" && return
+	#echo sed -i '' -E "'s/^(path=)(.*)/\1${curr_path//\//\\/}/g'" "$utils_prj_configs/$utils_prj_the_host/$prj_name" #;  return 
+	sed -i -E "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$utils_prj_configs/$utils_prj_the_host/$prj_name" || return #  replace home path
 
-	plist
+	cmd_list_projects # plist
 	}
-cmd_rename_project(){
+cmd_rename_project(){		# ren 	<prj>
 	# pren <prj> [<list>]  - rename prj name (alias) (find prj by curr_path)
 	# pren -n=<prj> -p=<path> -t=<type> -r=<remote> -s=<set>
 
@@ -277,11 +313,11 @@ cmd_rename_project(){
 
 	# TODO: detect repo type (git/svn/hg - .git foder / .svn folder? / ..) and return if new_path not a repo 
 
-	home=$(home) ; [ $trace -eq 1 ] && echo home: $home
-	host=$(host) ; [ $trace -eq 1 ] && echo host: $host
+	[ $trace -eq 1 ] && echo -e "utils-home:\t$utils_prj_home"
+	[ $trace -eq 1 ] && echo -e "utils_prj_the_host: $utils_prj_the_host"
 
 	if [[ "$list" == "" ]]; then
-		prj_list=$(get_repos).list 
+		prj_list=$(get_default_project_list).list 
 	  else
 	  	prj_list="$list.list"
 	  fi
@@ -290,13 +326,13 @@ cmd_rename_project(){
 	#return
 	curr_path=`eval echo $curr_path` # replace '~'' -> $HOME
 
-	curr_prj_name=$(find_prj_by_path "$home/.cfg/$host" $curr_path $trace) ; [ $trace -eq 1 ] && echo curr_prj_name: $curr_prj_name	 #old prj name
+	curr_prj_name=$(get_projectName_findByPath $curr_path $trace) ; [ $trace -eq 1 ] && echo curr_prj_name: $curr_prj_name	 #old prj name
 	[[ "$curr_prj_name" == "" ]] && echo -e "${red}[PROJECT RENAME] Project file not found !${norm}" && return
-	  #prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $home/.cfg/$host/$new_prj_name | tr -d '\r'` #; echo curr_path: $prj_path
-	#echo sed -i "s/^$curr_prj_name\$/$new_prj_name/g" "$home/.cfg/$host/$prj_list" ; return
-	mv "$(configs)/$host/$curr_prj_name" "$(configs)/$host/$new_prj_name" || return
+	  #prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$host/$new_prj_name | tr -d '\r'` #; echo curr_path: $prj_path
+	#echo sed -i "s/^$curr_prj_name\$/$new_prj_name/g" "$utils_prj_configs/$host/$prj_list" ; return
+	mv "$utils_prj_configs/$utils_prj_the_host/$curr_prj_name" "$utils_prj_configs/$utils_prj_the_host/$new_prj_name" || return
 
-	sed -i -E "s/^$curr_prj_name\$/$new_prj_name/g" "$(configs)/$host/$prj_list" || return # sed -i "s/^jr$/jrhw/g" `echo $home/.cfg/$host/$(get_repos).list`
+	sed -i -E "s/^$curr_prj_name\$/$new_prj_name/g" "$utils_prj_configs/$utils_prj_the_host/$prj_list" || return # sed -i "s/^jr$/jrhw/g" `echo $utils_prj_configs/$utils_prj_the_host/$(get_default_project_list).list`
 
 	#echo "path=$new_path" 	>  $prj_path
 	#echo "type=git" 	>> $prj_file
@@ -315,10 +351,9 @@ cmd_rename_project(){
 	}
 #cmd_edit_host_config
 
-# navigate and state functions
-cmd_go_to_project_home(){
-	# . pgo <project> 
-	# . pgo <repo> <in_list?>
+# navigate and state functions===========
+cmd_go_to_project_home(){	# pgo 	<prj> [<list>?] # dubl aliases?
+	# pgo <project> 
 	#trace=0
 	[ $SHLVL -gt 1 ] && echo "[GO TO PROJECT] Subshell can't change path after return ! CORRECT USE: '. pgo <project>'" 1>&2 && return
 	#if expr match $parent $(which vim) > /dev/null
@@ -329,15 +364,15 @@ cmd_go_to_project_home(){
 	project="$1" # test 1st param - prj name
 	[[ "$project" == "" ]] && echo "[GO TO PROJECT] project name is missed !"
 
-	home=$(home) ; [ $trace -eq 1 ] && echo home: $home
-	host=$(host) ; [ $trace -eq 1 ] && echo host: $host
-		# repos=$1; repos=$(get_repos $repos) # echo repos: $repos
-	#echo path: "$home/.cfg/$host" 
-	#find_prj "$home/.cfg/$host" $project
-	prj_repo=$(find_prj "$(configs)/$host" $project) ; [ $trace -eq 1 ] &&  echo prj_repo: $prj_repo
+	[ $trace -eq 1 ] && echo -e "utils_prj_home: $utils_prj_home"
+	[ $trace -eq 1 ] && echo -e "utils_prj_the_host: $utils_prj_the_host"
+		# repos=$1; repos=$(get_default_project_list $repos) # echo repos: $repos
+	#echo path: "$utils_prj_configs/$utils_prj_the_host" 
+	#get_project_name_verified "$utils_prj_configs/$utils_prj_the_host" $project
+	prj_repo=$(get_project_name_verified $project) ; [ $trace -eq 1 ] &&  echo prj_repo: $prj_repo # "$utils_prj_configs/$utils_prj_the_host" 
 	[[ "$prj_repo" == "" ]] && echo "[GO TO PROJECT] project '$project' not found !" && return
 	# extract path of repo
-	project_path="$(sed -E -n 's/^path=([^#]*)/\1/p' $(configs)/$host/$prj_repo | tr -d '\r')" ; [ $trace -eq 1 ] && echo repo_path: $repo_path
+	project_path="$(sed -E -n 's/^path=([^#]*)/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj_repo | tr -d '\r')" ; [ $trace -eq 1 ] && echo repo_path: $repo_path
 
 	echo "go to: $project_path"
 	# ??TODO: test $path exists
@@ -345,50 +380,49 @@ cmd_go_to_project_home(){
 	if [ "$ConEmuPID" != "" ]; then $ConEmuBaseDir/ConEmuC -GuiMacro Rename 0 "${PWD##*/}" 1> /dev/null; fi
 	if [ "$TERM_PROGRAM" == "Apple_Terminal" ]; then echo -ne "\033]0;${PWD##*/}\007"; fi
 	}
-cmd_state_of_one_project(){
+cmd_state_of_one_project(){	# pstate <prj>
 	# pstate <prj>
-
 	prj=$1
-
-	home=$(home) # echo home: $home
-	host=$(host) # echo host: $host
-	#default_repos=$(get_repos) #echo default_repos: $default_repos  #repos=$1; 
-
+	# echo home: $home
+	# echo utils_prj_the_host: $utils_prj_the_host
 	if [[ "$prj" == "" ]]; then 
 		curr_path=`eval echo $(pwd)`; [ "$trace" == "1" ] && echo -e "cur_path:\t$curr_path"
-		prj_name=$(find_prj_by_path "$(configs)/$host" $curr_path); [ "$trace" == "1" ] && echo -e "prj_name:\t$prj_name"
-		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $(configs)/$host !" && return
+		prj_name=$(get_projectName_findByPath $curr_path); [ "$trace" == "1" ] && echo -e "prj_name:\t$prj_name"
+		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $utils_prj_configs/$utils_prj_the_host !" && return
 		# save prj
 		gis
-		#todo : remote / local / base
+		show_sync_needed_status false
 		return
 	  fi
 
 	# find prj file by current path
-	prj_path=$(find_path_by_name "$(configs)/$host" $prj)
+	prj_path=$(get_projectPath_findByName $prj) #"$utils_prj_configs/$utils_prj_the_host" 
 	# TODO: get prj vcs_type (svn, git)
 	( # to return current path
 	echo -e "$prj:\t$prj_path"
 	eval cd "$prj_path"
 	gis
+	show_sync_needed_status false
 	)
 	}
-cmd_state_of_all_projects(){
-	local prj_list=$1; [[ "$prj_list" == "" ]] && prj_list=default
-	[ "$remote_mode" == "" ] && remote_mode=0 #$2
-	[[ "$trace" == "" ]] && trace=0 #$3
-	local home=$(home); [ "$trace" == "1" ] && echo -e "home:\t\t$home"
-	local host=$(host); [ "$trace" == "1" ] && echo -e "host:\t\t$host"
+cmd_state_of_all_projects(){	# pst 	<list>|. 	# '.' for default list
+	local prj_list=$1
+	[ "$prj_list" == "" ] && prj_list=default
+	[ "$remote_mode" == "" ] && remote_mode=false #$2
+	[ "$trace" == "" ] && trace=0 #$3
 	
-	[[ "$prj_list" == "default" ]] && prj_list=$(get_repos) ; [ "$trace" == "1" ] && echo -e "prj_list:\trace$prj_list"
-	[[ "$remote_mode" == "" ]] && -e "${red}[lib-prj.:projects_state] 'remote_mode' param is not defined !${norm} " && return
+	[ "$trace" == "1" ] && echo -e "utils_prj_home:\t$utils_prj_home"
+	[ "$trace" == "1" ] && echo -e "utils_prj_the_host:\t$utils_prj_the_host"
+	
+	[[ "$prj_list" == "default" ]] && prj_list=$(get_default_project_list) ; [ "$trace" == "1" ] && echo -e "prj_list:\trace$prj_list"
+	#[[ "$remote_mode" == "" ]] && -e "${red}[lib-prj.:projects_state] 'remote_mode' param is not defined !${norm} " && return
 
-	for prj in $(cat $(configs)/$host/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
+	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
 		prj=`echo $prj` # normalize
-		prj_file=`echo $(configs)/$host/$prj`
+		prj_file=`echo $utils_prj_configs/$utils_prj_the_host/$prj`
 		if [[ ! -f "$prj_file" ]]; then
-			#echo prj: $(configs)/$host/$prj
-			#cat $(configs)/$host/$prj
+			#echo prj: $utils_prj_configs/$utils_prj_the_host/$prj
+			#cat $utils_prj_configs/$utils_prj_the_host/$prj
 			echo -e "${red} Project file '$prj_file' not found !${norm} "
 			continue
 		  fi
@@ -411,46 +445,30 @@ cmd_state_of_all_projects(){
 			git status -s --untracked-files
 		  fi
 
-		LOCAL=$(git rev-parse @)
-		if [[ "$remote_mode" == "1" ]]; then
-			REMOTE=$(git ls-remote 2>/dev/null | awk "/HEAD/ {print \$1}")
-		  else
-			REMOTE=$(git rev-parse @{u}) # from local
-		  fi
-		BASE=$(git merge-base @ @{u})
-		#echo LOCAL:$LOCAL REMOTE:$REMOTE BASE:$BASE
-		if [ $LOCAL = $REMOTE ]; then
-			true #echo "Up-to-date"
-		  elif [ $LOCAL = $BASE ]; then
-			echo -e "${yellow} NEED TO PULL !${norm}"
-		  elif [ $REMOTE = $BASE ]; then
-			true #echo "Need to push"
-		  else
-			echo -e "${red_bright}DIVERGED !!${norm}"
-		  fi
+		show_sync_needed_status $remote_mode
 		)
 	  done
 	echo
 	}
 
-cmd_save_one_projects(){
+# data sync =============================
+cmd_save_one_projects(){	# psave <prj>|. [<msg>]
 	# psave <prj> <msg> # save prj-repo (add/commit/push)
 	# todo: . <msg>
-	# test 1st param - repo name
 	# to trace - 'bp; trace=1; psave kj'
 	local prj=$1
 	local msg=$2
 	
 	[ "$prj" == "" ] && echo "psave <prj>|. [<msg>]" && return 
 	[ "$trace" == "1" ] && echo -e "prj:\t\t$prj"
-	local home=$(home) 			# echo home: $home
-	local host=$(host) 			# echo host: $host
-	#default_repos=$(get_repos) 	# echo default_repos: $default_repos  # get default repos  
+	# echo utils_prj_home: $utils_prj_home
+	# echo utils_prj_the_host: $utils_prj_the_host
+	#default_repos=$(get_default_project_list) 	# echo default_repos: $default_repos  # get default repos  
 
 	if [[ "$prj" == "." ]]; then 
 		curr_path=`eval echo $(pwd)` #; echo cur_path:$curr_path
-		prj_name=$(find_prj_by_path "$(configs)/$host" $curr_path) ; [ "$trace" == "1" ] && echo -e "prj_name:\t$prj_name"
-		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $(configs)/$host !" && return
+		prj_name=$(get_projectName_findByPath $curr_path) ; [ "$trace" == "1" ] && echo -e "prj_name:\t$prj_name"
+		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $utils_prj_configs/$host !" && return
 		# save prj
 		echo "SAVING $prj_name: $curr_path"
 		gok
@@ -458,10 +476,10 @@ cmd_save_one_projects(){
 	  fi
 
 	# find prj file by current path
-	local prj_path=$(find_path_by_name "$(configs)/$host" $prj); [ "$trace" == "1" ] && echo -e "prj_path:\t$prj_path"
+	local prj_path=$(get_projectPath_findByName $prj); [ "$trace" == "1" ] && echo -e "prj_path:\t$prj_path" #"$utils_prj_configs/$utils_prj_the_host" 
 	[ "$prj_path" == "" ] && echo -e "${red}[SAVE PROJECT] prj_path not found !${norm}" && return
 	local prj_path_norm=`eval echo $prj_path`; [ "$trace" == "1" ] && echo -e "prj_path_norm:\t$prj_path_norm"
-	#[[ "$prj_path_norm" == "" ]] && echo -e "${red}[SAVE PROJECT] project file '$(configs)/$host/$prj' not found !${norm}" && return
+	#[[ "$prj_path_norm" == "" ]] && echo -e "${red}[SAVE PROJECT] project file '$utils_prj_configs/$utils_prj_the_host/$prj' not found !${norm}" && return
 	[[ ! -d "$prj_path_norm" ]] && echo -e "${red}[SAVE PROJECT] project path '$prj_path_norm' not found !${norm}" && return
 	# TODO: get prj vcs_type (svn, git)
 	# TODO: get prj remote
@@ -473,22 +491,20 @@ cmd_save_one_projects(){
 	)
 	# TODO: test uncommited (untracked, changed, deleted, staged)
 	}
-cmd_save_all_projects(){
+cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 	# psavall <msg> <list>  # save every prj in list (add/commit/push)
 	list=$1
 	msg=$2
 
-	# todo: local home=$projects_home
-	# todo: local host=$projects_host
-	local home=$(home); [ "$trace" == "1" ] && echo -e "home:\t\t$home"
-	local host=$(host); [ "$trace" == "1" ] && echo -e "host:\t\t$host"
+	[ "$trace" == "1" ] && echo -e "utils_prj_home:\t$utils_prj_home"
+	[ "$trace" == "1" ] && echo -e "utils_prj_the_host:\t$utils_prj_the_host"
 
 	[[ "$list" == "." ]] && list="" # trik to save default
-	[[ "$list" == "" ]] && list=$(get_repos)
+	[[ "$list" == "" ]] && list=$(get_default_project_list)
 	# echo list: $list  		# get default repos list
 
-	for prj in $(cat $(configs)/$host/$list.list | tr -d '\r' | sort); do 
-		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $(configs)/$host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
+	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$list.list | tr -d '\r' | sort); do 
+		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 		(
 		eval cd "$path"
 		changes=$(gis | wc -l)	# echo changes: $changes
@@ -503,20 +519,19 @@ cmd_save_all_projects(){
 
 	# TODO: test uncommited (untracked, changed, deleted, staged)
 	}
-cmd_save_one_project_at_local(){
+cmd_save_one_project_at_local(){ # pfix <prj> <msg>
 	# pfix <prj> <msg> # save prj-repo (add/commit/push)
 
 	prj=$1
 	msg=$2
 
-	home=$(home) 			# echo home: $home
-	host=$(host) 			# echo host: $host
-	#default_repos=$(get_repos) 	# echo default_repos: $default_repos  # get default repos  
+	# echo utils_prj_the_host: $utils_prj_the_host
+	#default_repos=$(get_default_project_list) 	# echo default_repos: $default_repos  # get default repos  
 
 	if [[ "$prj" == "" ]]; then 
 		curr_path=`eval echo $(pwd)` #; echo cur_path:$curr_path
-		prj_name=$(find_prj_by_path "$(configs)/$host" $curr_path) #; echo prj_name: $prj_name
-		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $(configs)/$host !" && return
+		prj_name=$(get_projectName_findByPath $curr_path) #; echo prj_name: $prj_name
+		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $utils_prj_configs/$utils_prj_the_host !" && return
 		# save prj
 		echo "SAVING $prj_name: $curr_path"
 		gac "$msg" 
@@ -524,8 +539,8 @@ cmd_save_one_project_at_local(){
 	  fi
 
 	# find prj file by current path
-	prj_path=$(find_path_by_name "$(configs)/$host" $curr_path $prj)
-	[[ "$prj_path" == "" ]] && echo  "[SAVE PROJECT] project file '$(configs)/$host/$prj' not found !" && return
+	prj_path=$(get_projectPath_findByName $curr_path $prj) #"$utils_prj_configs/$utils_prj_the_host"
+	[[ "$prj_path" == "" ]] && echo  "[SAVE PROJECT] project file '$utils_prj_configs/$utils_prj_the_host/$prj' not found !" && return
 	# TODO: get prj vcs_type (svn, git)
 	# TODO: get prj remote
 	( # to return current path
@@ -536,21 +551,20 @@ cmd_save_one_project_at_local(){
 
 	# TODO: test uncommited (untracked, changed, deleted, staged)
 	}
-cmd_pull_one_project(){
+cmd_pull_one_project(){		# pget 	<prj> 
 	# pget <prj> 
 
 	#trace=0
 	prj=$1
 	msg=$2
 	#[ $trace == 1 ] && echo start
-	home=$(home) ; [ $trace == 1 ] && echo home: $home
-	host=$(host) ; [ $trace == 1 ] && echo host: $host
+	[ $trace == 1 ] && echo -e "utils_prj_the_host:\t$utils_prj_the_host"
 
 	curr_path=$(pwd) ; [ $trace == 1 ] && echo curr_path: $curr_path	
 	if [[ "$prj" == "" ]]; then 
 		curr_path=`eval echo $(pwd)` #; echo cur_path:$curr_path
-		prj_name=$(find_prj_by_path "$(configs)/$host" $curr_path) #; echo prj_name: $prj_name
-		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $(configs)/$host !" && return
+		prj_name=$(get_projectName_findByPath $curr_path) #; echo prj_name: $prj_name
+		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $utils_prj_configs/$utils_prj_the_host !" && return
 		# get prj (update)
 		echo "GETTING $prj_name: $curr_path"
 		gul
@@ -558,7 +572,7 @@ cmd_pull_one_project(){
 	  fi
 
 	# find prj file by current path
-	prj_path=$(find_path_by_name "$(configs)/$host" "$prj"); [ $trace == 1 ] && echo prj_path: $prj_path
+	prj_path=$(get_projectPath_findByName "$prj"); [ $trace == 1 ] && echo prj_path: $prj_path # "$utils_prj_configs/$utils_prj_the_host"
 	[[ "$prj_path" == "" ]] && echo -e "${red}[PROJECT GET] Project path not found (by name: $prj) ! ${norm}" && return
 	# TODO: get prj vcs_type (svn, git)
 	# TODO: get prj remote
@@ -569,18 +583,18 @@ cmd_pull_one_project(){
 	)
 	# TODO: test uncommited (untracked, changed, deleted, staged)
 	}
-cmd_pull_all_projects(){
-	# pgetall > <list> # save every prj in list (add/commit/push)
+cmd_pull_all_projects(){	# pgetall <list>|.
+	# pgetall <list> # save every prj in list (add/commit/push)
 	list=$1
 
-	home=$(home) 			# echo home: $home
-	host=$(host) 			# echo host: $host
+	# echo home: $home
+	# echo utils_prj_the_host: $utils_prj_the_host
 	[[ "$list" == "." ]] && list="" # trik to save default
-	[[ "$list" == "" ]] && list=$(get_repos)
+	[[ "$list" == "" ]] && list=$(get_default_project_list)
 	# echo list: $list  		# get default repos list
 
-	for prj in $(cat $(configs)/$host/$list.list | tr -d '\r'); do 
-		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $(configs)/$host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
+	for prj in $(cat $utils_prj_configs/$host/$list.list | tr -d '\r'); do 
+		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 		(
 		eval cd "$path"
 
@@ -611,20 +625,20 @@ cmd_pull_all_projects(){
 	  done
 	# TODO: test uncommited (untracked, changed, deleted, staged)
 	}
-cmd_sync_one_project(){
+cmd_sync_one_project(){		# psync <prj>|. [<msg>]
 	# psync <prj> <msg> # a) fix prj when need (add/commit) 2) pull when need  3) push when need
 
 	# test 1st param - repo name
 	prj=$1
 	msg=$2
 
-	home=$(home) 			# echo home: $home
-	host=$(host) 			# echo host: $host
+	# echo home: $home
+	# echo utils_prj_the_host: $utils_prj_the_host
 
 	if [[ "$prj" == "" ]]; then 
 		curr_path=$(pwd) #; echo cur_path:$curr_path # replace 
-		prj_name=$(find_prj_by_path "$(configs)/$host" $curr_path) #; echo prj_name: $prj_name
-		[[ "$prj_name" == "" ]] && echo "[PROJECT SYNC] project name is missed  and  not found by 'path=' in $(configs)/$host !" && return
+		prj_name=$(get_projectName_findByPath $curr_path) #; echo prj_name: $prj_name
+		[[ "$prj_name" == "" ]] && echo "[PROJECT SYNC] project name is missed  and  not found by 'path=' in $utils_prj_configs/$host !" && return
 	  fi
 
 	# TODO: get prj vcs_type (svn, git)

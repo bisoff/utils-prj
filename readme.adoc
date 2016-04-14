@@ -1,19 +1,38 @@
 == What for
-rapid/bulk projects control and sync
+cli utility for 
+- to rapid control dozens of projects (switch context to set of projects; go to home project folder; bulk state review, fix and sync)
+- use simple mode to fast switch favorite folders
 
 == Setup
 
 
 == Prerequisites
 
-requires utils-git library commands
-	cmd_projects_state		gis
+- to control git projects requires utils-git library (extra shell commands)
+	cmd_state_of_one_project	gis
 	cmd_save_all_projects		gis,gok
 	cmd_save_project_at_local	gac
+- requires utils-env library to print colored messages (w/o it will use current color only)
+- requires git in PATH for projects of the type
 
-== Configure
+== Compatibility
+tested on 
+	msys(git)
+	osx
+	linux
 
-=== Folder/file/content
+== Ref impl
+clone
+setup (make configs in user's home dir) add $host subfld
+psetadd
+padd
+plist
+pst
+pgo
+pstate
+
+
+== Folder/file/content
 .cfg-FOLDER
 	<host1>-FOLDER
 		default-FILE
@@ -43,7 +62,7 @@ requires utils-git library commands
 			...
 		<prj_alias_2>-FILE
 			...
-=== Commands
+== Commands
   setup
   pcfg
 pel		edit library (lib-prj)
@@ -51,7 +70,7 @@ padd
 pmove		
 pren		
 
-== State commands
+== Control
 plist		[<list>]		list projects (from <the_host>.<list|default_list>): <alias>: home path
 pst		
 pstx		
@@ -67,14 +86,6 @@ psaveall
 
 == Navigate command
 pgo		change dir to project home dir
-
-
-  pdel
-  ped
-  pula
-  pull
-  pusa
-  pcmd ''
 
 == Misc
 lib-prj		utility library
