@@ -483,7 +483,7 @@ cmd_state_of_all_projects(){	# pst[x] <list>|. 	# '.' for default list
 		echo -e "${grey_back} $prj_list  $prj \t $prj_path ${norm}"
 		[ $changes -ne 0 ] && git status -s --untracked-files
 
-		sync_remote_status=$(get_sync_status $remote_mode "notice" no_trace)
+		local sync_remote_status=$(get_sync_status $remote_mode "notice" no_trace)
 		trace_prj "sync_remote_status:\t$sync_remote_status"
 		#[[ "$changes" != "0" || "$sync_remote_status" != "ok" ]] && 
 		echo
@@ -548,15 +548,23 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 
 	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$trace_prj.list | tr -d '\r' | sort); do 
 		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
+		trace_prj "prj_path:\t\t$prj_path"
 		(
 		eval cd "$prj_path"
 		changes=$(gis | wc -l)	# echo changes: $changes
-		trace_prj "changes:\t\t$changes" # 2> /dev/null 
 		echo -e "\n${grey_back} $trace_prj  $prj \t $prj_path${norm} "
-		if [ "$changes" != "0" ]; then
-			gok "$msg" # TODO: переделать на использование либы 
+		trace_prj "changes:\t\t$changes" # 2> /dev/null 
+		if [[ "$changes" == "0" ]]; then
+			local sync_remote_status=$(get_sync_status remote silent no_trace)
+			trace_prj "sync_remote_status:\t$sync_remote_status" # 2> /dev/null 
+		  fi
+
+		if [[ "$changes" != "0" || "$sync_remote_status	" == "push" ]]; then
+			[ "$changes" != "0" ] 						&& gok "$msg" # TODO: переделать на использование либы 
+			[ "$changes" == "0" && "$sync_remote_status" == "push" ] 	&& gus
 			echo
 		  fi
+
 		#${red}none${norm}"
 		)
 	  done
