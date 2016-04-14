@@ -539,7 +539,7 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 		(
 		eval cd "$path"
 		changes=$(gis | wc -l)	# echo changes: $changes
-		echo -e "\n ${grey_back}$list  $prj \t $path${norm} "
+		echo -e "\n${grey_back} $list  $prj \t $path${norm} "
 		if [ $changes -ne 0 ]; then
 			gok "$msg" # TODO: переделать на использование либы 
 			echo
