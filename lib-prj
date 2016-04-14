@@ -430,7 +430,7 @@ cmd_state_of_all_projects(){	# pst 	<list>|. 	# '.' for default list
 		prj_file_norm=`eval echo $prj_file` #; echo prj_file_norm: $prj_file_norm
 		#echo sed -E -n 's/^path=([^#]+).*/\1/p' "$prj_file_norm"
 		#set -x
-		path=`sed -E -n 's/^path=([^#]+).*/\1/p' "$prj_file_norm" | tr -d '\r'` ;[ $trace -eq 1 ] && echo -e "path:\t\t$path"
+		path=`sed -E -n 's/^path=([^#]+).*/\1/p' "$prj_file_norm" | tr -d '\r'` ;[ "$trace" == "1" ] && echo -e "path:\t\t$path"
 		#set +x
 		prj_path_norm=`eval echo $path` #; echo prj_path_norm: $prj_path_norm
 		[[ ! -d $prj_path_norm ]] && echo -e "${red} Project path '$path' not found !${norm} " && continue
