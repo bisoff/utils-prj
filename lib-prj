@@ -637,7 +637,10 @@ cmd_pull_all_projects(){	# pgetall <list>|.
 			compare_status=$(show_sync_needed_status)
 			trace_prj "compare_status:\t$compare_status"
 			[ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
-			[ "$compare_status" == "pull" ] && gul
+			if [ "$compare_status" == "pull" ]; then
+				gul
+				git diff --stat=200 HEAD~1 HEAD --color | sed -n '$! p' # files in last commit 
+			  fi
 		  else
     		  	gis
 		  fi
