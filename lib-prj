@@ -624,7 +624,7 @@ cmd_pull_all_projects(){	# pgetall <list>|.
 	[[ "$prj_list" == "" ]] && prj_list=$(get_default_project_list)
 	trace_prj "prj_list:\t\t$prj_list" # get default repos list
 
-	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$prj_list.list | tr -d '\r'); do 
+	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$prj_list.list | tr -d '\r' | sort ); do 
 		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 		(
 		eval cd "$path"
