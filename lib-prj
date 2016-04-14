@@ -563,6 +563,9 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 			[ "$changes" != "0" ] 						&& gok "$msg" # TODO: переделать на использование либы 
 			[ "$changes" == "0" && "$sync_remote_status" == "push" ] 	&& gus
 			echo
+		  else
+		  	trace_prj $([ "$changes" != "0" ] && echo "changes != 0")
+		  	trace_prj $([ "$sync_remote_status" != "push" ] && echo "sync_remote_status != push")
 		  fi
 
 		#${red}none${norm}"
