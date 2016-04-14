@@ -547,7 +547,7 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 		#${red}none${norm}"
 		)
 	  done
-
+	echo
 	# TODO: test uncommited (untracked, changed, deleted, staged)
 	}
 cmd_save_one_project_at_local(){ # pfix <prj> <msg>
