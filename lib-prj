@@ -539,7 +539,7 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 	trace_prj=$1
 	msg=$2
 
-	[ "$trace" == "1" ] && echo -e "utils_prj_home:\t$utils_prj_home"
+	[ "$trace" == "1" ] && echo -e "utils_prj_home:\t\t$utils_prj_home"
 	[ "$trace" == "1" ] && echo -e "utils_prj_the_host:\t$utils_prj_the_host"
 
 	[[ "$trace_prj" == "." ]] && trace_prj="" # trik to save default
@@ -561,11 +561,11 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 
 		if [[ "$changes" != "0" || "$sync_remote_status	" == "push" ]]; then
 			[ "$changes" != "0" ] 						&& gok "$msg" # TODO: переделать на использование либы 
-			[ "$changes" == "0" && "$sync_remote_status" == "push" ] 	&& gus
+			[[ "$changes" == "0" && "$sync_remote_status" == "push" ]] 	&& gus
 			echo
 		  else
-		  	trace_prj $([ "$changes" != "0" ] && echo "changes != 0")
-		  	trace_prj $([ "$sync_remote_status" != "push" ] && echo "sync_remote_status != push")
+		  	trace_prj $([ "$changes" != "0" ] && echo -n "changes != 0")
+		  	trace_prj $([ "$sync_remote_status" != "push" ] && echo -n "sync_remote_status != push")
 		  fi
 
 		#${red}none${norm}"
