@@ -473,7 +473,7 @@ cmd_state_of_all_projects(){	# pst[x] <list>|. 	# '.' for default list
 			git status -s --untracked-files
 		  fi
 
-		show_sync_needed_status $remote_mode
+		sync_remote_status=$(show_sync_needed_status $remote_mode)
 		)
 	  done
 	echo
@@ -539,7 +539,7 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 		(
 		eval cd "$path"
 		changes=$(gis | wc -l)	# echo changes: $changes
-		echo -e "\n${grey_back}$prj: $path${norm}"
+		echo -e "\n ${grey_back}$list  $prj \t $path${norm} "
 		if [ $changes -ne 0 ]; then
 			gok "$msg" # TODO: переделать на использование либы 
 			echo
