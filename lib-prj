@@ -26,8 +26,9 @@ alias trace_prj='[ "$trace" == "1" ] && echo -e '
 	# plist add help header
 	# get_sync_status - both mode(pull/push)
 	# unite cmd_state_of_one_project cmd_state_of_all_projects
-	# unite save
-	# unite get
+	# unite save save_all
+	# unite get get_all 
+	# unite get w/state
 	# unite sync
 	# unite fix with save
 	# ~ fix one/all
@@ -474,7 +475,8 @@ cmd_state_of_all_projects(){	# pst[x] <list>|. 	# '.' for default list
 		[[ ! -d $prj_path ]] && echo -e "${red} Project path '$prj_path' not found !${norm} " && continue
 		(
 		eval cd "$prj_path"
-		changes=$(gis | wc -l) #; [ $trace -eq 1 ] && echo changes: $changes
+		changes=$(gis | wc -l) 
+		trace_prj "changes:\t\t$changes"
 		#	echo -e "${grey}$prj: $prj_path${norm}"
 		#  else
 
@@ -534,22 +536,23 @@ cmd_save_one_projects(){	# psave <prj>|. [<msg>]
 	}
 cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 	# psavall <msg> <list>  # save every prj in list (add/commit/push)
-	list=$1
+	trace_prj=$1
 	msg=$2
 
 	[ "$trace" == "1" ] && echo -e "utils_prj_home:\t$utils_prj_home"
 	[ "$trace" == "1" ] && echo -e "utils_prj_the_host:\t$utils_prj_the_host"
 
-	[[ "$list" == "." ]] && list="" # trik to save default
-	[[ "$list" == "" ]] && list=$(get_project_default_list)
-	# echo list: $list  		# get default repos list
+	[[ "$trace_prj" == "." ]] && trace_prj="" # trik to save default
+	[[ "$trace_prj" == "" ]] && trace_prj=$(get_project_default_list)
+	trace_prj "prj_list:\t\t$prj_list" # get default repos list
 
-	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$list.list | tr -d '\r' | sort); do 
-		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
+	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$trace_prj.list | tr -d '\r' | sort); do 
+		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 		(
-		eval cd "$path"
+		eval cd "$prj_path"
 		changes=$(gis | wc -l)	# echo changes: $changes
-		echo -e "\n${grey_back} $list  $prj \t $path${norm} "
+		trace_prj "changes:\t\t$changes" # 2> /dev/null 
+		echo -e "\n${grey_back} $trace_prj  $prj \t $prj_path${norm} "
 		if [ $changes -ne 0 ]; then
 			gok "$msg" # TODO: переделать на использование либы 
 			echo
@@ -662,13 +665,13 @@ cmd_pull_all_projects(){	# pgetall <list>|.
 	trace_prj "prj_list:\t\t$prj_list" # get default repos list
 
 	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$prj_list.list | tr -d '\r' | sort ); do 
-		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
+		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 		(
-		eval cd "$path"
-
-		echo -e "\n ${grey_back} $prj_list  $prj \t $path ${norm}"
+		eval cd "$prj_path"
+		pwd
+		echo -e "\n ${grey_back} $prj_list  $prj \t $prj_path ${norm}"
 		changes=$(gis | wc -l) 
-		trace_prj "changes:\t$changes" # 2> /dev/null 
+		trace_prj "changes:\t\t$changes" # 2> /dev/null 
 
 		if [ $changes -eq 0  -o  "$changes" == "" ]; then
 			compare_status=$(get_sync_status)
