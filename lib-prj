@@ -184,7 +184,7 @@ get_sync_status(){	# <remote_mode>
 	  	[ "$result_format" != "silent" ] && echo -e "${yellow} NEED TO PULL !${norm}" 1>&2
 	  	echo "pull"
 	  elif [ $REMOTE = $BASE ]; then
-	  	[ "$result_format" != "silent" ] && echo -e "${yellow}NEED TO PUSH !${norm}" 1>&2
+	  	[ "$result_format" != "silent" ] && echo -e "${green} NEED TO PUSH !${norm}" 1>&2
 	  	echo "push"
 	  else
 	  	[ "$result_format" != "silent" ] && echo -e "${red_bright} DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
@@ -580,7 +580,7 @@ cmd_save_one_project_at_local(){ # pfix <prj> <msg>
 	  fi
 
 	# find prj file by current path
-	prj_path=$(get_projectPath_findByName $curr_path $prj) #"$utils_prj_configs/$utils_prj_the_host"
+	prj_path=$(get_projectPath_findByName $prj) #"$utils_prj_configs/$utils_prj_the_host"
 	[[ "$prj_path" == "" ]] && echo  "[SAVE PROJECT] project file '$utils_prj_configs/$utils_prj_the_host/$prj' not found !" && return
 	# TODO: get prj vcs_type (svn, git)
 	# TODO: get prj remote
@@ -631,7 +631,7 @@ cmd_pull_one_project(){		# pget 	<prj>
 	curr_path=$(pwd) ; [ $trace == 1 ] && echo curr_path: $curr_path	
 	if [[ "$prj" == "" ]]; then 
 		curr_path=`eval echo $(pwd)` #; echo cur_path:$curr_path
-		prj_name=$(get_projectName_findByPath $curr_path) #; echo prj_name: $prj_name
+		prj_name=$(get_projectName_findByPath $curr_path no_trace) #; echo prj_name: $prj_name
 		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $utils_prj_configs/$utils_prj_the_host !" && return
 		# get prj (update)
 		echo "GETTING $prj_name: $curr_path"
