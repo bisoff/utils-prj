@@ -41,6 +41,7 @@ alias trace_prj='[ "$trace" == "1" ] && echo -e '
 	# unite fix with save
 	# ~ fix one/all
 	# (cut <CR>) when read from configs (prj/list)
+	# add binds  Ctrl+Shift ??
 
 	# support named params style: -v -h -n: -p: -l:(-s?) -m:"" 
 	# -n=<prj> -p=<path> -t=<type> -r=<remote> -l(s?)=<list(set?)>
