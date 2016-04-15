@@ -4,8 +4,8 @@
 # globals: ==============================
 trace=0
 utils_prj_home=$(dirname ${BASH_SOURCE[0]})
-utils_prj_the_host=$(uname -n)
 utils_prj_configs=`eval echo ~/.utils-prj`
+utils_prj_the_host=$(uname -n)
 alias trace_prj='[ "$trace" == "1" ] && echo -e '
 
 # TODO: =================================
@@ -16,15 +16,22 @@ alias trace_prj='[ "$trace" == "1" ] && echo -e '
 	# psetren
 	# psw
 
+	# todo: oldpwd for *nix (~/.oldpwd for msys only)
+	# pmove to another list
 	# correct cmd_edit_host_config
 	# rename list to set in helps ??
 	# pcmd <prj> (execute cmd in prj home folder)
 	# cmd_add_project(){ $3 - home_path
 	# verbose to trace
 	# empty params -> help
-	# pmove to another list
 	# plist add help header
 	# get_sync_status - both mode(pull/push)
+	# get_find_path
+	# local looped and other
+	# избавиться от APPS_ROOT (проставлять при setup)
+	# ругаться если dir:utils-prj not found || "$HOME_UTILS_PRJ/lib-prj" not found || "$HOME/.utils-prj/utils-prj-aliases" not found
+	# version
+
 	# unite cmd_state_of_one_project cmd_state_of_all_projects
 	# unite save save_all
 	# unite get get_all 
@@ -32,6 +39,7 @@ alias trace_prj='[ "$trace" == "1" ] && echo -e '
 	# unite sync
 	# unite fix with save
 	# ~ fix one/all
+	# (cut <CR>) when read from configs (prj/list)
 
 	# support named params style: -v -h -n: -p: -l:(-s?) -m:"" 
 	# -n=<prj> -p=<path> -t=<type> -r=<remote> -l(s?)=<list(set?)>
@@ -48,11 +56,7 @@ alias trace_prj='[ "$trace" == "1" ] && echo -e '
 	# todo: when cmd_<utils-git> absent - show not found msg and prompt how to install
 	# todo: [ "$trace" == "1" ] && echo -e ".."
 
-	# todo: oldpwd for *nix (~/.oldpwd for msys only)
-
-	# todo: how add to man
-	# todo: how add to repo 4 install by installer
-
+	# todo: how add to repo 4 install by installer (brew apt-get)
 	# todo: prj type: rsync  svn  simple(compare size / timestamp)
 
 	# todo: reference impl : clone setup psetadd cd padd plist cd- pgo touch pstate pstx pget psave psync pcmd (reset) ...
@@ -67,6 +71,7 @@ alias trace_prj='[ "$trace" == "1" ] && echo -e '
 # install functions======================
 utils-prj-setup(){
 	echo "unreleased"
+	# обновлять файлы если уже есть
 	# check utils-git ->  if absent - msg - what commands willn't work
 	# check utils-env ->  if absent - msg - colors will willn't work
 	# copy 'include' to ~/.utils-prj
@@ -159,7 +164,7 @@ get_projectPath_findByName () {	# <prj>
 	  done
 	)
   }
-get_sync_status(){	# <remote_mode>
+get_sync_status(){		# <remote_mode>
 	# ex. get_sync_status true # to compare with last commit from remote host
 	# ??todo: return two out param ???  array?  or  pull/push/both/diverged only?
 	local use_remote_host=$1  	# true / false
@@ -195,48 +200,50 @@ get_sync_status(){	# <remote_mode>
 	}
 
 # config functions ======================
-cmd_edit_host_config(){		# peh	[<list>]
-	# ped [<list>]	
-	# edit default or specified repo list
-
-	utility_path=$(echo "`dirname \"$0\"`")
-
-	# get host
-	host="$(cat $utility_path/.cfg/default.cfg | sed -E -n "s/^host=([^#]*)/\1/p")" # host alias
-	#echo utils_prj_the_host:$utils_prj_the_host
-
-	# get prj list
-	repos=$1
-	if [[ "$repos" == "" ]]; then
-		repos="$(cat $utility_path/.cfg/default.cfg | sed -E -n "s/^default_list=([^#]*)/\1/p")"
-	 fi
-
-	ed $repos
-	}
-cmd_edit_users_config(){	# peu
-	true
-	}
 cmd_show_current_config(){	# pshow
 	true
+	# version
+	# папка home
+	# папка config
+	# path with host's configs (files: aliases , include /PATH/ )
+	# p-help 
+	# psets (one lined style)
 	}
 cmd_enum_projects(){		# plist	[<list>]
 	# plist <list>
 	# echo utils_prj_the_host: $utils_prj_the_host
 	prj_list=$1
 	prj_list=$(get_project_default_list $prj_list)  # verify
-	#echo REPO LIST: $repos
-	echo "========= $repos ========="
+	trace_prj "prj_list:\t$prj_list"
+	echo -e "\n${grey_back}          $prj_list          ${norm}"
 
-	for prj_name in $(cat $utils_prj_configs/$utils_prj_the_host/$repos.list | sed -e /^$/d | tr -d '\r' | sort); do 
-		prj_name=`echo $prj_name` #normalize
+	for prj_name in $(cat $utils_prj_configs/$utils_prj_the_host/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
+		prj_name=`echo $prj_name` #normalize (cut <CR>)
 		path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj_name | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 		( # to return curr path
 		echo -e "$prj_name:\t$path"
 		)
 	  done
+	echo
 	}
 cmd_enum_sets(){		# psets
-	true
+	#echo -e "\n${grey_back}          project sets          ${norm}"
+
+	local find_path="find" # linux/osx
+	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find" # in windows $EXEPATH ex. C:\app\git - std env by git bash
+	trace_prj "find_path:\t$find_path [cmd_enum_sets]" 1>&2
+
+	(
+	cd "$utils_prj_configs/$utils_prj_the_host"
+	local prj_list
+	for prj_list in $($find_path . -maxdepth 1 -type f -name "*.list"); do
+		prj_list=`echo $prj_list` #normalize (cut <CR>)
+		#path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj_list | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
+		prj_list=${prj_list:2}
+		prj_list="${prj_list/.list/}"
+		cmd_enum_projects "$prj_list"
+	  done
+	)
 	}
 cmd_add_project(){		# padd	<prj> [<list>] 
 	# cmd_add_project <prj> [<list>] 
