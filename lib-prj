@@ -180,6 +180,7 @@ get_sync_status(){		# <remote_mode>
 	trace_prj "use_remote_host:$use_remote_host [get_sync_status]" 1>&2
 	trace_prj "result_format:\t$result_format [get_sync_status]" 1>&2
 	#trace_prj $([ "$result_format" != "silent" ] && echo "notice mode [get_sync_status]") 1>&2
+	local status
 	local LOCAL=$(git rev-parse @)
 	if [[ "$use_remote_host" == "true" ]]; then
 		local REMOTE=$(git ls-remote 2>/dev/null | awk "/HEAD/ {print \$1}")
@@ -188,18 +189,20 @@ get_sync_status(){		# <remote_mode>
 	  fi
 	local BASE=$(git merge-base @ @{u})
 	#echo LOCAL:$LOCAL REMOTE:$REMOTE BASE:$BASE
-	if [ $LOCAL = $REMOTE ]; then
-		echo "ok" 
-	  elif [ $LOCAL = $BASE ]; then
-	  	[ "$result_format" != "silent" ] && echo -e "${yellow} NEED TO PULL !${norm}" 1>&2
-	  	echo "pull"
-	  elif [ $REMOTE = $BASE ]; then
-	  	[ "$result_format" != "silent" ] && echo -e "${green} NEED TO PUSH !${norm}" 1>&2
-	  	echo "push"
-	  else
-	  	[ "$result_format" != "silent" ] && echo -e "${red_bright} DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
-	  	echo "diverged"
+	if [ $LOCAL = $REMOTE ]; then 		status="ok" 
+	  elif [ $LOCAL = $BASE ]; then		status="pull"
+	  elif [ $REMOTE = $BASE ]; then	status="push"
+	  else				  	status="diverged"
 	  fi
+	echo "$status"
+	[ "$result_format" != "silent" ] && show_sync_status "$status"
+	}
+show_sync_status(){
+	local sync_status=$1
+	[ "$sync_status" == "pull" ] 	 && echo -e "${yellow} NEED TO PULL !${norm}" 1>&2
+	[ "$sync_status" == "push" ] 	 && echo -e "${green} NEED TO PUSH !${norm}" 1>&2
+	[ "$sync_status" == "diverged" ] && echo -e "${red_bright} DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
+	# [ "$sync_status" == "ok" ] && 
 	}
 
 # config functions ======================
@@ -480,10 +483,9 @@ cmd_state_of_all_projects(){	# pst[x] <list>|. 	# '.' for default list
 		trace_prj "prj_file:\t\t$prj_file" 
 
 		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' "$prj_file" | tr -d '\r'` 
-		prj_path=`eval echo $prj_path` # cut <CR>
+		prj_path=`eval echo $prj_path` # for osx replace ~ to $HOME (and cut <CR>?)
 		trace_prj "prj_path:\t\t$prj_path"
-
-		[[ ! -d $prj_path ]] && echo -e "${red} Project path '$prj_path' not found !${norm} " && continue
+		[[ ! -d "$prj_path" ]] && echo -e "${red} Project path '$prj_path' not found !${norm} " && continue
 		(
 		eval cd "$prj_path"
 		changes=$(gis | wc -l) 
@@ -561,7 +563,7 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$trace_prj.list | tr -d '\r' | sort); do 
 		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 		(
-		eval cd "$prj_path"
+		eval cd "$prj_path" # for osx replace ~ to $HOME
 		changes=$(gis | wc -l)	# echo changes: $changes
 		echo -e "${grey_back} $trace_prj  $prj \t $prj_path$ {norm}"
 		trace_prj "prj_path:\t\t$prj_path"
@@ -577,6 +579,7 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 		if [[ "$changes" == "0" && "$sync_remote_status" == "push" ]]; then
 			gus
 		  fi
+		[[ "$sync_remote_status" != "push" && "$sync_remote_status" != "ok" ]] && show_sync_status "$status"
 		echo
 		)
 	  done
