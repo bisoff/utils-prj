@@ -53,6 +53,7 @@ alias trace_prj='[ "$trace" == "1" ] && echo -e '
 	#    esac
 	#    shift
 	#done
+	# prj - opt: switch to branch (ex v2.0)
 		# todo: add matrix of using cmd_<utils-git>
 	# todo: when cmd_<utils-git> absent - show not found msg and prompt how to install
 	# todo: [ "$trace" == "1" ] && echo -e ".."
