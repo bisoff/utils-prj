@@ -31,6 +31,7 @@ alias trace_prj='[ "$trace" == "1" ] && echo -e '
 	# избавиться от APPS_ROOT (проставлять при setup)
 	# ругаться если dir:utils-prj not found || "$HOME_UTILS_PRJ/lib-prj" not found || "$HOME/.utils-prj/utils-prj-aliases" not found
 	# version
+	# pstatex - show all remotes/ all branches
 
 	# unite cmd_state_of_one_project cmd_state_of_all_projects
 	# unite save save_all
@@ -554,12 +555,13 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 	[[ "$trace_prj" == "" ]] && trace_prj=$(get_project_default_list)
 	trace_prj "prj_list:\t\t$prj_list" # get default repos list
 
+	echo
 	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$trace_prj.list | tr -d '\r' | sort); do 
 		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $utils_prj_configs/$utils_prj_the_host/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
 		(
 		eval cd "$prj_path"
 		changes=$(gis | wc -l)	# echo changes: $changes
-		echo -e "${grey_back} $trace_prj  $prj \t $prj_path${norm} "
+		echo -e "${grey_back} $trace_prj  $prj \t $prj_path$ {norm}"
 		trace_prj "prj_path:\t\t$prj_path"
 		trace_prj "changes:\t\t$changes" # 2> /dev/null 
 		if [[ "$changes" == "0" ]]; then
