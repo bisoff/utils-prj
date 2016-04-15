@@ -204,6 +204,36 @@ show_sync_status(){
 	[ "$sync_status" == "diverged" ] && echo -e "${red_bright} DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
 	# [ "$sync_status" == "ok" ] && 
 	}
+gefine_project_or_list(){	# <prj|list>
+	# ex. get_sync_status true # to compare with last commit from remote host
+	# ??todo: return two out param ???  array?  or  pull/push/both/diverged only?
+	local use_remote_host=$1  	# true / false
+	local result_format=$2 		# when 'silent' then print yes/no else print msg for user 
+	[ "$3" != "" ] && local trace=$3
+
+	[ "$result_format" == "" ] && result_format=simple
+	[ "$use_remote_host" == "" ] && use_remote_host=false
+	[ "$use_remote_host" == "remote" ] && use_remote_host=true
+	trace_prj "use_remote_host:$use_remote_host [get_sync_status]" 1>&2
+	trace_prj "result_format:\t$result_format [get_sync_status]" 1>&2
+	#trace_prj $([ "$result_format" != "silent" ] && echo "notice mode [get_sync_status]") 1>&2
+	local status
+	local LOCAL=$(git rev-parse @)
+	if [[ "$use_remote_host" == "true" ]]; then
+		local REMOTE=$(git ls-remote 2>/dev/null | awk "/HEAD/ {print \$1}")
+	  else
+		local REMOTE=$(git rev-parse @{u}) # from local
+	  fi
+	local BASE=$(git merge-base @ @{u})
+	#echo LOCAL:$LOCAL REMOTE:$REMOTE BASE:$BASE
+	if [ $LOCAL = $REMOTE ]; then 		status="ok" 
+	  elif [ $LOCAL = $BASE ]; then		status="pull"
+	  elif [ $REMOTE = $BASE ]; then	status="push"
+	  else				  	status="diverged"
+	  fi
+	echo "$status"
+	[ "$result_format" != "silent" ] && show_sync_status "$status"
+	}
 
 # config functions ======================
 cmd_show_current_config(){	# pshow
@@ -440,6 +470,80 @@ cmd_state_of_one_project(){	# pstate[x] <prj>
 	# echo utils_prj_the_host: $utils_prj_the_host
 	( # to return current path
 	if [[ "$prj" == "" ]]; then 
+		curr_path=`eval echo $(pwd)`; [ "$trace" == "1" ] && echo -e "cur_path:\t$curr_path"
+		prj_name=$(get_projectName_findByPath $curr_path dont_trace); [ "$trace" == "1" ] && echo -e "prj_name:\t$prj_name"
+		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $utils_prj_configs/$utils_prj_the_host !" && return
+	  else
+		# find prj file by current path
+		prj_path=$(get_projectPath_findByName $prj dont_trace) #"$utils_prj_configs/$utils_prj_the_host" 
+		# TODO: get prj vcs_type (svn, git)
+		echo -e "$prj:\t$prj_path"
+		eval cd "$prj_path"
+	  fi
+	gis
+	sync_status=$(get_sync_status "$remote_mode" "notice" "notrace")
+	)
+	}
+cmd_state_of_all_projects(){	# pst[x] <list>|. 	# '.' for default list
+	local prj_list=$1
+	[ "$prj_list" == "" ] && prj_list=default
+	[ "$remote_mode" == "" ] && remote_mode=false #$2
+	[ "$trace" == "" ] && local trace=0 #$3
+	
+	trace_prj "utils_prj_home:\t\t$utils_prj_home"
+	trace_prj "utils_prj_the_host:\t$utils_prj_the_host"
+	trace_prj "remote_mode:\t\t$remote_mode"
+	
+	[[ "$prj_list" == "default" ]] && prj_list=$(get_project_default_list)
+	[ "$trace" == "1" ] && echo -e "prj_list:\t\t$prj_list"
+	#[[ "$remote_mode" == "" ]] && -e "${red}[lib-prj.:projects_state] 'remote_mode' param is not defined !${norm} " && return
+
+	echo
+	for prj in $(cat $utils_prj_configs/$utils_prj_the_host/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
+		prj=`echo $prj` # normalize
+		prj_file=`echo $utils_prj_configs/$utils_prj_the_host/$prj`
+		if [[ ! -f "$prj_file" ]]; then
+			#echo prj: $utils_prj_configs/$utils_prj_the_host/$prj
+			#cat $utils_prj_configs/$utils_prj_the_host/$prj
+			echo -e "${red} Project file '$prj_file' not found !${norm} "
+			continue
+		  fi
+
+		#prj_file=`eval echo $prj_file` # cut <CR> 
+		trace_prj "prj_file:\t\t$prj_file" 
+
+		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' "$prj_file" | tr -d '\r'` 
+		prj_path=`eval echo $prj_path` # for osx replace ~ to $HOME (and cut <CR>?)
+		trace_prj "prj_path:\t\t$prj_path"
+		[[ ! -d "$prj_path" ]] && echo -e "${red} Project path '$prj_path' not found !${norm} " && continue
+		(
+		eval cd "$prj_path"
+		changes=$(gis | wc -l) 
+		trace_prj "changes:\t\t$changes"
+		#	echo -e "${grey}$prj: $prj_path${norm}"
+		#  else
+
+		echo -e "${grey_back} $prj_list  $prj \t $prj_path ${norm}"
+		[ $changes -ne 0 ] && git status -s --untracked-files
+
+		local sync_remote_status=$(get_sync_status $remote_mode "notice" no_trace)
+		trace_prj "sync_remote_status:\t$sync_remote_status"
+		#[[ "$changes" != "0" || "$sync_remote_status" != "ok" ]] && 
+		echo
+		)
+	  done
+	}
+cmd_state_of_projects(){	# psp[x] .|<prj>|<list> [<remote_mode>]?
+	obj=$1 # prj_or_list
+	[ "$obj" == "" ] && obj="."
+	local ptype="project"
+	if [ "$obj" != "."]; then
+		ptype=$(gefine_project_or_list)
+	  fi
+	[ "$remote_mode" == "" ] && remote_mode=false # $2 ??
+
+	( # to return current path
+	if [[ "$prj_or_list" == "" ]]; then 
 		curr_path=`eval echo $(pwd)`; [ "$trace" == "1" ] && echo -e "cur_path:\t$curr_path"
 		prj_name=$(get_projectName_findByPath $curr_path dont_trace); [ "$trace" == "1" ] && echo -e "prj_name:\t$prj_name"
 		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $utils_prj_configs/$utils_prj_the_host !" && return
