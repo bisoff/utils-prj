@@ -480,7 +480,7 @@ cmd_state_of_all_projects(){	# pst[x] <list>|. 	# '.' for default list
 		trace_prj "prj_file:\t\t$prj_file" 
 
 		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' "$prj_file" | tr -d '\r'` 
-		#prj_path=`eval echo $path` # cut <CR>
+		prj_path=`eval echo $prj_path` # cut <CR>
 		trace_prj "prj_path:\t\t$prj_path"
 
 		[[ ! -d $prj_path ]] && echo -e "${red} Project path '$prj_path' not found !${norm} " && continue
