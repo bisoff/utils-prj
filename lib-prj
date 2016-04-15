@@ -559,17 +559,15 @@ cmd_save_all_projects(){	# psavall <list>|. [<msg>]
 			trace_prj "sync_remote_status:\t$sync_remote_status" # 2> /dev/null 
 		  fi
 
-		if [[ "$changes" != "0" || "$sync_remote_status	" == "push" ]]; then
-			[ "$changes" != "0" ] 						&& gok "$msg" # TODO: переделать на использование либы 
-			[[ "$changes" == "0" && "$sync_remote_status" == "push" ]] 	&& gus
-		  else
-		  	trace_prj $([ "$changes" != "0" ] && echo -n "changes != 0")
-		  	trace_prj $([ "$sync_remote_status" != "push" ] && echo -n "sync_remote_status != push")
+		if [ "$changes" != "0" ]; then
+			gok "$msg" # TODO: переделать на использование либы 
+		  fi
+		if [[ "$changes" == "0" && "$sync_remote_status" == "push" ]]; then
+			gus
 		  fi
 		echo
 		)
 	  done
-	echo
 	# TODO: test uncommited (untracked, changed, deleted, staged)
 	}
 cmd_save_one_project_at_local(){ # pfix <prj> <msg>
