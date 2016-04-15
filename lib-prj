@@ -139,7 +139,8 @@ get_projectName_findByPath () { # <project_path>
   }
 get_projectPath_findByName () {	# <prj>
 	local prj=$1
-	local extra=$2
+	[ "$3" != "" ] && local trace=$2
+	local extra=$3
 	[ "$extra" != "" ] && echo "[get_projectPath_findByName] extra param is invalid!" 1>&2 && (trace_prj "extra:\t$extra [get_projectPath_findByName]" 1>&2) && return 
 	#[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT PATH] root for project is missed !" 1>&2 && return ; [ "$trace" == "1" ] && echo -e "root:\t\t$root [get_projectPath_findByName]" 1>&2
 	[[ "$prj" == "" ]] && echo "[get_projectPath_findByName] project name is missed !" 1>&2 && (trace_prj "prj:\t\t$prj [get_projectPath_findByName]" 1>&2) && return
@@ -680,10 +681,10 @@ cmd_pull_all_projects(){	# pgetall <list>|.
 		trace_prj "changes:\t\t$changes" # 2> /dev/null 
 
 		if [ $changes -eq 0  -o  "$changes" == "" ]; then
-			compare_status=$(get_sync_status)
+			compare_status=$(get_sync_status remote silent notrace)
 			trace_prj "compare_status:\t$compare_status"
 			[ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
-			if [ "$compare_status" == "pull" ]; then
+			if [[ "$compare_status" == "pull" || "$compare_status" == "diverged" ]]; then
 				gul
 				git diff --stat=200 HEAD~1 HEAD --color | sed -n '$! p' # files in last commit 
 			  fi
