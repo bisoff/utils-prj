@@ -43,6 +43,7 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# в каждую команду --help -h -? -verbose (trace)
 	# вынести add prj to set в func - проверять что его там нет 
 	# default переделать на $DEFAULT="~default"
+	# psaveall <list1>,<list2>
 
 	# plist pshow psets - use notice if no found
 	# add support comment for cfg (prj/list)
@@ -237,9 +238,9 @@ show_sync_status(){
 	[ "$sync_status" == "diverged" ] && echo -e "${red_bright} DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
 	# [ "$sync_status" == "ok" ] && 
 	}
-gefine_project_or_list(){	# <prj|list>
+get_project_or_list(){	# <prj|list>
 	local project_or_list=$1  	# true / false
-	[ "$project_or_list" == "" ] && echo -e "${red}[gefine_project_or_list] param 'project_or_list' is missed !${norm}" && return 
+	[ "$project_or_list" == "" ] && echo -e "${red}[get_project_or_list] param 'project_or_list' is missed !${norm}" && return 
 
 	local find_path="find" # linux/osx
 	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find" # in windows $EXEPATH ex. C:\app\git - std env by git bash
@@ -619,13 +620,6 @@ cmd_state_of_all_projects(){	# pst[x] <list>|. 	# '.' for default list
 	  done
 	}
 cmd_state_of_projects(){	# psp[x] .|<prj>|<list> [<remote_mode>]?
-	obj=$1 # prj_or_list
-	[ "$obj" == "" ] && obj="."
-	local ptype="project"
-	if [ "$obj" != "."]; then
-		ptype=$(gefine_project_or_list)
-	  fi
-	[ "$remote_mode" == "" ] && remote_mode=false # $2 ??
 
 	( # to return current path
 	if [[ "$prj_or_list" == "" ]]; then 
@@ -643,19 +637,35 @@ cmd_state_of_projects(){	# psp[x] .|<prj>|<list> [<remote_mode>]?
 	sync_status=$(get_sync_status "$remote_mode" "notice" "noTRACE")
 	)
 	}
-cmd_project_sync(){		# pst[x] <list>|. 	# '.' for default list
+cmd_project_sync(){		# prs <sync_type> .|<prj>|<list> 	# sync_type: state statex pull push full	'.' for current prj  '..' for current list
 	# todo: unite cmd_state_of_all_projects  cmd_state_of_projects
 	# todo: unite with cmd_save_all_project_at_local
 	# todo: unite with cmd_pull_all_projects
 	# todo: make sync
-	local prj_list=$1
+	local cmd="$1"
+	local obj="$2" # prj_or_list
+	trace_prj "obj:\t$obj"
+	#[ "$cmd" == "" ] && echo "${red}[cmd_project_sync] Param 'sync_type' is missed ${norm}" 
+	# [cmd_project_sync] 
+	[ "$cmd" == "" ] && \
+		echo -e "Syntax:\t\t\t\t${green}prs${norm} ${yellow}<sync_type> .|<prj>|..|<list>${norm}" && \
+		echo -e "\t${yellow}sync_type${norm}:\t\tstate_local | state_remote | pull | push | full" && \
+		echo -e "\t${yellow}.|<prj>|..|<list>${norm}:\tcurrent project | name of project | current list | name of list" && \
+		return
+
+	[ "$obj" == "" ] && obj="."
+	local objtype="project"
+	[[ "$obj" != "." && "$obj" != ".." ]] && objtype=$(get_project_or_list)
+	[ "$obj" == "." ] && obj=$(get_current_project)
+	[ "$obj" == ".." ] && obj=$(get_current_set)
+	trace_prj "obj:\t$obj"
+	trace_prj "objtype:\t$objtype"
+	return
+
+	[ "$objtype" == "" ]
+	#cmd_state_of_projects(){	# psp[x] .|<prj>|<list> 
+
 	[ "$prj_list" == "" ] && prj_list=default
-	[ "$remote_mode" == "" ] && remote_mode=false #$2
-	[ "$TRACE" == "" ] && local TRACE=0 #$3
-	
-	trace_prj "UTILS_PRJ_HOME:\t\t$UTILS_PRJ_HOME"
-	trace_prj "UTILS_PRJ_THE_HOST:\t$UTILS_PRJ_THE_HOST"
-	trace_prj "remote_mode:\t\t$remote_mode"
 	
 	[[ "$prj_list" == "default" ]] && prj_list=$(get_current_set)
 	trace_prj "prj_list:\t\t$prj_list"
