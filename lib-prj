@@ -636,12 +636,13 @@ cmd_project_sync(){		# prs <sync_type> .|<prj>|<list> [<msg>]
 	trace_prj "cmd:\t\t$cmd"
 	trace_prj "obj:\t\t$obj"
 	#[ "$cmd" == "" ] && echo "${red}[cmd_project_sync] Param 'sync_type' is missed ${norm}" 
-	# [cmd_project_sync]  "$cmd" == "" || !
+	# [cmd_project_sync]  "$cmd" == "" || !  <sync_type>
 	[[ "$obj" == "" || ! ("$cmd" == "local" || "$cmd" == "remote" || "$cmd" == "fix" || "$cmd" == "pull" || "$cmd" == "push" || "$cmd" == "full") ]] && \
-		echo -e "Syntax:\t\t\t\t${green}prs${norm} ${yellow}<sync_type> .|<prj>|..|<list> [<msg>]${norm}" && \
-		echo -e "\t${yellow}sync_type${norm}:\t\tlocal | remote | fix | pull | push | full" && \
-		echo -e "\t${yellow}.|<prj>|..|<list>${norm}:\tcurrent project | name of project | current list | name of list" && \
-		echo -e "\t${yellow}<msg>]${norm}:\tfor commit" && \
+		echo -e "Syntax:\t\t\t\t${green}<command>${norm} ${yellow} <object> [<msg>]${norm}" && \
+		echo -e "\t${yellow}<command>${norm}\tdefault aliases are - pst[x], pstate[x], pfix[all], pget[all], psave[all], psync[all]" && \
+		#echo -e "\t${yellow}<sync_type>${norm}:\t\tlocal | remote | fix | pull | push | full" && \
+		echo -e "\t${yellow}<object>${norm}\t'.' means current project | name of project | '..' means current list | name of list" && \
+		echo -e "\t${yellow}<msg>]${norm}\t\tfor commit" && \
 		return
 
 	#[ "$obj" == "" ] && obj="."
@@ -672,7 +673,7 @@ cmd_project_sync(){		# prs <sync_type> .|<prj>|<list> [<msg>]
 		if [[ "$cmd" == "local" || "$cmd" == "remote" ]]; then
 			# state
 			gis
-			[ "$remote_mode" = "remote" ] && echo -n "Ask $cmd for last commit .. " 
+			echo -e -n "Ask ${yellow}$cmd${norm} for last commit .. "  #[ "$remote_mode" = "remote" ] && 
 			local sync_status=$(get_sync_status "$cmd" notice NO_TRACE) # notice/silent
 			[ "$sync_status" == "ok" ] && echo -e "${green}same${norm}"
 			#[[ "$sync_status" = "remote" && "$sync_status" == "ok" ]] && echo -e "${green}same${norm}"
