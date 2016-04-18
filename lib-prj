@@ -30,6 +30,8 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# version
 	# pstatex - show all remotes/ all branches
 	# common func for error msg (red  !  func_name <norm>)
+	# pst -> psta[x]
+	# pstate -> pst[x]
 
 	# unite cmd_state_of_one_project cmd_state_of_all_projects
 	# unite save save_all
@@ -53,6 +55,7 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# dyna gif help w/ref impl for another my prj (eg. utils-vcs)
 	# cmd_project_delete +from_list
 	# psetren <not_current> <onother_name>
+	# ... all sets
 
 	# add beta satus, version & lic info
 
