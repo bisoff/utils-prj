@@ -1,108 +1,109 @@
 == What for
-utils-prj is a cli utility for:
-- rapid control dozens of projects: switch context to project set; go to project home folder; bulk operations like state review, fix in vcs and sync with remotes)
-- simple way to change current folder using dynamic aliases (ex. 'padd prj1' will add alias for current folder, 'pgo prj1' will change current folder)
+	utils-prj is a cli utility for:
+	- rapid control dozens of projects: switch context to project set; go to project home folder; bulk operations like state review, fix in vcs and sync with remotes)
+	- simple way to change current folder using dynamic aliases (ex. 'padd prj1' will add alias for current folder, 'pgo prj1' will change current folder)
 
 == Setup
 
 
 == Prerequisites
 
-Mandatory:
-	- corutils
-		msys on Windows, ex: 
-			git 1.7?.5? (msys 32bit) 
-			git 2.0.0 (msys 64bit) 
-			msys 
-			msys2 
-			mingw (msys 32bit) 
-			mingw64
-		osx 10.?? Yosemite +?
-		linux with bash 3.2??+
-Optional:
-	- utils-env library - to print colored messages requires (you may don't install them, then messages just willn't in color) 
-	- utils-git library - to fix in vcs(git) or sync with remotes (bash script library to manupulate of git repositories in simple manner)
-		cmd_state_of_one_project	gis
-		cmd_save_all_projects		gis,gok
-		cmd_save_project_at_local	gac
-	- any syncronizing tool (described in PATH)
-		git 
-		rsync (cwRsync)
-		subversion
+	Mandatory:
+		- corutils
+			msys on Windows, ex: 
+				git 1.7?.5? (msys 32bit) 
+				git 2.0.0 (msys 64bit) 
+				msys 
+				msys2 
+				mingw (msys 32bit) 
+				mingw64
+			osx 10.?? Yosemite +?
+			linux with bash 3.2??+
+	Optional:
+		- utils-env library - to print colored messages requires (you may don't install them, then messages just willn't in color) 
+		- utils-git library - to fix in vcs(git) or sync with remotes (bash script library to manupulate of git repositories in simple manner)
+			cmd_state_of_one_project	gis
+			cmd_save_all_projects		gis,gok
+			cmd_save_project_at_local	gac
+		- any syncronizing tool (described in PATH)
+			git 
+			rsync (cwRsync)
+			subversion
 
 == Ref impl
-clone utils_prj # you need have installed git and fixed it in PATH
-run setup 	# it makes configs in user's home within <host_name> subfolder and default set of projects
-cd <you project path>
-padd p1		# add alias 'p1' for your project (and add pwd as projects path)
-plist		# to view your projects in current set (default)
-touch some_file # to make changes in project (it could be manipulation on any file)
-cd -		# change path to another
-pstate p1	# review status of project 'p1'
-pgo p1		# change path to projects path
-pstate .	# review status of current project
-pst		# to view status of all projects in current set (ex. you'll need to pull or push or add&commit you project)
-pfix . 		# add & commit your changes in local repository
-psave . 'ok'	# add, commit and push changes with massage 'ok'
-pget . 		# pull changes from remote
+	clone utils_prj # you need have installed git and fixed it in PATH
+	run setup 	# it makes configs in user's home within <host_name> subfolder and default set of projects
+	cd <you project path>
+	padd p1		# add alias 'p1' for your project (and add pwd as projects path)
+	plist		# to view your projects in current set (default)
+	touch some_file # to make changes in project (it could be manipulation on any file)
+	cd -		# change path to another
+	pstate p1	# review status of project 'p1'
+	pgo p1		# change path to projects path
+	pstate .	# review status of current project
+	pst		# to view status of all projects in current set (ex. you'll need to pull or push or add&commit you project)
+	pfix . 		# add & commit your changes in local repository
+	psave . 'ok'	# add, commit and push changes with massage 'ok'
+	pget . 		# pull changes from remote
 
 
 == Folder/file/content
-.cfg-FOLDER
-	<host1>-FOLDER
-		default-FILE
-			default_list=list1
-		<list1>-FILE
-			<prj_alias_1>
-			<prj_alias_2>
-		<list2>-FILE
-			<prj_alias_2>
-			<prj_alias_3>
-		<prj_alias_1>-FILE
-			path=msys_or_linux_path/to/root/dir/with/project
-			type=git|svn|..
-			remote_default=<default_remote_ex_origin>
-			remote_extra=<extra_remote_ex_bitbucket>
-			remote_extra=<extra_remote_ex_github>
-		<prj_alias_2>-FILE
-			...
-		<prj_alias_3>-FILE
-			...
-	<host2>-FOLDER-FILE
-		default-FILE
-			<prj_alias_1>
-			<prj_alias_2>
-		<list1>-FILE
-		<prj_alias_1>-FILE
-			...
-		<prj_alias_2>-FILE
-			...
+	.cfg-FOLDER
+		<host1>-FOLDER
+			default-FILE
+				default_list=list1
+			<list1>-FILE
+				<prj_alias_1>
+				<prj_alias_2>
+			<list2>-FILE
+				<prj_alias_2>
+				<prj_alias_3>
+			<prj_alias_1>-FILE
+				path=msys_or_linux_path/to/root/dir/with/project
+				type=git|svn|..
+				remote_default=<default_remote_ex_origin>
+				remote_extra=<extra_remote_ex_bitbucket>
+				remote_extra=<extra_remote_ex_github>
+			<prj_alias_2>-FILE
+				...
+			<prj_alias_3>-FILE
+				...
+		<host2>-FOLDER-FILE
+			default-FILE
+				<prj_alias_1>
+				<prj_alias_2>
+			<list1>-FILE
+			<prj_alias_1>-FILE
+				...
+			<prj_alias_2>-FILE
+				...
+
 == Commands
-  setup
-  pcfg
-pel		edit library (lib-prj)
-padd		
-pmove		
-pren		
+	setup
+	  pcfg
+	pel		edit library (lib-prj)
+	padd		
+	pmove		
+	pren		
 
 == Control
-plist		[<list>]		list projects (from <the_host>.<list|default_list>): <alias>: home path
-pst		
-pstx		
-pstate		gis
+	plist		[<list>]		list projects (from <the_host>.<list|default_list>): <alias>: home path
+	pst		
+	pstx		
+	pstate		gis
 
 == Sync
-pfix		
-pget		
-pgetall		
-psave		
-psaveall	
-  psync		
+	pfix		
+	pget		
+	pgetall		
+	psave		
+	psaveall	
+	  psync		
 
 == Navigate command
-pgo		change dir to project home dir
+	pgo		change dir to project home dir
 
 == Misc
-lib-prj		utility library
-  p-help	cat readme.adoc
-readme.adoc	the file
+	lib-prj		utility library
+	  p-help	cat readme.adoc
+	readme.adoc	the file

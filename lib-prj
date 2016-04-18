@@ -82,7 +82,8 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# тильда в переменной для указания в пути домашней папки- крэшит команды (cd, ls ..)
 		# workaround: eval - http://stackoverflow.com/questions/11065077/eval-command-in-bash-and-its-typical-uses 
 		# re="~(.*)"; if [[ $path =~ $re ]]; then  path=${BASH_REMATCH[1]}; fi; cd $HOME$path
-	# if you want edit lib-prj and then TRACE it, you can use next cmd: preload; TRACE=1; <cmd>; TRACE=0
+	# if you want edit lib-prj and then TRACE it, you can use next cmd: pupd; TRACE=1; <cmd>; TRACE=0
+	#	note: alias chages didn't took effect if you run cmd in one command line (throuhg ';'). Run 'pupd' and next command ('TRACE=1; <cmd>; TRACE=0') lunch after prompt
 
 # install functions======================
 utils-prj-setup(){
@@ -664,6 +665,7 @@ cmd_project_sync(){		# prs <sync_type> .|<prj>|<list> [<msg>]
 		trace_prj "prj_path:\t$prj_path"
 		( # to return current path
 		# TODO: get prj vcs_type (svn, git)
+		#echo -e "${grey_back} $prj_list  $prj \t $prj_path ${norm}"
 		echo -e "${grey_back} $obj  -  $prj_path ${norm}" 
 		eval cd "$prj_path"
 
@@ -688,6 +690,23 @@ cmd_project_sync(){		# prs <sync_type> .|<prj>|<list> [<msg>]
 		if [ "$cmd" == "push" ]; then
 			echo -e "${red}PUSHING${norm} $prj_name: $prj_path"
 			gok "$msg"
+		  fi
+		if [ "$cmd" == "full" ]; then
+			# fix prj when need (add/commit) 
+			# get changes
+			local changes=$(gis | wc -l) 
+			trace_prj "changes:\t\t$changes"
+			[ $changes -ne 0 ] && gac "$msg"
+
+			echo -n "Ask remote for last commit .. " 
+			local sync_status=$(get_sync_status "$cmd" notice NO_TRACE) # notice/silent
+			[ "$sync_status" == "ok" ] && echo -e "${green}same${norm}"
+
+			# pull when need
+			[[ "$sync_status" == "pull" || "$sync_status" == "diverged" ]] && gul
+
+			# push when need
+			[[ "$sync_status" == "push" || "$sync_status" == "diverged" ]] && gus
 		  fi
 		echo 
 		)
@@ -797,38 +816,7 @@ cmd_save_all_projects_at_local(){ # pfixall <list>|. [<msg>]
 	  done
 	#echo
 	}
-cmd_pull_one_project(){		# pget 	<prj> 
-	# pget <prj> 
 
-	#TRACE=0
-	prj=$1
-	msg=$2
-	#[ $TRACE == 1 ] && echo start
-	[ $TRACE == 1 ] && echo -e "UTILS_PRJ_THE_HOST:\t$UTILS_PRJ_THE_HOST"
-
-	curr_path=$(pwd) ; [ $TRACE == 1 ] && echo curr_path: $curr_path	
-	if [[ "$prj" == "" ]]; then 
-		curr_path=`eval echo $(pwd)` #; echo cur_path:$curr_path
-		prj_name=$(get_project_name $curr_path NO_TRACE) #; echo prj_name: $prj_name
-		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST !" && return
-		# get prj (update)
-		echo "GETTING $prj_name: $curr_path"
-		gul
-		return
-	  fi
-
-	# find prj file by current path
-	prj_path=$(get_project_path "$prj" NO_TRACE); [ $TRACE == 1 ] && echo prj_path: $prj_path # "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
-	[[ "$prj_path" == "" ]] && echo -e "${red}[PROJECT GET] Project path not found (by name: $prj) ! ${norm}" && return
-	# TODO: get prj vcs_type (svn, git)
-	# TODO: get prj remote
-	( # to return current path
-	echo "$prj: $prj_path"
-	eval cd "$prj_path"
-	gul "$msg" 
-	)
-	# TODO: test uncommited (untracked, changed, deleted, staged)
-	}
 cmd_pull_all_projects(){	# pgetall <list>|.
 	# pgetall <list> # save every prj in list (add/commit/push)
 	prj_list=$1
@@ -860,45 +848,6 @@ cmd_pull_all_projects(){	# pgetall <list>|.
 		  fi
 		)
 	  done
-	# TODO: test uncommited (untracked, changed, deleted, staged)
-	}
-cmd_sync_one_project(){		# psync <prj>|. [<msg>]
-	# psync <prj> <msg> # a) fix prj when need (add/commit) 2) pull when need  3) push when need
-
-	# test 1st param - repo name
-	prj=$1
-	msg=$2
-
-	# echo home: $home
-	# echo UTILS_PRJ_THE_HOST: $UTILS_PRJ_THE_HOST
-
-	if [[ "$prj" == "" ]]; then 
-		curr_path=$(pwd) #; echo cur_path:$curr_path # replace 
-		prj_name=$(get_project_name $curr_path) #; echo prj_name: $prj_name
-		[[ "$prj_name" == "" ]] && echo "[PROJECT SYNC] project name is missed  and  not found by 'path=' in $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST !" && return
-	  fi
-
-	# TODO: get prj vcs_type (svn, git)
-	# TODO: get prj remote
-
-	( # to return current path
-	echo "$prj: $prj_path"
-	eval cd "$prj_path"
-	echo "prj_name: $prj_name"
-
-	# fix prj when need (add/commit) 
-	#gac "$msg" 
-
-	# pull when need  
-	gul
-
-	# push when need
-	gus
-	return
-	)
-
-
-
 	# TODO: test uncommited (untracked, changed, deleted, staged)
 	}
 

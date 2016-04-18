@@ -96,3 +96,35 @@ cmd_save_one_project_at_local(){ # pfix <prj> <msg>
 
 	# TODO: test uncommited (untracked, changed, deleted, staged)
 	}
+cmd_pull_one_project(){		# pget 	<prj> 
+	# pget <prj> 
+
+	#TRACE=0
+	prj=$1
+	msg=$2
+	#[ $TRACE == 1 ] && echo start
+	[ $TRACE == 1 ] && echo -e "UTILS_PRJ_THE_HOST:\t$UTILS_PRJ_THE_HOST"
+
+	curr_path=$(pwd) ; [ $TRACE == 1 ] && echo curr_path: $curr_path	
+	if [[ "$prj" == "" ]]; then 
+		curr_path=`eval echo $(pwd)` #; echo cur_path:$curr_path
+		prj_name=$(get_project_name $curr_path NO_TRACE) #; echo prj_name: $prj_name
+		[[ "$prj_name" == "" ]] && echo "[SAVE PROJECT] project name is missed  and  not found by 'current path' in $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST !" && return
+		# get prj (update)
+		echo "GETTING $prj_name: $curr_path"
+		gul
+		return
+	  fi
+
+	# find prj file by current path
+	prj_path=$(get_project_path "$prj" NO_TRACE); [ $TRACE == 1 ] && echo prj_path: $prj_path # "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
+	[[ "$prj_path" == "" ]] && echo -e "${red}[PROJECT GET] Project path not found (by name: $prj) ! ${norm}" && return
+	# TODO: get prj vcs_type (svn, git)
+	# TODO: get prj remote
+	( # to return current path
+	echo "$prj: $prj_path"
+	eval cd "$prj_path"
+	gul "$msg" 
+	)
+	# TODO: test uncommited (untracked, changed, deleted, staged)
+	}
