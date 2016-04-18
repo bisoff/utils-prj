@@ -44,6 +44,7 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# вынести add prj to set в func - проверять что его там нет 
 	# default переделать на $DEFAULT="~default"
 	# psaveall <list1>,<list2>
+	# instead get_curtent_set - add verify_set
 
 	# plist pshow psets - use notice if no found
 	# add support comment for cfg (prj/list)
@@ -123,10 +124,10 @@ utils-prj-uninstall(){
 
 # service functions======================
 get_current_set () {
-	local project_list=$1
-	if [[ "$project_list" == "" ]]; then
-		project_list="$(sed -E -n 's/^default_list=([^#]*)/\1/p' "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" | tr -d '\r')"
-	 fi
+	#local project_list=$1
+	#if [[ "$project_list" == "" ]]; then
+		local project_list="$(sed -E -n 's/^default_list=([^#]*)/\1/p' "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" | tr -d '\r')"
+	# fi
 	echo "$project_list" # return value
 	}
 get_current_project () {
@@ -270,7 +271,9 @@ get_project_or_list(){	# <prj|list>
 
 # config functions ======================
 cmd_show_current_config(){	# pshow
-	true
+	cmd_project_enum
+	#echo -e "Current set:\t$(get_current_set)"
+	#echo -e "Current project:\t$(get_current_project)"
 	# version
 	# папка home
 	# папка config
@@ -281,14 +284,27 @@ cmd_show_current_config(){	# pshow
 cmd_project_enum(){		# plist	[<list>]
 	# plist <list>
 	# echo UTILS_PRJ_THE_HOST: $UTILS_PRJ_THE_HOST
-	prj_list=$1
-	prj_list=$(get_current_set $prj_list); trace_prj "prj_list:\t$prj_list"
-	echo -e "\n${grey_back}          $prj_list          ${norm}"
+	local prj_list="$1"
+	local current_set=$(get_current_set)
+	[ "$prj_list" == "" ] && prj_list="$current_set"
+	trace_prj "prj_list:\t\t$prj_list"
+	local current_project=$(get_current_project); trace_prj "current_project:\t$current_project"
+
+	[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list" ] && echo -e "${red}[cmd_project_enum] Project list '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list' not found !${norm}" && return
+	if [ "$current_set" == "$prj_list" ]; then
+		echo -e "\n${black_on_green}  ${red_on_green}$prj_list ${magenta_on_green}(current)  ${norm}"
+	  else
+		echo -e "\n${black_on_green}  ${red_on_green}$prj_list  ${norm}"
+	  fi
 
 	for prj_name in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
 		#prj_name=`eval echo $prj_name` # normalize (<CR> ~)
 		local path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
-		echo -e "$prj_name:\t$path"
+		if [ "$current_project" == "$prj_name" ]; then
+			echo -e "${green}$prj_name${norm}\t${green}$path ${grey}(current)${norm}"
+		  else
+			echo -e "$prj_name\t$path"
+		  fi
 	  done
 	echo
 	}
@@ -469,6 +485,7 @@ cmd_set_enum(){		# psets
 		#cmd_enum_projects "$prj_list"
 	  done
 	)
+	echo
 	}
 cmd_set_add() {			# psetadd	<set>
 	local set_name="$1"
@@ -654,11 +671,13 @@ cmd_project_sync(){		# prs <sync_type> .|<prj>|<list> 	# sync_type: state statex
 	trace_prj "obj:\t$obj"
 	#[ "$cmd" == "" ] && echo "${red}[cmd_project_sync] Param 'sync_type' is missed ${norm}" 
 	# [cmd_project_sync] 
-	[ "$cmd" == "" ] && \
+	[[ "$cmd" == "" || ! ("$cmd" == "state" || "$cmd" == "statex" || "$cmd" == "pull" || "$cmd" == "push" || "$cmd" == "full") ]] && \
 		echo -e "Syntax:\t\t\t\t${green}prs${norm} ${yellow}<sync_type> .|<prj>|..|<list>${norm}" && \
 		echo -e "\t${yellow}sync_type${norm}:\t\tstate_local | state_remote | pull | push | full" && \
 		echo -e "\t${yellow}.|<prj>|..|<list>${norm}:\tcurrent project | name of project | current list | name of list" && \
 		return
+
+	[ "$cmd" != "" ] 
 
 	[ "$obj" == "" ] && obj="."
 	local objtype="project"
@@ -722,7 +741,7 @@ cmd_save_one_projects(){	# psave <prj>|. [<msg>]
 	local prj=$1
 	local msg=$2
 	
-	[ "$prj" == "" ] && echo "psave <prj>|. [<msg>]" && return 
+	[ "$prj" == "" ] && echo -e "${green}psave ${yellow}<prj>|<.> [<msg>]${norm}" && return 
 	trace_prj "prj:\t\t$prj"
 	# echo UTILS_PRJ_HOME: $UTILS_PRJ_HOME
 	# echo UTILS_PRJ_THE_HOST: $UTILS_PRJ_THE_HOST
