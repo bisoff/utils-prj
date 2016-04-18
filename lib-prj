@@ -106,14 +106,14 @@ utils-prj-setup(){
 	mkdir "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
 	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" ] && copy "$UTILS_PRJ_HOME/default" "UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default"
 	touch "UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/!projects"
-	echo 'p-help' - print readme.adoc
+	echo "'p-help' - print readme.adoc"
 	echo "'pshow' - print current configuration (config files, project sets with projects)"
 	echo "'padd my_alias' - add alias and current folder to projects list (at start - 'default')"
-	echo 'plist' - review assigned aliases
-	echo 'pgo my_alias' - cmd_project_go home
-	echo 'pfix my_alias' - save project at local repository
-	echo 'psave my_alias' - save project and sync with remote repository
-	echo 'pget my_alias' - pull project from remote repository
+	echo "'plist' - review assigned aliases"
+	echo "'pgo my_alias' - cmd_project_go home"
+	echo "'pfix my_alias' - save project at local repository"
+	echo "'psave my_alias' - save project and sync with remote repository"
+	echo "'pget my_alias' - pull project from remote repository"
 	}
 utils-prj-uninstall(){
 	# cut '. ~/.utils-prj/include' from .bash_profile
