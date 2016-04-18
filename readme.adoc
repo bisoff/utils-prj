@@ -1,35 +1,50 @@
 == What for
-cli utility for 
-- to rapid control dozens of projects (switch context to set of projects; go to home project folder; bulk state review, fix and sync)
-- use simple mode to fast switch favorite folders
+utils-prj is a cli utility for:
+- rapid control dozens of projects: switch context to project set; go to project home folder; bulk operations like state review, fix in vcs and sync with remotes)
+- simple way to change current folder using dynamic aliases (ex. 'padd prj1' will add alias for current folder, 'pgo prj1' will change current folder)
 
 == Setup
 
 
 == Prerequisites
 
-- to control git projects requires utils-git library (extra shell commands)
-	cmd_state_of_one_project	gis
-	cmd_save_all_projects		gis,gok
-	cmd_save_project_at_local	gac
-- requires utils-env library to print colored messages (w/o it will use current color only)
-- requires git in PATH for projects of the type
-
-== Compatibility
-tested on 
-	msys(git)
-	osx
-	linux
+Mandatory:
+	- corutils
+		msys on Windows, ex: 
+			git 1.7?.5? (msys 32bit) 
+			git 2.0.0 (msys 64bit) 
+			msys 
+			msys2 
+			mingw (msys 32bit) 
+			mingw64
+		osx 10.?? Yosemite +?
+		linux with bash 3.2??+
+Optional:
+	- utils-env library - to print colored messages requires (you may don't install them, then messages just willn't in color) 
+	- utils-git library - to fix in vcs(git) or sync with remotes (bash script library to manupulate of git repositories in simple manner)
+		cmd_state_of_one_project	gis
+		cmd_save_all_projects		gis,gok
+		cmd_save_project_at_local	gac
+	- any syncronizing tool (described in PATH)
+		git 
+		rsync (cwRsync)
+		subversion
 
 == Ref impl
-clone
-setup (make configs in user's home dir) add $host subfld
-psetadd
-padd
-plist
-pst
-pgo
-pstate
+clone utils_prj # you need have installed git and fixed it in PATH
+run setup 	# it makes configs in user's home within <host_name> subfolder and default set of projects
+cd <you project path>
+padd p1		# add alias 'p1' for your project (and add pwd as projects path)
+plist		# to view your projects in current set (default)
+touch some_file # to make changes in project (it could be manipulation on any file)
+cd -		# change path to another
+pstate p1	# review status of project 'p1'
+pgo p1		# change path to projects path
+pstate .	# review status of current project
+pst		# to view status of all projects in current set (ex. you'll need to pull or push or add&commit you project)
+pfix . 		# add & commit your changes in local repository
+psave . 'ok'	# add, commit and push changes with massage 'ok'
+pget . 		# pull changes from remote
 
 
 == Folder/file/content

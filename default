@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# default sets of libs/projects:
+default_list=!projects
+
+

@@ -1,0 +1,3 @@
+#!/bin/bash
+. lib-prj
+utils-prj-uninstall
