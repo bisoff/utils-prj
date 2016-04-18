@@ -50,6 +50,7 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# add 'cfg' extension for prj/list files?
 	# dyna gif help w/ref impl for another my prj (eg. utils-vcs)
 	# cmd_project_delete +from_list
+	# psetren <not_current> <onother_name>
 
 	# add beta satus, version & lic info
 
@@ -351,7 +352,7 @@ cmd_project_delete(){		# pdel -n=<prj> -p=<path> -s=<set>
 	#prj_type=`sed -E -n 's/^type=([^#]+).*/\1/p' $UTILS_ PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
 	#prj_remote=`sed -E -n 's/^remote=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
 	rm "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" || return
-	sed -E -i "s/^$prj_name$//g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$(get_current_set).list" && echo -e "[cmd_project_delete] Project ${yellow}$prj_name ($prj_path)${norm} is deleted" 
+	sed -i '' -E "s/^$prj_name$//g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$(get_current_set).list" && echo -e "[cmd_project_delete] Project ${yellow}$prj_name ($prj_path)${norm} is deleted" 
 	}
 cmd_project_move(){		# pmove	<prj>|. [<list>]
 	# if list is skipped and prj_name is same 					-> update prj path
@@ -373,7 +374,7 @@ cmd_project_move(){		# pmove	<prj>|. [<list>]
 		[ "$project_name" == "" ] && echo -e "${red}Project not found by '$curr_path'${norm}" && return
 		if [ "$project_name" == "$prj_name" ]; then
 			# update prj path
-			sed -i -E "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" || return #  replace home path
+			sed -i '' -E "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" || return #  replace home path
 		  else
 			# upd name of prj (name and link in list)
 			[ -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" ] && echo -e "${red}Project '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name' already exist ${norm}"
@@ -381,17 +382,19 @@ cmd_project_move(){		# pmove	<prj>|. [<list>]
 			trace_prj "found:\t$found"
 			[ "$found" != "$project_name" ] && echo -e "${red}Project '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name' not found in '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list' ${norm}" && return
 			mv "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$project_name" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" || return
-			sed -i -E "s/^$project_name$/$prj_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list" || return
+			sed -i '' -E "s/^$project_name$/$prj_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list" || return
 		  fi
 	  else
 		# cut prj from current list and paste to pointed list
 		[ "$prj_name" == "." ] && prj_name=$(get_project_name); trace_prj "prj_name:\t$prj_name"
 		local current_set=$(get_current_set); trace_prj "current_set:\t$current_set"
 		[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list" ]] && echo -e "${red}[cmd_project_move] Project list '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list' not found !${norm}" && return
+		[ "$prj_list" == "$current_set" ] &&echo -e "${red}[cmd_project_move] Target project list '$prj_list.list' can't be current !${norm}" && return
 		echo "$prj_name" >> "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list"
 		echo -e "[cmd_project_move] Project ${green}$prj_name${norm} added to ${green}'$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list'${norm}" 
-		sed -i -E "s/^$prj_name$//g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set.list" || return
+		sed -i '' -E "s/^$prj_name$//g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set.list" || return
 		echo -e "[cmd_project_move] Project ${yellow}$prj_name${norm} cut from ${yellow}'$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set.list'${norm}" 
+		[ "$(grep "^$prj_name$" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set.list")" != "" ] && echo -e "${red}Project '$prj_name' still found in '$prj_list' ${norm}" && return
   fi
 	cmd_project_enum # plist
 	}
@@ -428,7 +431,7 @@ cmd_project_rename(){		# ren 		<prj>
 	#echo sed -i "s/^$curr_prj_name\$/$new_prj_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list" ; return
 	mv "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$curr_prj_name" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$new_prj_name" || return
 
-	sed -i -E "s/^$curr_prj_name\$/$new_prj_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list" || return # sed -i "s/^jr$/jrhw/g" `echo $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$(get_current_set).list`
+	sed -i '' -E "s/^$curr_prj_name\$/$new_prj_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list" || return 
 
 	#echo "path=$new_path" 	>  $prj_path
 	#echo "type=git" 	>> $prj_file
@@ -461,7 +464,7 @@ cmd_set_enum(){		# psets
 		#path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list | tr -d '\r'` 
 		# prj_list=${prj_list:2}
 		prj_list="${prj_list/.list/}"
-		[ "$prj_list" == "$set_default" ] && prj_list="$prj_list ${green}(current)${norm}"
+		[ "$prj_list" == "$set_default" ] && prj_list="${green}$prj_list ${grey}(current)${norm}"
 		echo -e "$prj_list"
 		#cmd_enum_projects "$prj_list"
 	  done
@@ -501,17 +504,21 @@ cmd_set_rename() {		# psetren
 	# rename file
 	# replace if default
 	local set_name="$1"
+	local extra="$2"
+	[[ "$extra" != "" ]] && echo -e "${red}[cmd_set_rename] extra param's is not valid !${norm}" && return 
 	[[ "$set_name" == "" ]] && echo -e "${red}[cmd_set_rename] set_name param is missed !${norm}" && return 
 	local set_name_current="$(get_current_set)"; trace_prj "set_name_current:\t$set_name_current" # normalize (<CR> ~)
-	[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name_current.list" ]] && echo -e "${red}[cmd_set_rename] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name/$set_name.list${norm} not found !" && return 
+	[[ "$set_name_current" == "" ]] && echo -e "${red}[cmd_set_rename] Project list '$set_name' not found !${norm}" && return 
+	[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name_current.list" ]] && echo -e "${red}[cmd_set_rename] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name_current.listnot found !${norm}" && return 
+	[[ -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ]] && echo -e "${red}[cmd_set_rename] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list already exist !${norm}" && return 
 	eval mv "'$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name_current.list'" "'$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list'" || return
-	sed -i -E "s/^(default_list=)(.*)/\1$set_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_rename] Current project list now is ${green}$set_name${norm}" 
+	sed -i '' -E "s/^(default_list=)(.*)/\1$set_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_rename] Current project list now is ${green}$set_name${norm}" 
 	}
 cmd_set_switch() {		# psetsw	<list>|.  # set as default
 	local set_name="$1"
 	[[ "$set_name" == "" ]] && echo -e "${red}[cmd_set_switch] set_name param is missed !${norm}" && return 
-	[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ]] && echo -e "${red}[cmd_set_switch] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name/$set_name.list${norm} not found !" && return 
-	sed -i -E "s/^(default_list=)(.*)/\1$set_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_switch] Current project list is ${green}$set_name${norm} now"
+	[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ]] && echo -e "${red}[cmd_set_switch] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list not found !${norm}" && return 
+	sed -i '' -E "s/^(default_list=)(.*)/\1$set_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_switch] Current project list is ${green}$set_name${norm} now"
 	}
 
 # navigate and state functions===========
@@ -610,7 +617,7 @@ cmd_state_of_all_projects(){	# pst[x] <list>|. 	# '.' for default list
 		echo -e "${grey_back} $prj_list  $prj \t $prj_path ${norm}"
 		[ $changes -ne 0 ] && git status -s --untracked-files
 
-		[ "$remote_mode" = "remote" ] && echo -n "Ask remote for last commit (hash) .. " 
+		[ "$remote_mode" = "remote" ] && echo -n "Ask remote for last commit .. " 
 		local sync_remote_status=$(get_sync_status $remote_mode "notice" no_TRACE)
 		[[ "$remote_mode" = "remote" && "$sync_remote_status" == "ok" ]] && echo -e "same"
 		trace_prj "sync_remote_status:\t$sync_remote_status"
