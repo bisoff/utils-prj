@@ -32,6 +32,7 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# common func for error msg (red  !  func_name <norm>)
 	# pst -> psta[x]
 	# pstate -> pst[x]
+	# add to prj file - credential.helper line (ex =wincred,  =credential.helper osxkeychain, =gnome-keyring) and when pgo replace it in .git/config
 
 	# unite cmd_state_of_one_project cmd_state_of_all_projects
 	# unite save save_all
