@@ -58,6 +58,7 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# instead get_curtent_set - add verify_set
 	# psave .. = psaveall
 	# psave ... = save all lists
+	# psave - log what committed
 
 	# plist pshow psets - use notice if no found
 	# add support comment for cfg (prj/list)
