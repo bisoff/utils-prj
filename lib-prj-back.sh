@@ -128,3 +128,151 @@ cmd_pull_one_project(){		# pget 	<prj>
 	)
 	# TODO: test uncommited (untracked, changed, deleted, staged)
 	}
+cmd_state_of_all_projects(){	# pst[x] <list>|. 	# '.' for default list
+	local prj_list=$1
+	[ "$prj_list" == "" ] && prj_list=default
+	[ "$remote_mode" == "" ] && remote_mode=false #$2
+	[ "$TRACE" == "" ] && local TRACE=0 #$3
+	
+	trace_prj "UTILS_PRJ_HOME:\t\t$UTILS_PRJ_HOME"
+	trace_prj "UTILS_PRJ_THE_HOST:\t$UTILS_PRJ_THE_HOST"
+	trace_prj "remote_mode:\t\t$remote_mode"
+	
+	[[ "$prj_list" == "default" ]] && prj_list=$(get_current_set)
+	trace_prj "prj_list:\t\t$prj_list"
+	#[[ "$remote_mode" == "" ]] && -e "${red}[lib-prj.:projects_state] 'remote_mode' param is not defined !${norm} " && return
+
+	echo
+	for prj in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
+		prj=`echo $prj` # normalize
+		prj_file=`echo $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj`
+		if [[ ! -f "$prj_file" ]]; then
+			#echo prj: $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj
+			#cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj
+			echo -e "${red} Project file '$prj_file' not found !${norm} "
+			continue
+		  fi
+
+		#prj_file=`eval echo $prj_file` # cut <CR> 
+		trace_prj "prj_file:\t\t$prj_file" 
+
+		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' "$prj_file" | tr -d '\r'` 
+		prj_path=`eval echo $prj_path` # for osx replace ~ to $HOME (and cut <CR>?)
+		trace_prj "prj_path:\t\t$prj_path"
+		[[ ! -d "$prj_path" ]] && echo -e "${red} Project path '$prj_path' not found !${norm} " && continue
+		(
+		eval cd "$prj_path"
+
+		changes=$(gis | wc -l) 
+		trace_prj "changes:\t\t$changes"
+		#	echo -e "${grey}$prj: $prj_path${norm}"
+		#  else
+
+		echo -e "${grey_back} $prj_list  $prj \t $prj_path ${norm}"
+		[ $changes -ne 0 ] && git status -s --untracked-files
+
+		local sync_status=$(get_sync_status $remote_mode notice NO_TRACE)
+		echo
+		)
+	  done
+	}
+cmd_save_all_projects(){	# psavall <list>|. [<msg>]
+	# psavall <msg> <list>  # save every prj in list (add/commit/push)
+	trace_prj=$1
+	msg=$2
+
+	trace_prj "UTILS_PRJ_HOME:\t\t$UTILS_PRJ_HOME"
+	trace_prj "UTILS_PRJ_THE_HOST:\t$UTILS_PRJ_THE_HOST"
+
+	[[ "$trace_prj" == "." ]] && trace_prj="" # trik to save default
+	[[ "$trace_prj" == "" ]] && trace_prj=$(get_current_set)
+	trace_prj "prj_list:\t\t$prj_list" # get default repos list
+
+	echo
+	for prj in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$trace_prj.list | tr -d '\r' | sort); do 
+		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
+		(
+		eval cd "$prj_path" # for osx replace ~ to $HOME
+		changes=$(gis | wc -l)	# echo changes: $changes
+		echo -e "${grey_back} $trace_prj  $prj \t $prj_path${norm}"
+		trace_prj "prj_path:\t\t$prj_path"
+		trace_prj "changes:\t\t$changes" # 2> /dev/null 
+		if [[ "$changes" == "0" ]]; then
+			local sync_remote_status=$(get_sync_status remote silent NO_TRACE)
+			trace_prj "sync_remote_status:\t$sync_remote_status" # 2> /dev/null 
+		  fi
+
+		if [ "$changes" != "0" ]; then
+			gok "$msg" # TODO: переделать на использование либы 
+		  fi
+		if [[ "$changes" == "0" && "$sync_remote_status" == "push" ]]; then
+			gus
+		  fi
+		[[ "$sync_remote_status" != "push" && "$sync_remote_status" != "ok" ]] && show_sync_status "$status"
+		echo
+		)
+	  done
+	# TODO: test uncommited (untracked, changed, deleted, staged)
+	}
+cmd_save_all_projects_at_local(){ # pfixall <list>|. [<msg>]
+	# pfixall <prj> <msg> # add/commit
+	prj_list=$1
+	msg=$2
+
+	trace_prj "UTILS_PRJ_HOME:\t$UTILS_PRJ_HOME"
+	trace_prj "UTILS_PRJ_THE_HOST:\t$UTILS_PRJ_THE_HOST"
+
+	[[ "$prj_list" == "." ]] && prj_list="" # trik to save default
+	[[ "$prj_list" == "" ]] && prj_list=$(get_current_set)
+	trace_prj "prj_list:\t\t$prj_list"
+
+	for prj in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list | tr -d '\r' | sort); do 
+		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
+		(
+		eval cd "$prj_path"
+		changes=$(gis | wc -l)	# echo changes: $changes
+		echo -e "\n${grey_back} $prj_list  $prj \t $prj_path${norm} "
+		if [ $changes -ne 0 ]; then
+			gac "$msg" # TODO: переделать на использование либы 
+			echo
+		  fi
+		#${red}none${norm}"
+		)
+	  done
+	#echo
+	}
+
+cmd_pull_all_projects(){	# pgetall <list>|.
+	# pgetall <list> # save every prj in list (add/commit/push)
+	prj_list=$1
+
+	# echo home: $home
+	# echo UTILS_PRJ_THE_HOST: $UTILS_PRJ_THE_HOST
+	[[ "$prj_list" == "." ]] && prj_list="" # trik to set default
+	[[ "$prj_list" == "" ]] && prj_list=$(get_current_set)
+	trace_prj "prj_list:\t\t$prj_list" # get default repos list
+
+	for prj in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list | tr -d '\r' | sort ); do 
+		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj | tr -d '\r'` # sed -E -n 's/^path=([^#]+)/\1/p' /Users/a.bysov/prj/utils-vcs/.cfg/ok/ue
+		(
+		eval cd "$prj_path"
+		echo -e "\n ${grey_back} $prj_list  $prj \t $prj_path ${norm}"
+		changes=$(gis | wc -l) 
+		trace_prj "changes:\t\t$changes" # 2> /dev/null 
+
+		if [[ $changes -eq 0  ||  "$changes" == "" ]]; then
+			compare_status=$(get_sync_status remote silent NO_TRACE)
+			trace_prj "compare_status:\t$compare_status"
+			[ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
+			if [[ "$compare_status" == "pull" || "$compare_status" == "diverged" ]]; then
+				gul
+				git diff --stat=200 HEAD~1 HEAD --color | sed -n '$! p' # files in last commit 
+			  fi
+		  else
+    		  	gis
+		  fi
+		)
+	  done
+	# TODO: test uncommited (untracked, changed, deleted, staged)
+	}
+
