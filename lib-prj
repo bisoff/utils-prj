@@ -217,7 +217,7 @@ get_project_path () {	# <prj>
 		#for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default -exec basename "{}" ';'); do  #| tr -d '\r' | sed 's/^\.\///' 
 		#	trace_prj "prj_loop:\t[get_project_path] $prj_loop" 1>&2
 		#	if [[ "$prj_name" == "$prj_loop" ]]; then
-				local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $	prj_file | tr -d '\r')` # remove tilda for home path's
+				local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $prj_file | tr -d '\r')` # remove tilda for home path's
 				echo $prj_path
 		#		return
 		#	  fi
@@ -259,9 +259,9 @@ get_sync_status(){		# <remote_mode>
 
 	if [ "$result_format" == "notice" ]; then
 		[ "$status" == "ok" ] 		&& echo -e "${green}same${norm}" 1>&2
-		[ "$status" == "pull" ] 	&& echo -e "${yellow} NEED TO PULL !${norm}" 1>&2
-		[ "$status" == "push" ] 	&& echo -e "${green} NEED TO PUSH${norm}" 1>&2
-		[ "$status" == "diverged" ] 	&& echo -e "${red_bright} DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
+		[ "$status" == "pull" ] 	&& echo -e "${yellow}NEED TO PULL !${norm}" 1>&2
+		[ "$status" == "push" ] 	&& echo -e "${green}NEED TO PUSH${norm}" 1>&2
+		[ "$status" == "diverged" ] 	&& echo -e "${red_bright}DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
 	  fi
 	trace_prj "status:\t\t[get_sync_status] $status" >&2
 	}
@@ -666,7 +666,7 @@ cmd_project_sync(){
 	case "$cmd" in
 		"local"|"remote")
 			# state
-			echo "$gis" #git status -s --untracked-files # "$*" - mask
+			git status -s --untracked-files # "$*" - mask  echo "$gis" #
 
 			#echo -e -n "Ask ${yellow}$cmd${norm} for last commit .. "  #[ "$remote_mode" = "remote" ] && 
 			local sync_status=$(get_sync_status "$cmd" notice) # notice/silent NO_TRACE
@@ -676,16 +676,17 @@ cmd_project_sync(){
 			# [ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
 	  		;;
 		"fix")
-			[ "$changes" != "0" ] && echo -e "${red}FIXING${norm} $prj_name: $prj_path" && git status -s --untracked-files && gac "$msg" && return
-			echo -e "${yellow} $prj_name: $prj_path - changes not found ${norm}" 
+			[ "$changes" != "0" ] && echo -e "${red}FIXING${norm}" && git status -s --untracked-files && gac "$msg" && return
+			echo -e "${yellow}Changes not found ${norm}" 
 			;;
 		"pull")
 			echo -e "${red}GETTING${norm} $prj_name: $prj_path"
 			gul
 			;;
 		"push")
-			echo -e "${red}PUSHING${norm} $prj_name: $prj_path"
-			gok "$msg"
+			[ "$changes" != "0" ] && echo -e "${red}FIXING${norm}" && git status -s --untracked-files && gac "$msg" && return
+			echo -e "${red}PUSHING${norm}"
+			gus #gok "$msg"
 			;;
 		"full")
 			[ "$changes" != "0" ] && gac "$msg" # fix prj when need (add/commit) 
@@ -758,6 +759,7 @@ cmd_project_action(){		# prs <sync_type> .|<prj>|<list> [<msg>]
 			#prj_name=`echo $prj_name` # normalize
 			trace_prj "prj_name:\t$prj_name"
 			prj_path=$(get_project_path "$prj_name") #"$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"    dont_TRACE NO_TRACE
+			[ "$prj_path" == "" ] && continue
 			trace_prj "prj_path:\t$prj_path"
 			cmd_project_sync "$prj_name" "$prj_path" "$cmd" "$msg" #$prj_path  [ "$prj_path" != "" ] && 
 		  done
