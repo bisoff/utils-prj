@@ -3,7 +3,6 @@
 
 # === TODO ===
 
-	# todo: oldpwd for *nix (~/.oldpwd for msys only)
 	# correct cmd_edit_host_config
 	# ?? rename list to set in helps
 	# cmd_add_project(){ $3 - home_path
@@ -528,7 +527,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			[ "$changes" != "0" ] && gac "$msg" && echo # fix prj when need (add/commit) 
 
 			#echo -n "Ask remote for last commit .. " 
-			local sync_status=$(get_sync_status remote notice) # notice/silent NO_TRACE
+			local sync_status=$(get_sync_status remote notice) # notice/silent NO_TRACE  ask for 'need to pull'
 			trace_prj "sync_status:\t$sync_status"
 			#sync_status=`eval echo $sync_status`
 			[[ "$sync_status" == "pull" || "$sync_status" == "diverged" ]] && gul # pull when need
