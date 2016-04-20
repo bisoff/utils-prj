@@ -66,7 +66,8 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# dyna gif help w/ref impl for another my prj (eg. utils-vcs)
 	# cmd_project_delete +from_list
 	# psetren <not_current> <onother_name>
-	# ... all sets
+	# ... - all sets
+	# 'set/prj' syntax
 
 	# add beta satus, version & lic info
 
@@ -198,39 +199,46 @@ get_project_name () { # <project_path>
 	)
   }
 get_project_path () {	# <prj>
-	local prj=$1
-	[ "$2" != "" ] && local TRACE=$2
+	local prj_name="$1"
+	[ "$2" != "" ] && local TRACE="$2"
 	local extra=$3
-	[ "$extra" != "" ] && echo "[get_project_path] extra param is invalid!" 1>&2 && (trace_prj "extra:\t$extra [get_project_path]" 1>&2) && return 
+	[ "$extra" != "" ] && echo "[get_project_path] extra param is invalid!" 1>&2 && (trace_prj "extra:\t[get_project_path] $extra" 1>&2) && return 
 	#[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT PATH] root for project is missed !" 1>&2 && return ; trace_prj "root:\t\t$root [get_project_path]" 1>&2
-	[[ "$prj" == "" ]] && echo "[get_project_path] project name is missed !" 1>&2 && (trace_prj "prj:\t\t$prj [get_project_path]" 1>&2) && return
-	(
-	cd "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
-	local find_path="find"
-	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find"
-	trace_prj "find_path:\t[get_project_path] $find_path" 1>&2
-	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default -exec basename "{}" ';'); do  #| tr -d '\r' | sed 's/^\.\///' 
-		trace_prj "prj_loop:\t[get_project_path] $prj_loop" 1>&2
-		if [[ "$prj" == "$prj_loop" ]]; then
-			local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_loop | tr -d '\r')` # remove tilda for home path's
-			echo $prj_path
-			return
-		  fi
-	  done
-	)
+	[[ "$prj_name" == "" ]] && echo "[get_project_path] project name is missed !" 1>&2 && (trace_prj "prj_name:\t\t[get_project_path] $prj_name" 1>&2) && return
+	
+	#(	cd "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
+		#local find_path="find"
+		#[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find"
+		#trace_prj "find_path:\t[get_project_path] $find_path" 1>&2
+
+	local prj_file="$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name"
+	[ ! -f "$prj_file" ] && echo -e "${red} Project file '$prj_file' not found !${norm}" && return
+		#for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default -exec basename "{}" ';'); do  #| tr -d '\r' | sed 's/^\.\///' 
+		#	trace_prj "prj_loop:\t[get_project_path] $prj_loop" 1>&2
+		#	if [[ "$prj_name" == "$prj_loop" ]]; then
+				local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $	prj_file | tr -d '\r')` # remove tilda for home path's
+				echo $prj_path
+		#		return
+		#	  fi
+		#  done
+	#)
   }
 get_sync_status(){		# <remote_mode>
 	# ex. get_sync_status true # to compare with last commit from remote host
 	# ??todo: return two out param ???  array?  or  pull/push/both/diverged only?
-	local use_remote_host=$1  	# true / false
-	local result_format=$2 		# when 'silent' then print yes/no else print msg for user 
+	local use_remote_host="$1"  	# true / false
+	local result_format="$2" 		# when 'silent' then print yes/no else print msg for user 
 	[ "$3" != "" ] && local TRACE=$3
 
-	[ "$result_format" == "" ] && result_format=simple
-	[ "$use_remote_host" == "" ] && use_remote_host=false
-	[ "$use_remote_host" == "remote" ] && use_remote_host=true
-	trace_prj "use_remote_host:$use_remote_host [get_sync_status]" 1>&2
-	trace_prj "result_format:\t$result_format [get_sync_status]" 1>&2
+	[ "$use_remote_host" == "" ] && use_remote_host=local
+	[ "$result_format" == "" ] && result_format=notice
+
+	trace_prj "use_remote_host: [get_sync_status] $use_remote_host" 1>&2
+	trace_prj "result_format:\t[get_sync_status] $result_format" 1>&2
+
+	[[ "$result_format" == "notice" && "$use_remote_host" == "local" ]] && echo -e -n "Ask ${yellow}$use_remote_host${norm} for last commit .. " 1>&2
+	[[ "$result_format" == "notice" && "$use_remote_host" == "remote" ]] && echo -e -n "Ask ${green}$use_remote_host${norm} for last commit .. " 1>&2
+
 	#trace_prj $([ "$result_format" != "silent" ] && echo "notice mode [get_sync_status]") 1>&2
 	local status
 	local LOCAL=$(git rev-parse @)
@@ -241,20 +249,20 @@ get_sync_status(){		# <remote_mode>
 	  fi
 	local BASE=$(git merge-base @ @{u})
 	#echo LOCAL:$LOCAL REMOTE:$REMOTE BASE:$BASE
-	if [ $LOCAL = $REMOTE ]; then 		status="ok" 
+	if [ $LOCAL = $REMOTE ]; then 		status="ok" # same
 	  elif [ $LOCAL = $BASE ]; then		status="pull"
 	  elif [ $REMOTE = $BASE ]; then	status="push"
 	  else				  	status="diverged"
 	  fi
-	echo "$status"
-	[ "$result_format" != "silent" ] && show_sync_status "$status"
-	}
-show_sync_status(){
-	local sync_status=$1
-	[ "$sync_status" == "pull" ] 	 && echo -e "${yellow} NEED TO PULL !${norm}" 1>&2
-	[ "$sync_status" == "push" ] 	 && echo -e "${green} NEED TO PUSH${norm}" 1>&2
-	[ "$sync_status" == "diverged" ] && echo -e "${red_bright} DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
-	# [ "$sync_status" == "ok" ] && 
+	echo "$status" # for extra handle
+
+	if [ "$result_format" == "notice" ]; then
+		[ "$status" == "ok" ] 		&& echo -e "${green}same${norm}" 1>&2
+		[ "$status" == "pull" ] 	&& echo -e "${yellow} NEED TO PULL !${norm}" 1>&2
+		[ "$status" == "push" ] 	&& echo -e "${green} NEED TO PUSH${norm}" 1>&2
+		[ "$status" == "diverged" ] 	&& echo -e "${red_bright} DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
+	  fi
+	trace_prj "status:\t\t[get_sync_status] $status" >&2
 	}
 get_object_type(){	# <prj|list>
 	local obj=$1  	# project_or_list
@@ -619,6 +627,7 @@ cmd_state_of_all_projects(){	# pst[x] <list>|. 	# '.' for default list
 		[[ ! -d "$prj_path" ]] && echo -e "${red} Project path '$prj_path' not found !${norm} " && continue
 		(
 		eval cd "$prj_path"
+
 		changes=$(gis | wc -l) 
 		trace_prj "changes:\t\t$changes"
 		#	echo -e "${grey}$prj: $prj_path${norm}"
@@ -627,17 +636,72 @@ cmd_state_of_all_projects(){	# pst[x] <list>|. 	# '.' for default list
 		echo -e "${grey_back} $prj_list  $prj \t $prj_path ${norm}"
 		[ $changes -ne 0 ] && git status -s --untracked-files
 
-		[ "$remote_mode" = "remote" ] && echo -n "Ask remote for last commit .. " 
-		local sync_remote_status=$(get_sync_status $remote_mode "notice" NO_TRACE)
-		[[ "$remote_mode" = "remote" && "$sync_remote_status" == "ok" ]] && echo -e "${green}same${norm}"
-		trace_prj "sync_remote_status:\t$sync_remote_status"
-		#[[ "$changes" != "0" || "$sync_remote_status" != "ok" ]] && 
+		local sync_status=$(get_sync_status $remote_mode notice NO_TRACE)
 		echo
 		)
 	  done
 	}
+cmd_project_sync(){
+	local prj_name="$1"
+	local prj_path="$2"
+	local cmd="$3"
+	local msg="$4"
+	trace_prj "prj_name:\t[cmd_project_sync] $prj_name"
+	trace_prj "prj_path:\t[cmd_project_sync] $prj_path"
+	trace_prj "cmd/msg:\t[cmd_project_sync] $cmd/$msg"
 
-cmd_project_sync(){		# prs <sync_type> .|<prj>|<list> [<msg>]
+	[ ! -d "$prj_path" ] && echo -e "${red}[cmd_project_sync] Project home path '$prj_path' not found !${norm} " && return
+	( # to return current path
+	# TODO: get prj vcs_type (svn, git)
+	#echo -e "${grey_back} $prj_list  $prj \t $prj_path ${norm}"
+	echo -e "${grey_back} $prj_name  -  $prj_path ${norm}"  
+#echo -e "${grey_back} $prj_list  $prj \t $prj_path ${norm}"
+	eval cd "$prj_path"
+
+
+	local gis=$(git status -s --untracked-files)
+	changes=$(echo -n "$gis" | wc -l) 
+	trace_prj "changes:\t$changes"
+	case "$cmd" in
+		"local"|"remote")
+			# state
+			echo "$gis" #git status -s --untracked-files # "$*" - mask
+
+			#echo -e -n "Ask ${yellow}$cmd${norm} for last commit .. "  #[ "$remote_mode" = "remote" ] && 
+			local sync_status=$(get_sync_status "$cmd" notice) # notice/silent NO_TRACE
+			#[ "$sync_status" == "ok" ] && echo -e "${green}same${norm}"
+			#[[ "$sync_status" = "remote" && "$sync_status" == "ok" ]] && echo -e "${green}same${norm}"
+			trace_prj "sync_status:\t$sync_status"
+			# [ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
+	  		;;
+		"fix")
+			echo -e "${red}FIXING${norm} $prj_name: $prj_path"
+			[ "$changes" != "0" ] && echo "$gis" && gac "$msg"
+			;;
+		"pull")
+			echo -e "${red}GETTING${norm} $prj_name: $prj_path"
+			gul
+			;;
+		"push")
+			echo -e "${red}PUSHING${norm} $prj_name: $prj_path"
+			gok "$msg"
+			;;
+		"full")
+			[ "$changes" != "0" ] && gac "$msg" # fix prj when need (add/commit) 
+
+			#echo -n "Ask remote for last commit .. " 
+			local sync_status=$(get_sync_status "$cmd" notice) # notice/silent NO_TRACE
+			#[ "$sync_status" == "ok" ] && echo -e "${green}same${norm}"
+			[[ "$sync_status" == "pull" || "$sync_status" == "diverged" ]] && gul || return # pull when need
+			[[ "$sync_status" == "push" || "$sync_status" == "diverged" ]] && gus || return  # push when need
+			;;
+		*)
+			echo -e "${red}[cmd_project_sync] Project command '$cmd' not found !${norm} " && return
+	  esac
+	)
+	echo
+	}
+cmd_project_action(){		# prs <sync_type> .|<prj>|<list> [<msg>]
 	# sync_type: state(local) statex(remote) pull push full	'.' for current prj  '..' for current list
 	#cmd_state_of_projects(){	# psp[x] .|<prj>|<list> 
 	# todo: unite cmd_state_of_all_projects  cmd_state_of_projects
@@ -649,14 +713,14 @@ cmd_project_sync(){		# prs <sync_type> .|<prj>|<list> [<msg>]
 	local msg="$3"
 	trace_prj "cmd:\t\t$cmd"
 	trace_prj "obj:\t\t$obj"
-	#[ "$cmd" == "" ] && echo "${red}[cmd_project_sync] Param 'sync_type' is missed ${norm}" 
-	# [cmd_project_sync]  "$cmd" == "" || !  <sync_type>
+	#[ "$cmd" == "" ] && echo "${red}[cmd_project_action] Param 'sync_type' is missed ${norm}" 
+	# [cmd_project_action]  "$cmd" == "" || !  <sync_type>
 	[[ "$obj" == "" || ! ("$cmd" == "local" || "$cmd" == "remote" || "$cmd" == "fix" || "$cmd" == "pull" || "$cmd" == "push" || "$cmd" == "full") ]] && \
-		echo -e "Syntax:\t\t\t\t${green}<command>${norm} ${yellow} <object> [<msg>]${norm}" && \
-		echo -e "\t${yellow}<command>${norm}\tdefault aliases are - pst[x], pstate[x], pfix[all], pget[all], psave[all], psync[all]" && \
+		echo -e "Syntax: ${green}<command>${norm} ${yellow} <object> [<msg>]${norm}" && \
+		echo -e "\t\t${green}<command>${norm}\tdefault aliases are - pst[x], pstate[x], pfix[all], pget[all], psave[all], psync[all]" && \
 		#echo -e "\t${yellow}<sync_type>${norm}:\t\tlocal | remote | fix | pull | push | full" && \
-		echo -e "\t${yellow}<object>${norm}\t'.' means current project | name of project | '..' means current list | name of list" && \
-		echo -e "\t${yellow}<msg>]${norm}\t\tfor commit" && \
+		echo -e "\t\t${yellow}<object>${norm}\t'.' means current project | name of project | '..' means current list | name of list" && \
+		echo -e "\t\t${yellow}<msg>]${norm}\t\tfor commit" && \
 		return
 
 	#[ "$obj" == "" ] && obj="."
@@ -668,99 +732,33 @@ cmd_project_sync(){		# prs <sync_type> .|<prj>|<list> [<msg>]
 
 	trace_prj "objtype:\t$objtype"
 	trace_prj "obj(2):\t\t$obj"
-	[ "$objtype" == "" ] && echo -e "${red}[cmd_project_sync] Object type not found for '$obj' !${norm}" && return
-	[ "$obj" == "" ] && echo "[cmd_project_sync] $objtype not found by 'current path' in $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST !" && return
+	[ "$objtype" == "" ] && echo -e "${red}[cmd_project_action] Object type not found for '$obj' !${norm}" && return
+	[ "$obj" == "" ] && echo "[cmd_project_action] $objtype not found by 'current path' in $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST !" && return
 	# todo: multiple list for one prj
 	#[[ ! -d "$prj_path_norm" ]] && echo -e "${red}[SAVE PROJECT] project path '$prj_path_norm' not found !${norm}" && return
 
+	local prj_path
 	if [ "$objtype" == "project" ]; then
+		echo
 		#if [ "$cmd" == "local" ]; then
-		[ "$obj_orig" != "." ] && prj_path=$(get_project_path $obj NO_TRACE) #"$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"    dont_TRACE
-		[ "$obj_orig" == "." ] && prj_path=`eval echo $(pwd)`
-		trace_prj "prj_path:\t$prj_path"
-		( # to return current path
-		# TODO: get prj vcs_type (svn, git)
-		#echo -e "${grey_back} $prj_list  $prj \t $prj_path ${norm}"
-		echo -e "${grey_back} $obj  -  $prj_path ${norm}" 
-		eval cd "$prj_path"
-
-		if [[ "$cmd" == "local" || "$cmd" == "remote" ]]; then
-			# state
-			gis
-			echo -e -n "Ask ${yellow}$cmd${norm} for last commit .. "  #[ "$remote_mode" = "remote" ] && 
-			local sync_status=$(get_sync_status "$cmd" notice NO_TRACE) # notice/silent
-			[ "$sync_status" == "ok" ] && echo -e "${green}same${norm}"
-			#[[ "$sync_status" = "remote" && "$sync_status" == "ok" ]] && echo -e "${green}same${norm}"
-			trace_prj "sync_status:\t$sync_status"
-			# [ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
+		if [ "$obj_orig" == "." ]; then 
+			prj_path=`eval echo $(pwd)`
+		  else
+			prj_path=$(get_project_path $obj) #"$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"    NO_TRACE
 		  fi
-		if [ "$cmd" == "fix" ]; then # add and commit
-			echo -e "${red}FIXING${norm} $prj_name: $prj_path"
-			gac "$msg" 
-		  fi
-		if [ "$cmd" == "pull" ]; then
-			echo -e "${red}GETTING${norm} $prj_name: $prj_path"
-			gul
-		  fi
-		if [ "$cmd" == "push" ]; then
-			echo -e "${red}PUSHING${norm} $prj_name: $prj_path"
-			gok "$msg"
-		  fi
-		if [ "$cmd" == "full" ]; then
-			# fix prj when need (add/commit) 
-			# get changes
-			local changes=$(gis | wc -l) 
-			trace_prj "changes:\t\t$changes"
-			[ $changes -ne 0 ] && gac "$msg"
-
-			echo -n "Ask remote for last commit .. " 
-			local sync_status=$(get_sync_status "$cmd" notice NO_TRACE) # notice/silent
-			[ "$sync_status" == "ok" ] && echo -e "${green}same${norm}"
-
-			# pull when need
-			[[ "$sync_status" == "pull" || "$sync_status" == "diverged" ]] && gul
-
-			# push when need
-			[[ "$sync_status" == "push" || "$sync_status" == "diverged" ]] && gus
-		  fi
-		echo 
-		)
+		[ "$prj_path" != "" ] && cmd_project_sync "$obj" "$prj_path" "$cmd" "$msg"
 		return
 		#  fi
 	  fi
 	if [ "$objtype" == "set" ]; then
 		#if [ "$cmd" == "local" ]; then
-		for prj in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
-			prj_file=`echo $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$obj`
-			if [[ ! -f "$prj_file" ]]; then
-				#echo prj: $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj
-				#cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj
-				echo -e "${red} Project file '$prj_file' not found !${norm} "
-				continue
-			  fi
-
-			#prj_file=`eval echo $prj_file` # cut <CR> 
-			trace_prj "prj_file:\t\t$prj_file" 
-
-			prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' "$prj_file" | tr -d '\r'` 
-			prj_path=`eval echo $prj_path` # for osx replace ~ to $HOME (and cut <CR>?)
-			trace_prj "prj_path:\t\t$prj_path"
-			[[ ! -d "$prj_path" ]] && echo -e "${red} Project path '$prj_path' not found !${norm} " && continue
-			(
-			eval cd "$prj_path"
-			changes=$(gis | wc -l) 
-			trace_prj "changes:\t\t$changes"
-			#	echo -e "${grey}$prj: $prj_path${norm}"
-			#  else
-
-			echo -e "${grey_back} $prj_list  $prj \t $prj_path ${norm}"
-			[ $changes -ne 0 ] && git status -s --untracked-files
-
-			local sync_remote_status=$(get_sync_status $remote_mode notice NO_TRACE)
-			trace_prj "sync_remote_status:\t$sync_remote_status"
-			#[[ "$changes" != "0" || "$sync_remote_status" != "ok" ]] && 
-			echo
-			)
+		echo
+		for prj_name in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$obj.list | sed -e /^$/d | tr -d '\r' | sort); do 
+			#prj_name=`echo $prj_name` # normalize
+			trace_prj "prj_name:\t$prj_name"
+			prj_path=$(get_project_path "$prj_name") #"$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"    dont_TRACE NO_TRACE
+			trace_prj "prj_path:\t$prj_path"
+			cmd_project_sync "$prj_name" "$prj_path" "$cmd" "$msg" #$prj_path  [ "$prj_path" != "" ] && 
 		  done
 	  fi
 	}
