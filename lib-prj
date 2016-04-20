@@ -40,6 +40,7 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# pst -> psta[x]
 	# pstate -> pst[x]
 	# add to prj file - credential.helper line (ex =wincred,  =credential.helper osxkeychain, =gnome-keyring) and when pgo replace it in .git/config
+	# padd - deny if file exist
 
 	# unite cmd_state_of_one_project cmd_state_of_all_projects
 	# unite save save_all
@@ -173,12 +174,12 @@ get_project_name_verified () { 	# <prj>
   }
 get_project_name () { # <project_path>
 	# to test - bp; TRACE=1;get_project_name "/c/app/utils-env"
-	local project_path=$1; 
+	local project_path="$1" 
 	[ "$2" != "" ] && local TRACE=$2
 	#trace_prj "root:\t\t$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST" 1>&2 # local root=$1; 
 	#trace_prj "project_path:\t$project_path [get_project_name]" 1>&2
 	#[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT BY PATH] root for project is missed !" 1>&2 && return
-	[[ "$project_path" == "" ]] && project_path=$(pwd)
+	[[ "$project_path" == "" ]] && echo -e "${red}[get_project_name] parma 'project_path' is missed !${norm}" 1>&2 && return # project_path=$(pwd)
 	trace_prj "project_path:\t[get_project_name] $project_path" 1>&2
 		#echo "[get_project_name] project_path is missed !" 1>&2 && return
 	
@@ -659,8 +660,8 @@ cmd_project_sync(){
 	eval cd "$prj_path"
 
 
-	local gis=$(git status -s --untracked-files)
-	changes=$(echo -n "$gis" | wc -l) 
+	#local gis=$(git status -s --untracked-files)
+	changes=$(git status -s --untracked-files | wc -l) 
 	trace_prj "changes:\t$changes"
 	case "$cmd" in
 		"local"|"remote")
@@ -676,7 +677,7 @@ cmd_project_sync(){
 	  		;;
 		"fix")
 			echo -e "${red}FIXING${norm} $prj_name: $prj_path"
-			[ "$changes" != "0" ] && echo "$gis" && gac "$msg"
+			[ "$changes" != "0" ] && git status -s --untracked-files && gac "$msg"
 			;;
 		"pull")
 			echo -e "${red}GETTING${norm} $prj_name: $prj_path"
