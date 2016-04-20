@@ -275,4 +275,24 @@ cmd_pull_all_projects(){	# pgetall <list>|.
 	  done
 	# TODO: test uncommited (untracked, changed, deleted, staged)
 	}
+get_project_name_verified () { 	# <prj>
+	local prj=$1
+	trace_prj "prj:\t\t$prj [get_project_name_verified]" 1>&2
+	[[ "$prj" == "" ]] && echo "[get_project_name_verified] project name is missed !" 1>&2 && return
+	
+	( # to restore path after cd
+	cd "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
+	find_path="find" # linux/osx
+	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find" # in windows $EXEPATH ex. C:\app\git - std env by git bash
+	#$(cygpath-m "$EXEPATH") or canonpath after correct
+	trace_prj "find_path:\t$find_path [get_project_name_verified]" 1>&2
 
+	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default -exec basename "{}" ';'); do # all files w/o extensions ; sed -cut './' in name    | sed 's/^\.\///' 
+		trace_prj "prj_loop:\t$prj_loop [get_project_name_verified]" 1>&2
+		if [[ "$prj" == "$prj_loop" ]]; then
+			echo $prj_loop # return alias (name) of project if found
+			return
+		  fi
+	  done
+	)
+  }

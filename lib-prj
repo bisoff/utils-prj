@@ -148,30 +148,10 @@ get_current_set () {
 	# fi
 	echo "$project_list" # return value
 	}
-get_current_project () {
+get_project_name "$(pwd)")
+ {
 	get_project_name "$(pwd)"
 	}
-get_project_name_verified () { 	# <prj>
-	local prj=$1
-	trace_prj "prj:\t\t$prj [get_project_name_verified]" 1>&2
-	[[ "$prj" == "" ]] && echo "[get_project_name_verified] project name is missed !" 1>&2 && return
-	
-	( # to restore path after cd
-	cd "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
-	find_path="find" # linux/osx
-	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find" # in windows $EXEPATH ex. C:\app\git - std env by git bash
-	#$(cygpath-m "$EXEPATH") or canonpath after correct
-	trace_prj "find_path:\t$find_path [get_project_name_verified]" 1>&2
-
-	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default -exec basename "{}" ';'); do # all files w/o extensions ; sed -cut './' in name    | sed 's/^\.\///' 
-		trace_prj "prj_loop:\t$prj_loop [get_project_name_verified]" 1>&2
-		if [[ "$prj" == "$prj_loop" ]]; then
-			echo $prj_loop # return alias (name) of project if found
-			return
-		  fi
-	  done
-	)
-  }
 get_project_name () { # <project_path>
 	# to test - bp; TRACE=1;get_project_name "/c/app/utils-env"
 	local project_path="$1" 
@@ -213,7 +193,7 @@ get_project_path () {	# <prj>
 		#trace_prj "find_path:\t[get_project_path] $find_path" 1>&2
 
 	local prj_file="$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name"
-	[ ! -f "$prj_file" ] && echo -e "${red} Project file '$prj_file' not found !${norm}" && return
+	[ ! -f "$prj_file" ] && echo -e "${red} Project file '$prj_file' not found !${norm}" 1>&2 && return
 		#for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default -exec basename "{}" ';'); do  #| tr -d '\r' | sed 's/^\.\///' 
 		#	trace_prj "prj_loop:\t[get_project_path] $prj_loop" 1>&2
 		#	if [[ "$prj_name" == "$prj_loop" ]]; then
@@ -298,8 +278,8 @@ get_object_type(){	# <prj|list>
 cmd_show_current_config(){	# pshow
 	cmd_project_enum
 	#echo -e "Current set:\t$(get_current_set)"
-	#echo -e "Current project:\t$(get_current_project)"
-	# version
+	#echo -e "Current project:\t$(get_project_name "$(pwd)")
+		# version
 	# папка home
 	# папка config
 	# path with host's configs (files: aliases , include /PATH/ )
@@ -313,7 +293,8 @@ cmd_project_enum(){		# plist	[<list>]
 	local current_set=$(get_current_set)
 	[ "$prj_list" == "" ] && prj_list="$current_set"
 	trace_prj "prj_list:\t\t$prj_list"
-	local current_project=$(get_current_project); trace_prj "current_project:\t$current_project"
+	local current_project=$(get_project_name "$(pwd)")
+	trace_prj "current_project:\t$current_project"
 
 	[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list" ] && echo -e "${red}[cmd_project_enum] Project list '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list' not found !${norm}" && return
 	if [ "$current_set" == "$prj_list" ]; then
@@ -387,7 +368,7 @@ cmd_project_delete(){		# pdel -n=<prj> -p=<path> -s=<set>
 	# if path == $path then rm
 	local prj_name="$1"
 	#[[ "$prj_name" == "" ]] && echo -e "${red}[cmd_project_delete] prj_name param is missed !${norm}" && return 
-	[ "$prj_name" == "" ] && prj_name=$(get_current_project) # .
+	[ "$prj_name" == "" ] && prj_name=$(get_project_name "$(pwd)")
 	[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" ]] && echo -e "[cmd_project_delete] Project '${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name${norm}' not found !" && return 
 	prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
 	#prj_type=`sed -E -n 's/^type=([^#]+).*/\1/p' $UTILS_ PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
@@ -574,23 +555,23 @@ cmd_project_go(){	# pgo 	<prj> [<list>?] # dubl aliases?
 	#if expr match $parent $(which vim) > /dev/null
 
 	project="$1" # test 1st param - prj name
-	[[ "$project" == "" ]] && echo "[cmd_project_go] project name is missed !"
+	[[ "$project" == "" ]] && echo -e "${red}[cmd_project_go] project name is missed !${norm}"
 
-	trace_prj "UTILS_PRJ_HOME:\t$UTILS_PRJ_HOME"
-	trace_prj "UTILS_PRJ_THE_HOST: $UTILS_PRJ_THE_HOST"
+	#trace_prj "UTILS_PRJ_HOME:\t$UTILS_PRJ_HOME"
+	#trace_prj "UTILS_PRJ_THE_HOST: $UTILS_PRJ_THE_HOST"
 		# repos=$1; repos=$(get_current_set $repos) # echo repos: $repos
 	#echo path: "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST" 
 	#get_project_name_verified "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST" $project
-	prj_repo=$(get_project_name_verified $project) 
-	trace_prj "prj_repo:\t$prj_repo" # "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST" 
-	[[ "$prj_repo" == "" ]] && echo "[cmd_project_go] project '$project' not found !" && return
+	prj_path=$(get_project_path $project) #_verified
+	trace_prj "prj_path:\t$prj_path" # "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST" 
+	[[ "$prj_path" == "" ]] && echo -e "${yellow}[cmd_project_go] project ${red}'$trace_prj'${yellow} not found !${norm}" && return
 	# extract path of repo
-	project_path="$(sed -E -n 's/^path=([^#]*)/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_repo | tr -d '\r')" 
-	trace_prj "project_path:\t$project_path"
+	#project_path="$(sed -E -n 's/^path=([^#]*)/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_repo | tr -d '\r')" 
+	#trace_prj "project_path:\t$project_path"
 
-	echo "go to: $project_path"
+	echo "go to: $prj_path"
 	# ??TODO: test $path exists
-	eval cd "$project_path"
+	eval cd "$prj_path"
 	[ "$ConEmuPID" != "" ] && $ConEmuBaseDir/ConEmuC -GuiMacro Rename 0 "${PWD##*/}" 1> /dev/null
 	[ "$TERM_PROGRAM" == "Apple_Terminal" ] && echo -ne "\033]0;${PWD##*/}\007"
 	}
@@ -636,7 +617,7 @@ cmd_project_sync(){
 			gul
 			;;
 		"push")
-			[ "$changes" != "0" ] && echo -e "${red}FIXING${norm}" && git status -s --untracked-files && gac "$msg"
+			[ "$changes" != "0" ] && echo -e "${red}FIXING${norm}" && git status -s --untracked-files && gac "$msg" && echo 
 			#echo -e "${red}PUSHING${norm}"
 			gus #gok "$msg"
 			;;
@@ -681,7 +662,7 @@ cmd_project_action(){		# prs <sync_type> .|<prj>|<list> [<msg>]
 	#local objtype="project"
 	[[ "$obj" != "." && "$obj" != ".." ]] && objtype=$(get_object_type $obj NO_TRACE) # 
 	local obj_orig="$obj"
-	[ "$obj" == "." ] && obj=$(get_current_project) && objtype="project"
+	[ "$obj" == "." ] && obj=$(get_project_name "$(pwd)") && objtype="project"
 	[ "$obj" == ".." ] && obj=$(get_current_set) && objtype="set"
 
 	trace_prj "objtype:\t$objtype"
