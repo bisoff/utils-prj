@@ -1,4 +1,4 @@
-	#!/bin/bash
+#!/bin/bash
 #set -x
 
 # === globals ===
@@ -8,7 +8,6 @@ UTILS_PRJ_CONFIGS=`eval echo ~/.utils-prj` # fix '~' bug
 UTILS_PRJ_THE_HOST=$(uname -n)
 UTILS_PRJ_THE_OS=$(uname -s)
 UTILS_PRJ_INCLUDE="utils-prj-include"
-
 UTILS_PRJ_ALIASES="utils-prj-aliases"
 UTILS_PRJ_SED_BACKUP="''"
 case "$UTILS_PRJ_THE_OS" in
@@ -16,11 +15,6 @@ case "$UTILS_PRJ_THE_OS" in
 		UTILS_PRJ_SED_BACKUP="" #|MSYS*
 		;;
   esac
-
-UTILS_PRJ_SED_BACKUP="''"
- 	#    -*) echo "invalid argument $1";;
-	#    *) break;;
-	#    esac
 
 alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 
@@ -359,7 +353,7 @@ cmd_project_add(){		# padd	<prj> [<list>]
 	echo "remote=" 		>> $prj_file
 
 	echo -e "$prj_name" >> "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list" # ? test to exists?
-	echo -e "[cmd_project_add] Project ${green}$prj_name ($curr_path${norm}) added to ${green}$prj_list${norm}" # ? test to exists?
+	echo -e "[cmd_project_add] Project ${green}$prj_name - $curr_path${norm} added to ${green}$prj_list${norm}" # ? test to exists?
 	# shift loop
 	# if $prj_name == "" then folder
 	# if $path == "" then pwd
@@ -387,11 +381,8 @@ cmd_project_delete(){		# pdel -n=<prj> -p=<path> -s=<set>
 	#prj_type=`sed -E -n 's/^type=([^#]+).*/\1/p' $UTILS_ PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
 	#prj_remote=`sed -E -n 's/^remote=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
 	rm "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" || return
-	#sed -i -E '/^ttt$/d' u.list
-	echo $UTILS_PRJ_SED_BACKUP
-	set -x
-	sed -i "${UTILS_PRJ_SED_BACKUP}" -E "s/^$prj_name$/d" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$(get_current_set).list" && echo -e "[cmd_project_delete] Project ${yellow}$prj_name ($prj_path)${norm} is deleted" 
-	set +x
+	local current_set="$(get_current_set).list"
+	sed -i $UTILS_PRJ_SED_BACKUP -E "/^$prj_name$/d" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set" && echo -e "[cmd_project_delete] Project ${yellow}$prj_name - $prj_path${norm} is deleted from ${yellow}$current_set${norm}" 
 	}
 cmd_project_move(){		# pmove	<prj>|. [<list>]
 	# if list is skipped and prj_name is same 					-> update prj path
@@ -431,16 +422,18 @@ cmd_project_move(){		# pmove	<prj>|. [<list>]
 		[ "$prj_list" == "$current_set" ] &&echo -e "${red}[cmd_project_move] Target project list '$prj_list.list' can't be current !${norm}" && return
 		echo "$prj_name" >> "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list"
 		echo -e "[cmd_project_move] Project ${green}$prj_name${norm} added to ${green}'$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list'${norm}" 
-		sed -i $UTILS_PRJ_SED_BACKUP -E "s/^$prj_name$//g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set.list" || return
+		sed -i $UTILS_PRJ_SED_BACKUP -E "/^$prj_name$/d" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set.list" || return
 		echo -e "[cmd_project_move] Project ${yellow}$prj_name${norm} cut from ${yellow}'$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set.list'${norm}" 
 		[ "$(grep "^$prj_name$" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set.list")" != "" ] && echo -e "${red}Project '$prj_name' still found in '$prj_list' ${norm}" && return
-  fi
+	  fi
 	cmd_project_enum # plist
 	}
+
 cmd_project_rename(){		# ren 		<prj>
 	# pren <prj> [<list>]  - rename prj name (alias) (find prj by curr_path)
 	# pren -n=<prj> -p=<path> -t=<type> -r=<remote> -s=<set>
 
+	cmd_project_enum # plist
 	#TRACE=0
 	new_prj_name=$1
 	[[ "$new_prj_name" == "" ]] && echo -e "${red}[cmd_project_rename] Project name not found !${norm}" && return
@@ -471,14 +464,14 @@ cmd_project_rename(){		# ren 		<prj>
 	mv "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$curr_prj_name" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$new_prj_name" || return
 
 	sed -i $UTILS_PRJ_SED_BACKUP -E "s/^$curr_prj_name\$/$new_prj_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list" || return 
-
+	
 	#echo "path=$new_path" 	>  $prj_path
 	#echo "type=git" 	>> $prj_file
 	#echo "remote=" 		>> $prj_file
 
 	cmd_project_enum
 
-	# TODO: if file exists but absenr in default list then add
+	# TODO: if file exists but absent in default list then add
 
 	# shift loop
 	# if $new_prj_name == "" then folder
@@ -550,14 +543,14 @@ cmd_set_rename() {		# psetren
 	local set_name_current="$(get_current_set)"; trace_prj "set_name_current:\t$set_name_current" # normalize (<CR> ~)
 	[[ "$set_name_current" == "" ]] && echo -e "${red}[cmd_set_rename] Project list '$set_name' not found !${norm}" && return 
 	[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name_current.list" ]] && echo -e "${red}[cmd_set_rename] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name_current.listnot found !${norm}" && return 
-	[[ -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ]] && echo -e "${red}[cmd_set_rename] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list already exist !${norm}" && return 
+	[ -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ] && echo -e "${red}[cmd_set_rename] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list already exist !${norm}" && return 
 	eval mv "'$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name_current.list'" "'$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list'" || return
 	sed -i $UTILS_PRJ_SED_BACKUP -E "s/^(default_list=)(.*)/\1$set_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_rename] Current project list now is ${green}$set_name${norm}" 
 	}
 cmd_set_switch() {		# psetsw	<list>|.  # set as default
 	local set_name="$1"
-	[[ "$set_name" == "" ]] && echo -e "${red}[cmd_set_switch] set_name param is missed !${norm}" && return 
-	[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ]] && echo -e "${red}[cmd_set_switch] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list not found !${norm}" && return 
+	[ "$set_name" == "" ] && echo -e "${red}[cmd_set_switch] set_name param is missed !${norm}" && return 
+	[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ] && echo -e "${red}[cmd_set_switch] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list not found !${norm}" && return 
 	sed -i $UTILS_PRJ_SED_BACKUP -E "s/^(default_list=)(.*)/\1$set_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_switch] Current project list is ${green}$set_name${norm} now"
 	}
 
@@ -567,9 +560,6 @@ cmd_project_go(){	# pgo 	<prj> [<list>?] # dubl aliases?
 	#TRACE=0
 	[ $SHLVL -gt 1 ] && echo "[cmd_project_go] Subshell can't change path after return ! CORRECT USE: '. pgo <project>'" 1>&2 && return
 	#if expr match $parent $(which vim) > /dev/null
-
-	#me=`dirname ${BASH_SOURCE[0]}` ; trace_prj"utility path: $me"
-	#. $me/lib-prj
 
 	project="$1" # test 1st param - prj name
 	[[ "$project" == "" ]] && echo "[cmd_project_go] project name is missed !"
@@ -857,7 +847,7 @@ cmd_pull_all_projects(){	# pgetall <list>|.
 		changes=$(gis | wc -l) 
 		trace_prj "changes:\t\t$changes" # 2> /dev/null 
 
-		if [ $changes -eq 0  -o  "$changes" == "" ]; then
+		if [[ $changes -eq 0  ||  "$changes" == "" ]]; then
 			compare_status=$(get_sync_status remote silent NO_TRACE)
 			trace_prj "compare_status:\t$compare_status"
 			[ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
