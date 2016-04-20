@@ -41,6 +41,10 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# pstate -> pst[x]
 	# add to prj file - credential.helper line (ex =wincred,  =credential.helper osxkeychain, =gnome-keyring) and when pgo replace it in .git/config
 	# padd - deny if file exist
+	# когда статус - show branch/remote
+	# pst[x] если .|.. не передано -> проверять что передан list | prj  и prj совпадает с листом -> /<list> -> list
+	# может проще сделать внутри <prj> - <host1>=<path1>\n <host2>=<path2> или в имени?
+	# .gitignore в папку хоста чтобы не коммитить его в репо
 
 	# unite cmd_state_of_one_project cmd_state_of_all_projects
 	# unite save save_all
@@ -147,10 +151,6 @@ get_current_set () {
 		local project_list="$(sed -E -n 's/^default_list=([^#]*)/\1/p' "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" | tr -d '\r')"
 	# fi
 	echo "$project_list" # return value
-	}
-get_project_name "$(pwd)")
- {
-	get_project_name "$(pwd)"
 	}
 get_project_name () { # <project_path>
 	# to test - bp; TRACE=1;get_project_name "/c/app/utils-env"
