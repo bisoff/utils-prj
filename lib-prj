@@ -676,8 +676,8 @@ cmd_project_sync(){
 			# [ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
 	  		;;
 		"fix")
-			echo -e "${red}FIXING${norm} $prj_name: $prj_path"
-			[ "$changes" != "0" ] && git status -s --untracked-files && gac "$msg"
+			[ "$changes" != "0" ] && echo -e "${red}FIXING${norm} $prj_name: $prj_path" && git status -s --untracked-files && gac "$msg" && return
+			echo -e "${yellow} $prj_name: $prj_path - changes not found ${norm}" 
 			;;
 		"pull")
 			echo -e "${red}GETTING${norm} $prj_name: $prj_path"
