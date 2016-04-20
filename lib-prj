@@ -1,23 +1,6 @@
 #!/bin/bash
 #set -x
 
-# === globals ===
-TRACE=0
-UTILS_PRJ_HOME=$(dirname ${BASH_SOURCE[0]})
-UTILS_PRJ_CONFIGS=`eval echo ~/.utils-prj` # fix '~' bug
-UTILS_PRJ_THE_HOST=$(uname -n)
-UTILS_PRJ_THE_OS=$(uname -s)
-UTILS_PRJ_INCLUDE="utils-prj-include"
-UTILS_PRJ_ALIASES="utils-prj-aliases"
-UTILS_PRJ_SED_BACKUP="''"
-case "$UTILS_PRJ_THE_OS" in
-	MINGW*)
-		UTILS_PRJ_SED_BACKUP="" #|MSYS*
-		;;
-  esac
-
-alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
-
 # === TODO ===
 
 	# todo: oldpwd for *nix (~/.oldpwd for msys only)
@@ -93,12 +76,30 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# reference impl : clone setup psetadd cd padd plist cd- pgo touch pstate pstx pget psave psync pcmd (reset) ...
 		# how todo remote commit (w/o push)
 
+# === globals ===
+TRACE=0
+UTILS_PRJ_HOME=$(dirname ${BASH_SOURCE[0]})
+UTILS_PRJ_CONFIGS=`eval echo ~/.utils-prj` # fix '~' bug
+UTILS_PRJ_THE_HOST=$(uname -n)
+UTILS_PRJ_THE_OS=$(uname -s)
+UTILS_PRJ_INCLUDE="utils-prj-include"
+UTILS_PRJ_ALIASES="utils-prj-aliases"
+UTILS_PRJ_SED_BACKUP="''"
+case "$UTILS_PRJ_THE_OS" in
+	MINGW*)
+		UTILS_PRJ_SED_BACKUP="" #|MSYS*
+		;;
+  esac
+
+alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
+
 # === release notes ===
 	# тильда в переменной для указания в пути домашней папки- крэшит команды (cd, ls ..)
-		# workaround: eval - http://stackoverflow.com/questions/11065077/eval-command-in-bash-and-its-typical-uses 
+		# workaround: eval echo $path
 		# re="~(.*)"; if [[ $path =~ $re ]]; then  path=${BASH_REMATCH[1]}; fi; cd $HOME$path
 	# if you want edit lib-prj and then TRACE it, you can use next cmd: pupd; TRACE=1; <cmd>; TRACE=0
 	#	note: alias chages didn't took effect if you run cmd in one command line (throuhg ';'). Run 'pupd' and next command ('TRACE=1; <cmd>; TRACE=0') lunch after prompt
+
 
 # === install ===
 utils-prj-setup(){
