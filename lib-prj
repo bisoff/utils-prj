@@ -241,8 +241,8 @@ get_sync_status(){		# <remote_mode>
 	trace_prj "changes:\t$changes"
 
 	if [ "$result_format" == "notice" ]; then
-		[[ "$status" == "ok" && "$changes" != 0 ]] 	&& echo -e "${yellow}NEED TO COMMIT${norm}" 1>&2
-		[[ "$status" == "ok" && "$changes" == 0 ]]	&& echo -e "${green}ok${norm}" 1>&2
+		[[ "$status" == "ok" && "$changes" != 0 ]] 	&& echo -e "${yellow}NEED TO COMMIT AND PUSH${norm}" 1>&2
+		[[ "$status" == "ok" && "$changes" == 0 ]]	&& echo -e "${green}same${norm}" 1>&2
 		[ "$status" == "pull" ] 			&& echo -e "${yellow}NEED TO PULL !${norm}" 1>&2
 		[ "$status" == "push" ] 			&& echo -e "${green}NEED TO PUSH${norm}" 1>&2
 		[ "$status" == "diverged" ] 			&& echo -e "${red_bright}DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
