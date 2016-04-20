@@ -56,6 +56,8 @@ alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
 	# default переделать на $DEFAULT="~default"
 	# psaveall <list1>,<list2>
 	# instead get_curtent_set - add verify_set
+	# psave .. = psaveall
+	# psave ... = save all lists
 
 	# plist pshow psets - use notice if no found
 	# add support comment for cfg (prj/list)
