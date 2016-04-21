@@ -25,6 +25,7 @@
 	# может проще сделать внутри <prj> - <host1>=<path1>\n <host2>=<path2> или в имени?
 	# .gitignore в папку хоста чтобы не коммитить его в репо
 	#cmd_move_set() {		# psetmove	<host>
+	# add ppush? = pup
 
 	# (cut <CR>) when read from configs (prj/list)
 
