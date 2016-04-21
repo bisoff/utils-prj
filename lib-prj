@@ -499,7 +499,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 	changes=$(git status -s --untracked-files | wc -l) 
 	trace_prj "changes:\t$changes"
 	case "$cmd" in
-		"local"|"remote")
+		"local"|"remote") # st[x]
 			# state
 			git status -s --untracked-files # "$*" - mask  echo "$gis" #
 
@@ -510,20 +510,20 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			trace_prj "sync_status:\t$sync_status"
 			# [ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
 	  		;;
-		"fix")
+		"fix") # pfix
 			[ "$changes" != "0" ] && echo -e "${red}FIXING${norm}" && git status -s --untracked-files && gac "$msg" && return
 			echo -e "${yellow}Changes not found ${norm}" 
 			;;
-		"pull")
+		"pull") # pget
 			echo -e "${red}GETTING${norm} $prj_name: $prj_path"
 			gul
 			;;
-		"push")
-			[ "$changes" != "0" ] && echo -e "${red}FIXING${norm}" && git status -s --untracked-files && gac "$msg" && echo 
+		"push") # psave
+			[ "$changes" != "0" ] && git status -s --untracked-files && gac "$msg" && echo  #&& echo -e "${red}FIXING${norm}" 
 			#echo -e "${red}PUSHING${norm}"
 			gus #gok "$msg"
 			;;
-		"full")
+		"full") # psync
 			[ "$changes" != "0" ] && gac "$msg" && echo # fix prj when need (add/commit) 
 
 			#echo -n "Ask remote for last commit .. " 
