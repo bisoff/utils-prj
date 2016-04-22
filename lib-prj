@@ -22,11 +22,12 @@
 	# .gitignore в папку хоста чтобы не коммитить его в репо
 	#cmd_move_set() {		# psetmove	<host>
 	# add ppush? = pup
+	# <prj> [<list>] переделать  на [<list>/]<prj> 
 
 	# (cut <CR>) when read from configs (prj/list)
 
 	# add binds  Ctrl+Shift ??
-	# detect project if home path is superfolder for current 
+	# detect project if home path is superfolde
 
 
 	# вынести add prj to set в func - проверять что его там нет 
@@ -34,7 +35,7 @@
 	# psaveall <list1>,<list2>
 	# instead get_curtent_set - add verify_set
 	# psave .. = psaveall
-	# psave ... = save all lists
+	# psave ... = save all lits
 	# psave - log what committed
 
 	# plist pshow psets - use notice if no found
