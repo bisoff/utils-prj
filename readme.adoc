@@ -1,4 +1,5 @@
-== What for
+ == What for
+
 	utils-prj is a cli utility for:
 	- rapid control dozens of projects: switch context to project set; go to project home folder; bulk operations like state review, fix in vcs and sync with remotes)
 	- simple way to change current folder using dynamic aliases (ex. 'padd prj1' will add alias for current folder, 'pgo prj1' will change current folder)

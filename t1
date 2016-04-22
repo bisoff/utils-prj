@@ -1,0 +1,52 @@
+#!/bin/bash
+
+fun() {
+	declare -a arr=("${!1}")
+	echo ${arr[*]} - All of the items in the array
+	echo ${!arr[*]} - All of the indexes in the array
+	echo ${#arr[*]} - Number of items in the array
+	for ix in ${!arr[*]}; do
+	    printf "   %s\n" "${arr[$ix]}"
+	done
+	}
+
+arr=("a" "" 1)
+echo '("a" "" 1)'
+echo ${arr[*]} - All of the items in the array
+echo ${!arr[*]} - All of the indexes in the array
+echo ----------------
+echo ${#arr[*]} - Number of items in the array
+echo ${#arr[0]} - Length of item zero
+echo ${#arr[1]} - Length of item one
+echo ${#arr[2]} - Length of item two
+
+echo ----------------
+#echo arr[0]=Hello
+for ix in ${!arr[*]}
+do
+    printf "   %s\n" "${arr[$ix]}"
+done
+
+echo ----------------
+#array=(one two three [4]=four [5]=five)
+array=("first item" "second item" "third" "item")
+echo "${array[*]}" # - All of the items in the array
+arr=(${array[*]})
+echo "After * quoted expansion: ${#arr[*]}"
+for ix in ${!arr[*]}
+do
+    printf "   %s\n" "${arr[$ix]}"
+done
+
+echo ----------------
+array=("first item" "second item" "third" "item")
+echo "${array[*]}" #- All of the items in the array
+arr=("${array[@]}")
+echo "After @ quoted expansion: ${#arr[*]}"
+for ix in ${!arr[*]}
+do
+    printf "   %s\n" "${arr[$ix]}"
+done
+
+echo ----------------
+fun array[@]

@@ -3,10 +3,6 @@
 
 # === TODO ===
 
-	# correct cmd_edit_host_config
-	# ?? rename list to set in helps
-	# cmd_add_project(){ $3 - home_path
-	# verbose to TRACE
 	# empty params -> help
 	# plist add help header
 	# get_find_path
@@ -32,8 +28,6 @@
 	# add binds  Ctrl+Shift ??
 	# detect project if home path is superfolder for current 
 
-	# keys(options)
-		# в каждую команду --help -h -? -verbose (trace)
 
 	# вынести add prj to set в func - проверять что его там нет 
 	# default переделать на $DEFAULT="~default"
@@ -50,20 +44,24 @@
 	# cmd_project_delete +from_list
 	# psetren <not_current> <onother_name>
 
-	# ... - all sets
-	# 'set/prj' syntax
+	# keys(options)
+		# в каждую команду --help -h -? -verbose (trace)
 
-	# support named params style: -v -h -n: -p: -l:(-s?) -m:"" 
-	# -n=<prj> -p=<path> -t=<type> -r=<remote> -l(s?)=<list(set?)>
-	#while :
-	#do
-	#    case "$1" in
-	#    -h|--help) ;;
-	#    -*) echo "invalid argument $1";;
-	#    *) break;;
-	#    esac
-	#    shift
-	#done
+		# verbose to TRACE
+		# ... - all sets
+		# 'set/prj' syntax
+
+		# support named params style: -v -h -n: -p: -l:(-s?) -m:"" 
+		# -n=<prj> -p=<path> -t=<type> -r=<remote> -l(s?)=<list(set?)>
+		#while :
+		#do
+		#    case "$1" in
+		#    -h|--help) ;;
+		#    -*) echo "invalid argument $1";;
+		#    *) break;;
+		#    esac
+		#    shift
+		#done
 
 	# prj - opt: switch to branch (ex v2.0)
 		# todo: add matrix of using cmd_<utils-git>
@@ -142,22 +140,21 @@ utils-prj-uninstall(){
 
 # === config functions ===
 cmd_show_current_config(){	# pshow
+	echo -e "utils-prj - version 1.0"
+	echo -e "Use 'p-help' for more"
+	echo -e "${green}Where installed (UTILS_PRJ_HOME):${norm}\n$UTILS_PRJ_HOME/"
+	echo -e "${green}How initiated ($HOME/.bash_profile):${norm}\n$(grep -n -A 2 '.utils-prj' '.bash_profile')"
+	echo -e "${green}Settings${norm}:\n$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE\n$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES\n$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
 	cmd_project_enum
-	#echo -e "Current set:\t$(get_current_set)"
-	#echo -e "Current project:\t$(get_project_name "$(pwd)")
-		# version
-	# папка home
-	# папка config
-	# path with host's configs (files: aliases , include /PATH/ )
-	# p-help 
-	# psets (one lined style)
 	}
 cmd_project_enum(){		# plist		[<list>]
 	# plist <list>
 	# echo UTILS_PRJ_THE_HOST: $UTILS_PRJ_THE_HOST
 	local prj_list="$1"
 	local current_set=$(get_current_set)
-	[ "$prj_list" == "" ] && prj_list="$current_set"
+
+	[[ "$prj_list" == "" ]] && echo -e "Syntax: ${green}plist ${yellow}<list>${norm}" && return 
+	#[ "$prj_list" == "" ] && prj_list="$current_set"
 	trace_prj "prj_list:\t\t$prj_list"
 	local current_project=$(get_project_name "$(pwd)")
 	trace_prj "current_project:\t$current_project"
@@ -184,9 +181,13 @@ cmd_project_add(){		# padd		<prj> 		[<list>]
 	# cmd_add_project -n=<prj> -p=<path> -t=<type> -r=<remote> -s=<set>
 	local prj_name=$1
 	local prj_list=$2
+	local prj_path=$3
 
-	[[ "$prj_name" == "" ]] && echo -e "${red}[cmd_project_add] prj_name param is missed !${norm}" && return 
-	local curr_path="${PWD/#$HOME/~}"; trace_prj "cur_path:\t$curr_path"
+	#[[ "$prj_name" == "" ]] && echo -e "${red}[cmd_project_add] prj_name param is missed !${norm}" && return 
+	[[ "$prj_name" == "" ]] && echo -e "Syntax: ${green}padd ${yellow}<prj> [<list>]${norm}" && return 
+	local curr_path="${PWD/#$HOME/~}"
+	[ "$prj_path" = "" ] && prj_path="$curr_path"
+	trace_prj "prj_path:\t$prj_path"
 	
 	# TODO: detect repo type (git/svn/hg - .git foder / .svn folder? / ..)
 	# TODO: return when curr_path not repo
@@ -197,7 +198,8 @@ cmd_project_add(){		# padd		<prj> 		[<list>]
 	#trace_prj "home:\t\t$UTILS_PRJ_HOME"; trace_prj "UTILS_PRJ_THE_HOST:\t\t$UTILS_PRJ_THE_HOST"
 
 	if [[ "$prj_list" == "" ]]; then
-		prj_list_default=$(get_current_set); trace_prj "default_list:\t$prj_list_default"
+		prj_list_default=$(get_current_set)
+		trace_prj "default_list:\t$prj_list_default"
 		[ "$prj_list_default" == "" ] && echo -e "${red}[cmd_project_add] prj_list_default not found !${norm}" && return
 		prj_list="$prj_list_default.list"
 	  else
@@ -207,12 +209,12 @@ cmd_project_add(){		# padd		<prj> 		[<list>]
 	prj_file="$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name"; trace_prj "prj_file:\t$prj_file"
 	[[ -f $prj_file ]] && echo -e "${red}[cmd_project_add] Project already exists${norm}" && return
 
-	echo "path=$curr_path" 	> $prj_file
+	echo "path=$prj_path" 	> $prj_file
 	echo "type=git" 	>> $prj_file
 	echo "remote=" 		>> $prj_file
 
 	echo -e "$prj_name" >> "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list" # ? test to exists?
-	echo -e "[cmd_project_add] Project ${green}$prj_name - $curr_path${norm} added to ${green}$prj_list${norm}" # ? test to exists?
+	echo -e "[cmd_project_add] Project ${green}$prj_name - $prj_path${norm} added to ${green}$prj_list${norm}" # ? test to exists?
 	# shift loop
 	# if $prj_name == "" then folder
 	# if $path == "" then pwd
@@ -234,8 +236,9 @@ cmd_project_delete(){		# pdel		<prj>
 
 	# if path == $path then rm
 	local prj_name="$1"
+	[[ "$prj_name" == "" ]] && echo -e "Syntax: ${green}pdel ${yellow}<prj>${norm}" && return 
+	#[ "$prj_name" == "" ] && prj_name=$(get_project_name "$(pwd)")
 	#[[ "$prj_name" == "" ]] && echo -e "${red}[cmd_project_delete] prj_name param is missed !${norm}" && return 
-	[ "$prj_name" == "" ] && prj_name=$(get_project_name "$(pwd)")
 	[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" ]] && echo -e "[cmd_project_delete] Project '${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name${norm}' not found !" && return 
 	prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
 	#prj_type=`sed -E -n 's/^type=([^#]+).*/\1/p' $UTILS_ PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
@@ -251,6 +254,8 @@ cmd_project_move(){		# pmove		<prj>|. 	[<list>]
 
 	local prj_name="$1"
 	local prj_list="$2"
+
+	[[ "$prj_name" == "" ]] && echo -e "Syntax: ${green}pmove ${yellow}<prj> [<list>]${norm}" && return 
 	#[[ "$prj_name" == "" ]] && echo -e "${red}[PROJECT MOVE] Project name is missed !${norm}" && return
 
 	#new_path=$(pwd) #; echo new_path: $new_path
