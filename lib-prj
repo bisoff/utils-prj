@@ -522,8 +522,9 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			echo -e "${yellow}Changes not found ${norm}" 
 			;;
 		"pull") # pget
-			echo -e "${red}GETTING${norm} $prj_name: $prj_path"
-			gul
+			echo -e "${red}PULL${norm} $prj_name: $prj_path"
+			git pull
+			git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p'
 			;;
 		"push") # psave
 			[ "$changes" != "0" ] && git status -s --untracked-files && gac "$msg" && echo  #&& echo -e "${red}FIXING${norm}" 
@@ -537,8 +538,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			local sync_status=$(get_sync_status remote notice) # notice/silent NO_TRACE  ask for 'need to pull'
 			trace_prj "sync_status:\t$sync_status"
 			#sync_status=`eval echo $sync_status`
-			[[ "$sync_status" == "pull" || "$sync_status" == "diverged" ]] && gul # pull when need
-			[[ "$sync_status" == "push" || "$sync_status" == "diverged" ]] && gus # push when need
+			[[ "$sync_status" == "pull" || "$sync_status" == "diverged" ]] && git pull # pull when need
+			[[ "$sync_status" == "push" || "$sync_status" == "diverged" ]] && git push # push when need
 			;;
 		*)
 			echo -e "${red}[cmd_project_sync] Project command '$cmd' not found !${norm} " && return
@@ -683,10 +684,10 @@ get_sync_status(){		# <remote_mode>
 	  else				  	status="diverged"
 	  fi
 
-	local changes=$(git status -s --untracked-files | wc -l) 
+	local changes=`echo $(git status -s --untracked-files | wc -l)` # cut tab
 	if [ "$result_format" == "notice" ]; then
-		[[ "$status" == "ok" && "$changes" != 0 ]] 	&& echo -e "${yellow}NEED TO COMMIT AND PUSH${norm}" 1>&2
-		[[ "$status" == "ok" && "$changes" == 0 ]]	&& echo -e "${green}same${norm}" 1>&2
+		[[ "$status" == "ok" && "$changes" != "0" ]] 	&& echo -e "${yellow}NEED TO COMMIT AND PUSH${norm}" 1>&2
+		[[ "$status" == "ok" && "$changes" == "0" ]]	&& echo -e "${green}same${norm}" 1>&2
 		[ "$status" == "pull" ] 			&& echo -e "${yellow}NEED TO PULL !${norm}" 1>&2
 		[ "$status" == "push" ] 			&& echo -e "${green}NEED TO PUSH${norm}" 1>&2
 		[ "$status" == "diverged" ] 			&& echo -e "${red_bright}DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
