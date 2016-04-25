@@ -1,0 +1,55 @@
+#!/bin/bash
+
+parse() {
+	local addr="$1"
+ 	addr=`eval echo "$addr"`
+	local list
+	local prj
+	#b=${a:12:5}
+	#strip prefix and suffix off in two steps:
+	#tmp=${a#*_}
+	#b=${tmp%_*}
+
+	if [ "$addr" == "" ]; then
+		list="''"
+		prj="''"
+		pos=-1
+		len=0
+	  else
+		local pos=$(expr index $addr "/") # splitter_pos
+		local len=${#addr}
+	  fi
+	#echo "pos: $pos"
+	#echo "len: $len"
+	if [[ $pos == 0 ]]; then
+		list="''"
+		prj=$addr
+	  fi
+	if [[ $pos == $len ]]; then
+		list=${addr:0:(($len - 1))}
+		prj="''"
+	  fi
+	if [[ $pos == 1 ]]; then
+		list="''"
+		prj=${addr:1:(($len - 1))}
+	  fi
+	if [[ $pos > 1 && $pos < $len ]]; then
+		list=${addr:0:(($pos - 1))}
+		prj=${addr:$pos:(($pos))}
+	  fi
+
+	#local list=${addr%/*} # deletes the shortest match of $substring from back of $string
+	#local prj=${addr#/*} # deletes the shortest match of $substring from front of $string
+	echo -e "$len/$pos\t$addr\t-> $list\t$prj"
+
+	# expr index $string $substring # Numerical position in $string of first character in $substring that matches.
+	#expr substr $string $position $length
+	#expr match "$string" '\($substring\)'
+	#expr "$string" : '\($substring\)'
+	#expr match "$string" '.*\($substring\)'
+	#Extracts $substring at end of $string, where $substring is a regular expression.
+	#expr "$string" : '.*\($substring\)'
+	}
+
+arr=("var1:val1" "var2:" "var3:val3")
+pass "aa"
