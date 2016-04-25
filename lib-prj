@@ -503,7 +503,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 	eval cd "$prj_path"
 
 	#local gis=$(git status -s --untracked-files)
-	changes=$(git status -s --untracked-files | wc -l) 
+	changes=`echo $(git status -s --untracked-files | wc -l)`
 	trace_prj "changes:\t$changes"
 	case "$cmd" in
 		"local"|"remote") # st[x]
