@@ -522,8 +522,9 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			echo -e "${yellow}Changes not found ${norm}" 
 			;;
 		"pull") # pget
-			echo -e "${red}PULL${norm} $prj_name: $prj_path"
-			git pull
+			[ "$changes" != "0" ] && (echo -e "\n${red}FETCH${norm} $prj_name: $prj_path" && git fetch || return)
+			[ "$changes" == "0" ] && (echo -e "\n${red}PULL${norm} $prj_name: $prj_path" && git pull --stat || return)
+			echo "result: $?"
 			git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p'
 			;;
 		"push") # psave
