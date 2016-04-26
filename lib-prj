@@ -527,7 +527,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p'
 			;;
 		"push") # psave
-			[ "$changes" != "0" ] && echo && git status -s --untracked-files && echo && gac "$msg" && gus && return #&& echo -e "${red}FIXING${norm}" 
+			[ "$changes" != "0" ] && echo && git status -s --untracked-files && echo && gac "$msg" && echo && gus && return #&& echo -e "${red}FIXING${norm}" 
 			echo -e " - ${yellow}Changes not found ${norm}" 
 			#echo -e "${red}PUSHING${norm}"
 			#gok "$msg"
