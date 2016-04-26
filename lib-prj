@@ -499,7 +499,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 	( # to return current path
 	# TODO: get prj vcs_type (svn, git)
 	#echo -e "${grey_back} $prj_list  $prj \t $prj_path ${norm}"
-	echo -e "${grey_back} $prj_name  -  $prj_path ${norm}"  
+	echo -e -n "${grey_back} $prj_name  -  $prj_path ${norm}"  
 	eval cd "$prj_path"
 
 	#local gis=$(git status -s --untracked-files)
@@ -528,7 +528,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			;;
 		"push") # psave
 			[ "$changes" != "0" ] && git status -s --untracked-files && gac "$msg" && gus && return #&& echo -e "${red}FIXING${norm}" 
-			echo -e "${yellow}Changes not found ${norm}" 
+			echo -e " - ${yellow}Changes not found ${norm}" 
 			#echo -e "${red}PUSHING${norm}"
 			#gok "$msg"
 			;;
