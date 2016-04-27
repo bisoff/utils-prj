@@ -23,6 +23,7 @@
 	#cmd_move_set() {		# psetmove	<host>
 	# add ppush? = pup
 	# <prj> [<list>] переделать  на [<list>/]<prj> 
+	# cmd wrapper - if lib timestamp changed (fix when lib load) then reload itself - тоже для aliases
 
 	# (cut <CR>) when read from configs (prj/list)
 
@@ -91,6 +92,17 @@ case "$UTILS_PRJ_THE_OS" in
   esac
 
 alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
+UTILS_PRJ_TIMESTAMP=$(stat -c %y "$HOME_UTILS_PRJ/lib-prj")
+
+cmd_utilsprj_wrapper() {
+	local cmd_one="$1"
+	local utils_prj_timestamp_current=$(stat -c %y $THIS)
+	#echo "wrapper"
+	[ "$utils_prj_timestamp_current" != "$UTILS_PRJ_TIMESTAMP" ] && source "$HOME_UTILS_PRJ/lib-prj"
+	#echo "wrapper2"
+	shift
+	eval $cmd_one "$@*"
+	}
 
 # === release notes ===
 	# тильда в переменной для указания в пути домашней папки- крэшит команды (cd, ls ..)
@@ -508,6 +520,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 	case "$cmd" in
 		"local"|"remote") # st[x]
 			# state
+			echo
 			git status -s --untracked-files # "$*" - mask  echo "$gis" #
 
 			#echo -e -n "Ask ${yellow}$cmd${norm} for last commit .. "  #[ "$remote_mode" = "remote" ] && 

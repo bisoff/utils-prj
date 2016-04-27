@@ -1,0 +1,17 @@
+#!/bin/bash
+THIS=t4 #`basename "$0"`
+T4_TIMESTAMP=$(stat -c %y $THIS)
+#echo T4_TIMESTAMP: $T4_TIMESTAMP
+
+wrapper() {
+	local T4_TIMESTAMP_CURRENT=$(stat -c %y $THIS)
+	echo "wrapper"
+	[ "$T4_TIMESTAMP_CURRENT" != "$T4_TIMESTAMP" ] && . $THIS
+	echo "wrapper2"
+	exec_command
+	}
+
+exec_command(){
+	echo "T4_TIMESTAMP: $T4_TIMESTAMP"
+	echo 2
+	}
