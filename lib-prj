@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -x
+# WARING: Don't cahnge the file before lines with 'cmd_utilsprj_wrapper' function incuding it
 
 # === TODO ===
 
@@ -20,7 +20,7 @@
 	# pst[x] если .|.. не передано -> проверять что передан list | prj  и prj совпадает с листом -> /<list> -> list
 	# может проще сделать внутри <prj> - <host1>=<path1>\n <host2>=<path2> или в имени?
 	# .gitignore в папку хоста чтобы не коммитить его в репо
-	#cmd_move_set() {		# psetmove	<host>
+	# cmd_move_set() {		# psetmove	<host>
 	# add ppush? = pup
 	# <prj> [<list>] переделать  на [<list>/]<prj> 
 	# cmd wrapper - if lib timestamp changed (fix when lib load) then reload itself - тоже для aliases
@@ -47,23 +47,13 @@
 	# psetren <not_current> <onother_name>
 
 	# keys(options)
-		# в каждую команду --help -h -? -verbose (trace)
+		# в wrapper --help -h -?  -verbose => local TRACE=1
 
-		# verbose to TRACE
 		# ... - all sets
 		# 'set/prj' syntax
 
 		# support named params style: -v -h -n: -p: -l:(-s?) -m:"" 
 		# -n=<prj> -p=<path> -t=<type> -r=<remote> -l(s?)=<list(set?)>
-		#while :
-		#do
-		#    case "$1" in
-		#    -h|--help) ;;
-		#    -*) echo "invalid argument $1";;
-		#    *) break;;
-		#    esac
-		#    shift
-		#done
 
 	# prj - opt: switch to branch (ex v2.0)
 		# todo: add matrix of using cmd_<utils-git>
@@ -84,33 +74,68 @@ UTILS_PRJ_THE_HOST=$(uname -n)
 UTILS_PRJ_THE_OS=$(uname -s)
 UTILS_PRJ_INCLUDE="utils-prj-include"
 UTILS_PRJ_ALIASES="utils-prj-aliases"
-UTILS_PRJ_SED_BACKUP="''"
 case "$UTILS_PRJ_THE_OS" in
 	MINGW*)
 		UTILS_PRJ_SED_BACKUP="" #|MSYS*
+		UTILS_PRJ_TIMESTAMP=`stat -c %y $HOME_UTILS_PRJ/lib-prj`
 		;;
+	Darwin)
+		UTILS_PRJ_SED_BACKUP="''"
+		UTILS_PRJ_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME_UTILS_PRJ/lib-prj")
+		;;
+	# linux??)
+		# UTILS_PRJ_SED_BACKUP=??
+		# UTILS_PRJ_TIMESTAMP=??
+	*)
+		# fail !
   esac
-
 alias trace_prj='[ "$TRACE" == "1" ] && echo -e '
-UTILS_PRJ_TIMESTAMP=$(stat -c %y "$HOME_UTILS_PRJ/lib-prj")
-
-cmd_utilsprj_wrapper() {
+cmd_utils_prj_wrapper() {
 	local cmd_one="$1"
-	local utils_prj_timestamp_current=$(stat -c %y $THIS)
-	#echo "wrapper"
+
+	local utils_prj_timestamp_current
+	case "$UTILS_PRJ_THE_OS" in
+		MINGW*)
+			utils_prj_timestamp_current=`stat -c %y $HOME_UTILS_PRJ/lib-prj`
+			;;
+		Darwin)
+			utils_prj_timestamp_current=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME_UTILS_PRJ/lib-prj")
+			;;
+		# linux??)
+			# UTILS_PRJ_TIMESTAMP=??
+		*)
+			# fail !
+	  esac
+	#echo -e "utils_prj_timestamp_current:\t$utils_prj_timestamp_current"
+	#echo -e "UTILS_PRJ_TIMESTAMP:\t\t$UTILS_PRJ_TIMESTAMP"
 	[ "$utils_prj_timestamp_current" != "$UTILS_PRJ_TIMESTAMP" ] && source "$HOME_UTILS_PRJ/lib-prj"
 	#echo "wrapper2"
 	shift
-	eval $cmd_one "$@*"
+	local params
+	while :
+	do
+		#echo "arg: $1"
+		case "$1" in
+			#-h|--help) ;;
+			-v) TRACE=1 ;;
+			#-*) echo "invalid argument $1";;
+			?*) params="$params $1" ;;
+			"") break ;;
+		  esac
+		shift
+	done
+	#echo "params: $params"
+	eval $cmd_one "$params" #"$@*"
+	TRACE=0
 	}
+
 
 # === release notes ===
 	# тильда в переменной для указания в пути домашней папки- крэшит команды (cd, ls ..)
 		# workaround: eval echo $path
 		# re="~(.*)"; if [[ $path =~ $re ]]; then  path=${BASH_REMATCH[1]}; fi; cd $HOME$path
-	# if you want edit lib-prj and then TRACE it, you can use next cmd: pupd; TRACE=1; <cmd>; TRACE=0
+	# if you want edit lib-prj and then TRACE it, you can use next cmd: TRACE=1; <cmd>; TRACE=0
 	#	note: alias chages didn't took effect if you run cmd in one command line (throuhg ';'). Run 'pupd' and next command ('TRACE=1; <cmd>; TRACE=0') lunch after prompt
-
 
 # === install ===
 utils-prj-setup(){
@@ -165,12 +190,13 @@ cmd_project_enum(){		# plist		[<list>]
 	# echo UTILS_PRJ_THE_HOST: $UTILS_PRJ_THE_HOST
 	local prj_list="$1"
 	local current_set=$(get_current_set)
+	[[ "$prj_list" == ".." ||  "$prj_list" == "." ]] && prj_list="$current_set"
+	  trace_prj "prj_list:\t\t$prj_list"
 
 	[[ "$prj_list" == "" ]] && echo -e "Syntax: ${green}plist ${yellow}<list>${norm}" && return 
 	#[ "$prj_list" == "" ] && prj_list="$current_set"
-	trace_prj "prj_list:\t\t$prj_list"
 	local current_project=$(get_project_name "$(pwd)")
-	trace_prj "current_project:\t$current_project"
+	  trace_prj "current_project:\t$current_project"
 
 	[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list" ] && echo -e "${red}[cmd_project_enum] Project list '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list' not found !${norm}" && return
 	if [ "$current_set" == "$prj_list" ]; then
@@ -621,7 +647,7 @@ get_project_name () {		# <project_path>
 	#trace_prj "root:\t\t$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST" 1>&2 # local root=$1; 
 	#trace_prj "project_path:\t$project_path [get_project_name]" 1>&2
 	#[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT BY PATH] root for project is missed !" 1>&2 && return
-	[[ "$project_path" == "" ]] && echo -e "${red}[get_project_name] parma 'project_path' is missed !${norm}" 1>&2 && return # project_path=$(pwd)
+	[[ "$project_path" == "" ]] && echo -e "${red}[get_project_name] param 'project_path' is missed !${norm}" 1>&2 && return # project_path=$(pwd)
 	trace_prj "project_path:\t[get_project_name] $project_path" 1>&2
 		#echo "[get_project_name] project_path is missed !" 1>&2 && return
 	
