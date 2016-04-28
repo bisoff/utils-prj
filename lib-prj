@@ -453,7 +453,7 @@ cmd_set_rename() {		# psetren
 cmd_set_switch() {		# psetsw	<list>|.  			# set as default
 	local set_name="$1"
 	[ "$set_name" == "" ] && echo -e "${red}[cmd_set_switch] set_name param is missed !${norm}" && return 
-	[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ] && echo -e "${red}[cmd_set_switch] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list not found !${norm}" && return 
+	[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ] && echo -e "${red}[cmd_set_switch] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list not found !${norm}" && cmd_set_enum && return 
 	sed -i $UTILS_PRJ_SED_BACKUP -E "s/^(default_list=)(.*)/\1$set_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_switch] Current project list is ${green}$set_name${norm} now"
 	}
 
@@ -562,17 +562,19 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			echo -e "${yellow}Changes not found ${norm}" 
 			;;
 		"pull") # pget
-			[ "$changes" != "0" ] && (echo -e "\n${red}FETCH${norm} $prj_name: $prj_path" && git fetch || return) # && git diff remote ??
 			if [ "$changes" == "0" ]; then
 				echo -e "\n${red}PULL${norm} $prj_name: $prj_path" 
-				local LOCAL=$(git rev-parse HEAD)
-				git pull --stat --quiet 
-				local LOCAL2=$(git rev-parse HEAD)
+				#local LOCAL=$(git rev-parse HEAD)
+				git pull --stat --quiet --all
+				#local LOCAL2=$(git rev-parse HEAD)
 				#echo LOCAL1: $LOCAL
 				#echo LOCAL2: $LOCAL2
-				if [ "$LOCAL" != "$LOCAL2" ]; then
-					git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
-				  fi
+				#if [ "$LOCAL" != "$LOCAL2" ]; then
+				#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
+				#  fi
+			  else
+				echo -e "\n${red}FETCH${norm} $prj_name: $prj_path" 
+				git fetch || return # && git diff remote ??
 			  fi
 			;;
 		"push") # psave
@@ -751,7 +753,7 @@ get_sync_status(){		# <remote_mode>
 	trace_prj "use_remote_host: [get_sync_status] $use_remote_host" 1>&2
 	trace_prj "result_format:\t[get_sync_status] $result_format" 1>&2
 
-	[[ "$result_format" == "notice" && "$use_remote_host" == "local" ]] && echo -e -n "Ask ${yellow}$use_remote_host${norm} for last commit .. " 1>&2
+	[[ "$result_format" == "notice" && "$use_remote_host" == "local" ]] && echo -e -n "Ask ${green}$use_remote_host${norm} for last commit .. " 1>&2
 	[[ "$result_format" == "notice" && "$use_remote_host" == "remote" ]] && echo -e -n "Ask ${green}$use_remote_host${norm} for last commit .. " 1>&2
 
 	#trace_prj $([ "$result_format" != "silent" ] && echo "notice mode [get_sync_status]") 1>&2
