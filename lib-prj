@@ -549,7 +549,6 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			# state
 			echo
 			git status -s --untracked-files # "$*" - mask  echo "$gis" #
-
 			#echo -e -n "Ask ${yellow}$cmd${norm} for last commit .. "  #[ "$remote_mode" = "remote" ] && 
 			local sync_status=$(get_sync_status "$cmd" notice) # notice/silent NO_TRACE
 			#[ "$sync_status" == "ok" ] && echo -e "${green}same${norm}"
@@ -568,8 +567,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				local LOCAL=$(git rev-parse HEAD)
 				git pull --stat --quiet 
 				local LOCAL2=$(git rev-parse HEAD)
-				#echo LOCAL1: $LOCAL
-				#echo LOCAL2: $LOCAL2
+				echo LOCAL1: $LOCAL
+				echo LOCAL2: $LOCAL2
 				if [ "$LOCAL" != "$LOCAL2" ]; then
 					git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
 				  fi
@@ -744,7 +743,7 @@ get_sync_status(){		# <remote_mode>
 	local use_remote_host="$1"  	# true / false
 	local result_format="$2" 		# when 'silent' then print yes/no else print msg for user 
 	[ "$3" != "" ] && local TRACE=$3
-
+	echo use_remote_host: $use_remote_host 1>&2
 	[ "$use_remote_host" == "" ] && use_remote_host=local
 	[ "$result_format" == "" ] && result_format=notice
 
@@ -758,6 +757,7 @@ get_sync_status(){		# <remote_mode>
 	local status
 	local LOCAL=$(git rev-parse HEAD) # хеш коммита для указанной ревизии - @ alone is a shortcut for HEAD.
 	if [[ "$use_remote_host" == "true" ]]; then
+		echo -remote-
 		local REMOTE=$(git ls-remote 2>/dev/null | awk "/HEAD/ {print \$1}") # from remote host
 	  else
 		local REMOTE=$(git rev-parse @{u}) # last pulled head of remote
