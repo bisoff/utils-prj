@@ -576,7 +576,15 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			  fi
 			;;
 		"push") # psave
-			[ "$changes" != "0" ] && echo && git status -s --untracked-files && echo && gac "$msg" && echo && gus && return #&& echo -e "${red}FIXING${norm}" 
+			if [ "$changes" != "0" ] ; then
+				echo 
+				git status -s --untracked-files 
+				echo 
+				gac "$msg" 
+				echo 
+				git push --quiet # gus 
+				return #&& echo -e "${red}FIXING${norm}" 
+			  fi
 			echo -e " - ${yellow}Changes not found ${norm}" 
 			#echo -e "${red}PUSHING${norm}"
 			#gok "$msg"
