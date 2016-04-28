@@ -1,4 +1,6 @@
 #!/bin/bash
+# test reload after update
+
 THIS=t4 #`basename "$0"`
 T4_TIMESTAMP=$(stat -c %y $THIS)
 #echo T4_TIMESTAMP: $T4_TIMESTAMP

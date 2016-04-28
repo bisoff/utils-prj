@@ -24,6 +24,7 @@
 	# add ppush? = pup
 	# <prj> [<list>] переделать  на [<list>/]<prj> 
 	# cmd wrapper - if lib timestamp changed (fix when lib load) then reload itself - тоже для aliases
+	# prj option - require MSG
 
 	# (cut <CR>) when read from configs (prj/list)
 
@@ -106,9 +107,10 @@ cmd_utils_prj_wrapper() {
 		*)
 			# fail !
 	  esac
-	#echo -e "utils_prj_timestamp_current:\t$utils_prj_timestamp_current"
-	#echo -e "UTILS_PRJ_TIMESTAMP:\t\t$UTILS_PRJ_TIMESTAMP"
-	[ "$utils_prj_timestamp_current" != "$UTILS_PRJ_TIMESTAMP" ] && source "$HOME_UTILS_PRJ/lib-prj"
+	echo -e "utils_prj_timestamp_current:\t$utils_prj_timestamp_current"
+	echo -e "UTILS_PRJ_TIMESTAMP:\t\t$UTILS_PRJ_TIMESTAMP"
+
+	[ "$utils_prj_timestamp_current" != "$UTILS_PRJ_TIMESTAMP" ] && echo "Updating commands .." && source "$HOME_UTILS_PRJ/lib-prj"
 	#echo "wrapper2"
 	shift
 	local params
@@ -128,7 +130,6 @@ cmd_utils_prj_wrapper() {
 	eval $cmd_one "$params" #"$@*"
 	TRACE=0
 	}
-
 
 # === release notes ===
 	# тильда в переменной для указания в пути домашней папки- крэшит команды (cd, ls ..)
@@ -511,7 +512,7 @@ cmd_project_action(){		# prs 		<cmd> <obj> [<msg>]
 		#if [ "$cmd" == "local" ]; then
 		#(current)
 		local tab="        " # mingw didn't background tabs
-		echo -e "\n${black_on_green}$tab$tab${red_on_green}$prj_list ${magenta_on_green}$tab$tab${norm}\n"
+		echo -e "\n${black_on_green}$tab$tab${red_on_green}$obj ${magenta_on_green}$tab$tab${norm}\n"
 
 		for prj_name in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$obj.list | sed -e /^$/d | tr -d '\r' | sort); do 
 			#prj_name=`echo $prj_name` # normalize
@@ -562,8 +563,17 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			;;
 		"pull") # pget
 			[ "$changes" != "0" ] && (echo -e "\n${red}FETCH${norm} $prj_name: $prj_path" && git fetch || return) # && git diff remote ??
-			[ "$changes" == "0" ] && (echo -e "\n${red}PULL${norm} $prj_name: $prj_path" && git pull --stat --quiet && git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return)
-			#echo "result: $?"
+			if [ "$changes" == "0" ]; then
+				echo -e "\n${red}PULL${norm} $prj_name: $prj_path" 
+				local LOCAL=$(git rev-parse HEAD)
+				git pull --stat --quiet 
+				local LOCAL2=$(git rev-parse HEAD)
+				#echo LOCAL1: $LOCAL
+				#echo LOCAL2: $LOCAL2
+				if [ "$LOCAL" != "$LOCAL2" ]; then
+					git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
+				  fi
+			  fi
 			;;
 		"push") # psave
 			[ "$changes" != "0" ] && echo && git status -s --untracked-files && echo && gac "$msg" && echo && gus && return #&& echo -e "${red}FIXING${norm}" 
@@ -692,50 +702,6 @@ get_project_path () {		# <prj>
 		#  done
 	#)
   }
-get_sync_status(){		# <remote_mode>
-	# ex. get_sync_status true # to compare with last commit from remote host
-	# ??todo: return two out param ???  array?  or  pull/push/both/diverged only?
-	local use_remote_host="$1"  	# true / false
-	local result_format="$2" 		# when 'silent' then print yes/no else print msg for user 
-	[ "$3" != "" ] && local TRACE=$3
-
-	[ "$use_remote_host" == "" ] && use_remote_host=local
-	[ "$result_format" == "" ] && result_format=notice
-
-	trace_prj "use_remote_host: [get_sync_status] $use_remote_host" 1>&2
-	trace_prj "result_format:\t[get_sync_status] $result_format" 1>&2
-
-	[[ "$result_format" == "notice" && "$use_remote_host" == "local" ]] && echo -e -n "Ask ${yellow}$use_remote_host${norm} for last commit .. " 1>&2
-	[[ "$result_format" == "notice" && "$use_remote_host" == "remote" ]] && echo -e -n "Ask ${green}$use_remote_host${norm} for last commit .. " 1>&2
-
-	#trace_prj $([ "$result_format" != "silent" ] && echo "notice mode [get_sync_status]") 1>&2
-	local status
-	local LOCAL=$(git rev-parse @)
-	if [[ "$use_remote_host" == "true" ]]; then
-		local REMOTE=$(git ls-remote 2>/dev/null | awk "/HEAD/ {print \$1}") # from remote host
-	  else
-		local REMOTE=$(git rev-parse @{u}) # last pulled head of remote
-	  fi
-	local BASE=$(git merge-base @ @{u})
-	#echo LOCAL:$LOCAL REMOTE:$REMOTE BASE:$BASE
-	if [ $LOCAL = $REMOTE ]; then 		status="ok" # same
-	  elif [ $LOCAL = $BASE ]; then		status="pull"
-	  elif [ $REMOTE = $BASE ]; then	status="push"
-	  else				  	status="diverged"
-	  fi
-
-	local changes=`echo $(git status -s --untracked-files | wc -l)` # cut tab
-	if [ "$result_format" == "notice" ]; then
-		[[ "$status" == "ok" && "$changes" != "0" ]] 	&& echo -e "${yellow}NEED TO COMMIT AND PUSH${norm}" 1>&2
-		[[ "$status" == "ok" && "$changes" == "0" ]]	&& echo -e "${green}same${norm}" 1>&2
-		[ "$status" == "pull" ] 			&& echo -e "${yellow}NEED TO PULL !${norm}" 1>&2
-		[ "$status" == "push" ] 			&& echo -e "${green}NEED TO PUSH${norm}" 1>&2
-		[ "$status" == "diverged" ] 			&& echo -e "${red_bright}DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
-	  fi
-	trace_prj "status:\t\t[get_sync_status] $status" 1>&2
-	trace_prj "changes:\t[get_sync_status] $changes" 1>&2
-	echo "$status" # for extra handle
-	}
 get_object_type(){		# <prj|list>
 	local obj=$1  	# project_or_list
 	[ "$2" == "NO_TRACE" ] && local TRACE=0 # true / false
@@ -763,5 +729,49 @@ get_object_type(){		# <prj|list>
 		  fi
 	  done
 	)
+	}
+get_sync_status(){		# <remote_mode>
+	# ex. get_sync_status true # to compare with last commit from remote host
+	# ??todo: return two out param ???  array?  or  pull/push/both/diverged only?
+	local use_remote_host="$1"  	# true / false
+	local result_format="$2" 		# when 'silent' then print yes/no else print msg for user 
+	[ "$3" != "" ] && local TRACE=$3
+
+	[ "$use_remote_host" == "" ] && use_remote_host=local
+	[ "$result_format" == "" ] && result_format=notice
+
+	trace_prj "use_remote_host: [get_sync_status] $use_remote_host" 1>&2
+	trace_prj "result_format:\t[get_sync_status] $result_format" 1>&2
+
+	[[ "$result_format" == "notice" && "$use_remote_host" == "local" ]] && echo -e -n "Ask ${yellow}$use_remote_host${norm} for last commit .. " 1>&2
+	[[ "$result_format" == "notice" && "$use_remote_host" == "remote" ]] && echo -e -n "Ask ${green}$use_remote_host${norm} for last commit .. " 1>&2
+
+	#trace_prj $([ "$result_format" != "silent" ] && echo "notice mode [get_sync_status]") 1>&2
+	local status
+	local LOCAL=$(git rev-parse HEAD) # хеш коммита для указанной ревизии - @ alone is a shortcut for HEAD.
+	if [[ "$use_remote_host" == "true" ]]; then
+		local REMOTE=$(git ls-remote 2>/dev/null | awk "/HEAD/ {print \$1}") # from remote host
+	  else
+		local REMOTE=$(git rev-parse @{u}) # last pulled head of remote
+	  fi
+	local BASE=$(git merge-base @ @{u}) # merge-base возвращает ближайшего общего предка для двух веток, то есть sha-id какого-то комита;   @{u} = @{upstream}
+	#echo LOCAL:$LOCAL REMOTE:$REMOTE BASE:$BASE
+	if [ $LOCAL = $REMOTE ]; then 		status="ok" # same
+	  elif [ $LOCAL = $BASE ]; then		status="pull"
+	  elif [ $REMOTE = $BASE ]; then	status="push"
+	  else				  	status="diverged"
+	  fi
+
+	local changes=`echo $(git status -s --untracked-files | wc -l)` # cut tab
+	if [ "$result_format" == "notice" ]; then
+		[[ "$status" == "ok" && "$changes" != "0" ]] 	&& echo -e "${yellow}NEED TO COMMIT AND PUSH${norm}" 1>&2
+		[[ "$status" == "ok" && "$changes" == "0" ]]	&& echo -e "${green}same${norm}" 1>&2
+		[ "$status" == "pull" ] 			&& echo -e "${yellow}NEED TO PULL !${norm}" 1>&2
+		[ "$status" == "push" ] 			&& echo -e "${green}NEED TO PUSH${norm}" 1>&2
+		[ "$status" == "diverged" ] 			&& echo -e "${red_bright}DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
+	  fi
+	trace_prj "status:\t\t[get_sync_status] $status" 1>&2
+	trace_prj "changes:\t[get_sync_status] $changes" 1>&2
+	echo "$status" # for extra handle
 	}
 

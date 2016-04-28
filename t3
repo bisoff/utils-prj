@@ -1,55 +1,87 @@
 #!/bin/bash
+# test return array
+# http://www.linuxjournal.com/content/bash-arrays
+# http://stackoverflow.com/questions/10582763/how-to-return-an-array-in-bash-without-using-globals
 
 parse() {
 	local addr="$1"
- 	addr=`eval echo "$addr"`
+	addr=`eval echo "$addr"`
 	local list
 	local prj
-	#b=${a:12:5}
-	#strip prefix and suffix off in two steps:
-	#tmp=${a#*_}
-	#b=${tmp%_*}
+	local nul_val="''" # "" #
 
 	if [ "$addr" == "" ]; then
-		list="''"
-		prj="''"
+		list="$nul_val"
+		prj="$nul_val"
 		pos=-1
 		len=0
 	  else
-		local pos=$(expr index $addr "/") # splitter_pos
+		local pos=$(expr index "$addr" "/") # splitter_pos
 		local len=${#addr}
 	  fi
 	#echo "pos: $pos"
 	#echo "len: $len"
 	if [[ $pos == 0 ]]; then
-		list="''"
+		list="$nul_val"
 		prj=$addr
 	  fi
 	if [[ $pos == $len ]]; then
 		list=${addr:0:(($len - 1))}
-		prj="''"
+		prj="$nul_val"
 	  fi
 	if [[ $pos == 1 ]]; then
-		list="''"
+		list="$nul_val"
 		prj=${addr:1:(($len - 1))}
 	  fi
 	if [[ $pos > 1 && $pos < $len ]]; then
 		list=${addr:0:(($pos - 1))}
 		prj=${addr:$pos:(($pos))}
 	  fi
+	#echo $list 1>&2
+	#echo $prj 1>&2
 
-	#local list=${addr%/*} # deletes the shortest match of $substring from back of $string
-	#local prj=${addr#/*} # deletes the shortest match of $substring from front of $string
-	echo -e "$len/$pos\t$addr\t-> $list\t$prj"
+	declare -a arr
+	arr[0]="$list"
+	arr[1]="$prj"
+	#echo ${arr[0]} - ${arr[1]} 1>&2
+	#declare -p arr 1>&2
 
-	# expr index $string $substring # Numerical position in $string of first character in $substring that matches.
-	#expr substr $string $position $length
-	#expr match "$string" '\($substring\)'
-	#expr "$string" : '\($substring\)'
-	#expr match "$string" '.*\($substring\)'
-	#Extracts $substring at end of $string, where $substring is a regular expression.
-	#expr "$string" : '.*\($substring\)'
+	#echo ${arr[@]} 1>&2
+	#echo ${arr[*]} 1>&2
+	#echo ${arr[0]} - ${arr[1]} 1>&2
+
+	#for i in ${arr[@]}; do # didn't work
+	#	echo "i = " $i 1>&2
+	#done
+
+	#echo "${arr[@]}" # don't return with spaces
+	echo  "${arr[*]}"
+	}
+fun() {
+	declare -a arr=("${!1}")
+	#echo ${arr[*]} - items
+	#echo ${!arr[*]} - indexes
+	#echo ${#arr[*]} - bound
+	for ix in ${!arr[*]}; do
+		val=`eval echo ${arr[$ix]}`
+		printf "%s - %s\n" $ix "$val"
+	done
 	}
 
-arr=("var1:val1" "var2:" "var3:val3")
-pass "aa"
+declare -a res=()
+oldIFS="$IFS"
+IFS=','
+#res=(`parse "aa a/bb"`)
+res=(`parse "aa a"`)
+#res=(`parse " aa a "`)
+#res=(`parse "/bb"`)
+#res=(`parse "aa a/"`)
+#res=(`parse ""`)
+IFS="$oldIFS"
+#declare -p res
+#echo ${res[0]} - ${res[1]} 1>&2
+#for i in ${res[@]}; do
+#	echo "i = " $i
+#done
+#echo ${res[*]}  1>&2
+fun res[@]

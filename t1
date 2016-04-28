@@ -1,10 +1,11 @@
 #!/bin/bash
+# test pass array with spaces
 
 fun() {
 	declare -a arr=("${!1}")
-	echo ${arr[*]} - All of the items in the array
-	echo ${!arr[*]} - All of the indexes in the array
-	echo ${#arr[*]} - Number of items in the array
+	echo ${arr[*]} - items 
+	echo ${!arr[*]} - indexes 
+	echo ${#arr[*]} - Number of items
 	for ix in ${!arr[*]}; do
 	    printf "   %s\n" "${arr[$ix]}"
 	done

@@ -1,8 +1,9 @@
 #!/bin/bash
+# test split addr [<list>/]<prj>  ('/<prj>'' is valid too)
 
 parse() {
 	local addr="$1"
- 	addr=`eval echo "$addr"`
+	addr=`eval echo "$addr"`
 	local list
 	local prj
 	#b=${a:12:5}
