@@ -1,0 +1,119 @@
+#!/bin/bash
+# test parse params and return
+
+function get_params(){ # array: n n+1 - var val
+	local the_file="$1"
+	arr=()
+	#a=0
+	while read LINE || [ -n "$LINE" ]; do 
+		#echo "'${LINE}'" 1>&2  #$ii - 
+		#echo "${LINE:0:1}" 1>&2
+		if [ "${LINE:0:1}" != "#" ]; then
+			#echo "${LINE%%" #"*}" 1>&2
+			LINE="${LINE%%" #"*}" # before ' #' -  longest match from back
+			#trimmed=$([[ "$LINE" =~ [[:space:]]*([^[:space:]]|[^[:space:]].*[^[:space:]])[[:space:]]* ]]; echo -n "${BASH_REMATCH[1]}")
+			LINE="${LINE%"${LINE##*[![:space:]]}"}" # " # remove trailing whitespace 
+			#echo "  => '$LINE'"
+			if [ "$LINE" != "" ]; then
+				VAR="${LINE%%"="*}" # before '='
+				#echo "  => '$VAR'"
+				VAL="${LINE#*=}" # after '='
+				#echo "  => '$VAR' = '$VAL'" 1>&2
+				#arr=("${arr[@]}" "$VAR")
+
+				arr+=("$VAR")
+				arr+=("$VAL")
+				#arr=("${arr[@]}" "$VAL")
+				#declare -p arr
+				#(( a = a + 1 ))
+				#let a++
+				#echo $a
+			  fi
+		  fi
+	  done < <(cat $the_file | tr -d '\r')
+	#echo $a
+	#declare -p arr
+	echo "${arr[*]}"
+	}
+
+function fun() {
+	declare -a arr=("${!1}")
+	for ix in ${!arr[*]}; do
+		if [ $((ix%2)) -eq 0 ]; then
+			var=`eval echo ${arr[$ix]}`
+		  else
+			val=`eval echo ${arr[$ix]}`
+			printf "%s - '%s' = '%s'\n" $((ix/2)) "$var" "$val"
+			var=""
+			val=""
+		  fi
+	done
+	}
+
+function fun2() {
+	declare -a arr=("${!1}")
+	for ix in ${!arr[*]}; do
+		val=`eval echo ${arr[$ix]}`
+		printf "%s\n" "$val"
+	done
+	}
+
+function get_param() {
+	declare -a arr=("${!1}")
+	local find_var="$2"
+
+	#echo find_var: $find_var
+	#echo arr: ${arr[*]}
+	local val
+	local res
+	for ix in ${!arr[*]}; do
+		#echo $ix
+		if [ $((ix%2)) -eq 0 ]; then
+			var=`eval echo ${arr[$ix]}`
+		  else
+			val=`eval echo ${arr[$ix]}`
+			#echo "$var" - "$find_var"
+			if [ "$var" == "$find_var" ]; then
+				#printf "%s = %s\n" "$find_var" "$val"
+				if [ "$val" != "" ]; then
+					if [ "$res" == "" ]; then
+						res=("$val")
+						#echo "1-$res"
+					  else
+					  	#echo "2a-$res"
+					  	res=("$res")
+					  	#echo "2b-$res"
+					  	#echo "val2-$val"
+					  	res+=("$val")
+					  	#declare -p res
+					  	#echo "??: ${res[@]}" "$val"
+					  	#res=("${res[*]}" "$val")
+					  	#echo "2c-$res"
+					  fi
+				  fi
+				# break
+			  fi
+		  fi
+	  done
+	[[ "$(declare -p res)" =~ "declare -a" ]] && echo "${res[*]}" && return
+	#echo ("$res")
+	}
+
+params=()
+oldIFS="$IFS"
+IFS=','
+params=(`get_params "t5.txt"`)
+IFS="$oldIFS"
+
+#fun params[@]
+
+values=()
+oldIFS="$IFS"
+IFS=','
+values=(`get_param params[@] "param4"`)
+fun2 values[@]
+values=(`get_param params[@] "param7"`)
+fun2 values[@]
+IFS="$oldIFS"
+
+#[ "$arr[0]" != "[0]" ] && echo array && return

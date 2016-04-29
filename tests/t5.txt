@@ -1,0 +1,12 @@
+param1=val1
+param2=
+#
+ #
+param3=val3 # ss
+ param4=val4 #
+	param5=  
+param7=11 111 
+param7=222 22
+	  param9=999
+  	param0=000
+param6=val6

@@ -1,0 +1,28 @@
+#!/bin/bash
+# test var type
+declare -f -F test_var
+test_var(){
+	local var="$1"
+	#declare -p var
+	declare -a arr=("${!1}")
+	#echo "$var[0] - $arr[0]"
+	[ "$arr[0]" != "[0]" ] && echo array && return
+	echo scalar && return
+	#[[ $var -eq 0 ]] && echo num && return
+	#[[ "$(declare -p arr)" =~ "declare -a" ]] && echo array && return
+
+	}
+type -t test_var # [ `type -t $1`"" == 'function' ]
+declare -f -F test_var
+var1=aaaa
+declare -p var1
+#echo -n "var1"
+test_var $var1
+
+(( var2 = 999 ))
+declare -p var2
+test_var $var2
+
+var3=(val1 val2 3)
+declare -p var3
+test_var var3[@]
