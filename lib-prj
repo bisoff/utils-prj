@@ -589,14 +589,14 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 		"pull") # pget
 			local LOCAL1=$(git rev-parse HEAD)
 			if [ "$changes" == "0" ]; then
-				echo -e -n "\n${red}PULL${norm} $prj_name: $prj_path" 
+				echo -e "\n${red}PULL${norm} $prj_name: $prj_path" 
 
 				git pull --stat --quiet #--all
 				local LOCAL2=$(git rev-parse HEAD)
 				#echo LOCAL1: $LOCAL1 1>&2
 				#echo LOCAL2: $LOCAL2 1>&2
 				if [ "$LOCAL1" == "$LOCAL2" ]; then
-					echo -e -n " - ${yellow}Changes not found ${norm}" 
+					echo -e "${yellow}Changes not found ${norm}" 
 				#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
 				  fi
 			  else
@@ -612,7 +612,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
 				  fi
 			  fi
-			echo
+			#echo
 			;;
 		"push") # psave
 			if [ "$changes" != "0" ] ; then
