@@ -1,0 +1,7 @@
+[section1]
+param1=val1
+param2=
+
+[section1]
+param1=val3 # ss
+param2=val4 #
