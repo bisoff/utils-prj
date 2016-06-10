@@ -621,7 +621,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				echo 
 				gac "$msg" 
 				echo 
-				git push --quiet # gus 
+				git remote | xargs -L1 git push --all --quiet
+				# git push --quiet # gus 
 				return #&& echo -e "${red}FIXING${norm}" 
 			  fi
 			echo -e " - ${yellow}Changes not found ${norm}" 
