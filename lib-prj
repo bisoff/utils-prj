@@ -637,7 +637,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			log_print "sync_status:\t$sync_status"
 			#sync_status=`eval echo $sync_status`
 			[[ "$sync_status" == "pull" || "$sync_status" == "diverged" ]] && git pull # pull when need
-			[[ "$sync_status" == "push" || "$sync_status" == "diverged" ]] && git push # push when need
+			[[ "$sync_status" == "push" || "$sync_status" == "diverged" ]] && git remote | xargs -L1 git push --all --quiet -u #git push # push when need
 			;;
 		*)
 			echo -e "${red}[cmd_project_sync] Project command '$cmd' not found !${norm} " && return
