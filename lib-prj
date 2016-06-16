@@ -589,9 +589,9 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 		"pull") # pget
 			local LOCAL1=$(git rev-parse HEAD)
 			if [ "$changes" == "0" ]; then
-				echo -e "\n${red}PULL${norm} $prj_name: $prj_path" 
+				echo -e "\n${red_blink}PULL${norm} $prj_name: $prj_path" 
 
-				git pull --stat  #--all --quiet
+				git pull --stat --no-rebase #--all --quiet
 				local LOCAL2=$(git rev-parse HEAD)
 				#echo LOCAL1: $LOCAL1 1>&2
 				#echo LOCAL2: $LOCAL2 1>&2
