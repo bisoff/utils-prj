@@ -623,6 +623,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				echo 
 				git remote | xargs -L1 git push --all --quiet -u
 				# git config --global pull.rebase false
+				# git config pull.rebase false
 				# git push --quiet # gus 
 				return #&& echo -e "${red}FIXING${norm}" 
 			  fi
