@@ -622,6 +622,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				gac "$msg" 
 				echo 
 				git remote | xargs -L1 git push --all --quiet -u
+				#git config branch.master.merge master
 				# git push --quiet # gus 
 				return #&& echo -e "${red}FIXING${norm}" 
 			  fi
