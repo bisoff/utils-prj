@@ -8,7 +8,8 @@ while read LINE || [ -n "$LINE" ]; do
 	[ "${LINE:0:1}" == "#" ] && LINE=""
 	#echo "${LINE%%" #"*}"
 	if [ "$LINE" != "" ]; then
-		LINE="${LINE%%" #"*}" # before ' #' -  longest match from back
+		#LINE="${LINE%%" #"*}" # before ' #' -  longest match from back
+		LINE=`[[ "$LINE" =~ ([^[:space:]]+)[[:space:]]+#.* ]]; echo "${BASH_REMATCH[1]}"` #   longest match from back include tab
 		#trimmed=$([[ "$LINE" =~ [[:space:]]*([^[:space:]]|[^[:space:]].*[^[:space:]])[[:space:]]* ]]; echo -n "${BASH_REMATCH[1]}")
 		LINE="${LINE%"${LINE##*[![:space:]]}"}" #  remove trailing whitespace "
 		#echo "  => '$LINE'"
