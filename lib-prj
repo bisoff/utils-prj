@@ -217,6 +217,7 @@ cmd_project_enum(){		# plist		[<list>]
 	# echo UTILS_PRJ_THE_HOST: $UTILS_PRJ_THE_HOST
 	local prj_list="$1"
 	local current_set=$(get_current_set)
+	# [[ "$prj_list" == "..." ]] && prj_list= 
 	[[ "$prj_list" == ".." ||  "$prj_list" == "." ]] && prj_list="$current_set"
 	  log_print "prj_list:\t\t$prj_list"
 
@@ -225,22 +226,36 @@ cmd_project_enum(){		# plist		[<list>]
 	local current_project=$(get_project_name "$(pwd)")
 	  log_print "current_project:\t$current_project"
 
-	[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list" ] && echo -e "${red}[cmd_project_enum] Project list '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list' not found !${norm}" && return
+	if [[ "$prj_list" != "..." ]]; then
+		[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list" ] && echo -e "${red}[cmd_project_enum] Project list '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list' not found !${norm}" && return
+	  fi
 	if [ "$current_set" == "$prj_list" ]; then
-		echo -e "\n${black_on_green}  ${red_on_green}$prj_list ${magenta_on_green}(current)  ${norm}"
+		echo -e "\n${red_on_green}  $prj_list ${magenta_on_green}(current)  ${norm}"
 	  else
-		echo -e "\n${black_on_green}  ${red_on_green}$prj_list  ${norm}"
+	  	[[ "$prj_list" != "..." ]] && echo -e "\n${red_on_green}  $prj_list  ${norm}" # ${black_on_green}
 	  fi
 
-	for prj_name in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
-		#prj_name=`eval echo $prj_name` # normalize (<CR> ~)
-		local path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
-		if [ "$current_project" == "$prj_name" ]; then
-			echo -e "${green}$prj_name${norm}\t${green}$path ${grey}(current)${norm}"
-		  else
-			echo -e "$prj_name\t$path"
-		  fi
-	  done
+	if [[ "$prj_list" == "..." ]]; then
+		for prj_name in $(find $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/. -maxdepth 1 -type f ! -name '*.list' -a ! -name default -exec basename {} \; | sort); do #  | sed -e /^$/d | tr -d '\r' | 
+			#prj_name=`eval echo $prj_name` # normalize (<CR> ~)
+			local path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
+			if [ "$current_project" == "$prj_name" ]; then
+				echo -e "${green}$prj_name${norm}\t${green}$path ${grey}(current)${norm}"
+			  else
+				echo -e "$prj_name\t$path"
+			  fi
+		  done
+	  else
+		for prj_name in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
+			#prj_name=`eval echo $prj_name` # normalize (<CR> ~)
+			local path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
+			if [ "$current_project" == "$prj_name" ]; then
+				echo -e "${green}$prj_name${norm}\t${green}$path ${grey}(current)${norm}"
+			  else
+				echo -e "$prj_name\t$path"
+			  fi
+		  done
+	  fi
 	echo
 	}
 cmd_project_add(){		# padd		<prj> 		[<list>]

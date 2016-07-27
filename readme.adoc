@@ -4,41 +4,44 @@ utils-prj is a cli utility for:
 - rapid control dozens of projects: switch context to project set; go to project home folder; bulk operations like state review, fix in vcs and sync with remotes)
 - simple way to change current folder using dynamic aliases (ex. 'padd prj1' will add alias for current folder, 'pgo prj1' will change current folder)
 
+
 ## Setup
 
-
-## Prerequisites
+### Prerequisites
 
 Mandatory:
 	- corutils
-		msys on Windows, ex: 
-			git 1.7?.5? (msys 32bit) 
-			git 2.0.0 (msys 64bit) 
-			msys 
-			msys2 
-			mingw (msys 32bit) 
+		msys on Windows, ex:
+			git 1.7?.5? (msys 32bit)
+			git 2.0.0 (msys 64bit)
+			msys
+			msys2
+			mingw (msys 32bit)
 			mingw64
 		osx 10.?? Yosemite +?
 		linux with bash 3.2??+
 Optional:
-	- utils-env library - to print colored messages requires (you may don't install them, then messages just willn't in color) 
+	- utils-env library - to print colored messages requires (you may don't install them, then messages just willn't in color)
 	- utils-git library - to fix in vcs(git) or sync with remotes (bash script library to manupulate of git repositories in simple manner)
 		cmd_state_of_one_project	gis
 		cmd_save_all_projects		gis,gok
 		cmd_save_project_at_local	gac
 	- any syncronizing tool (described in PATH)
-		git 
+		git
 		rsync (cwRsync)
 		subversion
+
 
 ## Ref impl
 
 clone utils_prj # you need have installed git and fixed it in PATH
 run setup 	# it makes configs in user's home within <host_name> subfolder and default set of projects
-cd <you project path>
+
+cd <project>
 padd p1		# add alias 'p1' for your project (and add pwd as projects path)
 plist		# to view your projects in current set (default)
 touch some_file # to make changes in project (it could be manipulation on any file)
+
 cd -		# change path to another
 pstate p1	# review status of project 'p1'
 pgo p1		# change path to projects path
@@ -48,6 +51,25 @@ pfix . 		# add & commit your changes in local repository
 psave . 'ok'	# add, commit and push changes with massage 'ok'
 pget . 		# pull changes from remote
 
+## sync round
+psta
+pgeta
+psavea
+psw set2
+psta
+
+psets
+psw
+plist
+pgo
+
+
+## Command conventions
+
+aliases
+. current project
+.. all projects in set
+... ovarall projects
 
 ## Folder/file/content
 
@@ -86,25 +108,25 @@ pget . 		# pull changes from remote
 setup
   pcfg
 pel		edit library (lib-prj)
-padd		
-pmove		
-pren		
+padd
+pmove
+pren
 
 ## Control
 
 plist		[<list>]		list projects (from <the_host>.<list|default_list>): <alias>: home path
-pst		
-pstx		
+pst
+pstx
 pstate		gis
 
 ## Sync
 
-pfix		
-pget		
-pgetall		
-psave		
-psaveall	
-  psync		
+pfix
+pget
+pgetall
+psave
+psaveall
+  psync
 
 ## Navigate command
 
