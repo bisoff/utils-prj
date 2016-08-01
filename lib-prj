@@ -623,7 +623,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				#echo LOCAL1: $LOCAL1 1>&2
 				#echo LOCAL2: $LOCAL2 1>&2
 				if [ "$LOCAL1" == "$LOCAL2" ]; then
-					echo -e -n " - ${yellow}Remote not changed${norm}" 
+					echo -e -n "\n${yellow}Remote not changed${norm}" 
 				#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
 				  else
 				  	echo -e "\n${red_blink}NEEDS_COMMIT${norm}" 
