@@ -1,0 +1,65 @@
+${cyan}PROJECT${norm}
+  ${yellow}padd${norm} <prj>		- add project (<prj> is alias for current path)
+  ${yellow}pdel${norm} <prj>		- delete project from current set
+  ${yellow}pren${norm} <prj>		- rename project (rename alias and link in set)
+  ${yellow}pmove${norm} <prj>		- update pointer to path (or rename project that pointes to current path)
+  ${yellow}plist${norm} <prj>		- list projects in current set (from <the_host>.<list|default_list>): <alias>: home path
+
+${cyan}SET${norm}
+  ${yellow}pset${norm} <set>		- list all sets (file: <host>.<set>; <set> is alias)
+  ${yellow}psets${norm} <set>		- list all sets
+
+  ${yellow}psetadd${norm} <set>		- add project set (<set> is alias)
+  ${yellow}psetdel${norm} <set>		- remove project set
+  ${yellow}psetren${norm} <set>		- rename project set
+  
+  ${yellow}pgo${norm} <prj>		- change current path to project path (pwd)
+  ${yellow}psw${norm} <set>		- switch current set (change context)
+  ${yellow}pexec${norm} <prj> <cmd>	- execute passed shell command in project's path
+
+${cyan}STATUS${norm}
+  ${yellow}pst${norm} [<obj>]		- where <obj> is set or project. if param missed then help outputed only
+  ${yellow}pst1${norm} [<obj>]		- local status for current project (by path)
+  ${yellow}psta${norm} [<obj>]		- local status for all projects in current set
+  
+  ${yellow}pstx${norm} <obj>		- extended status (with ref update from remote). needs detailing param <obj> - alias of prj or set
+  ${yellow}pstx1${norm}			- extended status for current project (by path)
+  ${yellow}pstxa${norm}			- extended status for all projects in current set
+
+${cyan}ACTION${norm}
+  ${yellow}pfix${norm} <obj> [<msg>]	- adds all & commits. needs detailing param <obj> - alias of prj or set
+  ${yellow}pfix1${norm} [<msg>]		- adds all & commits, for current project (by path)
+  ${yellow}pfixa${norm} [<msg>]		- adds all & commits, for all projects in current set
+  
+  ${yellow}pget${norm} <obj> [<msg>]	- pull from remote
+  ${yellow}pget1${norm} [<msg>]		- pull for current project (by path)
+  ${yellow}pgeta${norm} [<msg>]		- pull for all projects in current set
+  
+  ${yellow}psave${norm} <obj> [<msg>]	- push to default remote
+  ${yellow}psave1${norm} [<msg>]	- push for current project (by path)
+  ${yellow}psavea${norm} [<msg>]		- push for all projects in current set
+  
+  ${yellow}psync${norm} <obj> [<msg>]	- pull & push from/to default remote
+  ${yellow}psync1${norm} [<msg>]	- pull & push for current project (by path)
+  ${yellow}psynca${norm} [<msg>]	- pull & push for all projects in current set
+
+${cyan}SERVICE${norm}
+  ${yellow}setup${norm}			- init aliases, include, PATH & copy tesmplates
+  ${yellow}utils-prj-uninstall${norm}	- remove aliases, include, PATH & configs (sets and projects)
+
+  ${yellow}pshow${norm}			- view utils-prj state
+  ${yellow}p-help${norm}		- view readme
+
+  ${yellow}pea${norm}			- edit ~/.utils-prj/utils-prj-aliases. run 'pupd' for apply !
+  ${yellow}pel${norm}			- edit library (lib-prj)
+  ${yellow}pupd${norm}			- reload lib and aliases for current terminal session
+
+  ${yellow}pei${norm}			- edit ~/.utils-prj/utils-prj-include
+  ${yellow}peh${norm}			- edit $UTILS_PRJ_HOME/help.clr
+  ${yellow}per${norm}			- edit $UTILS_PRJ_HOME/readme.adoc
+  ${yellow}pet${norm}			- edit $UTILS_PRJ_HOME/utils-prj.todo
+
+${cyan}FILES${norm}
+  ${yellow}lib-prj${norm}		- utility library (path)
+  ${yellow}utils-prj-aliases${norm}	- command aliases (path)
+  ${yellow}utils-prj-include${norm}	- env (path, home var, lib)

@@ -1,77 +1,105 @@
-## What for
+:toc:
+:toc-title:
 
-utils-prj is a cli utility for:
-- rapid control dozens of projects: switch context to project set; go to project home folder; bulk operations like state review, fix in vcs and sync with remotes)
-- simple way to change current folder using dynamic aliases (ex. 'padd prj1' will add alias for current folder, 'pgo prj1' will change current folder)
+= UTILS-DT
 
+== What for
 
-## Setup
+utils-prj is a set of shell scripts for:
 
-### Prerequisites
+	* rapid control dozens of projects in different contexts
+		** define and switch context (cmd: psw <context>). Context describes set of project
+		** go to project home folder. Project points to some folder (ex git repo)
+		** bulk operation with context projects or overall (like review state of all projects in context, pull or fix changes, full sync with remotes)
+	* simple way to change current folder in terminal using project alias (ex. 'padd prj1' will add alias for current folder and 'pgo prj1' will change current folder)
 
-Mandatory:
-	- corutils
-		msys on Windows, ex:
-			git 1.7?.5? (msys 32bit)
-			git 2.0.0 (msys 64bit)
-			msys
-			msys2
-			mingw (msys 32bit)
-			mingw64
-		osx 10.?? Yosemite +?
-		linux with bash 3.2??+
-Optional:
-	- utils-env library - to print colored messages requires (you may don't install them, then messages just willn't in color)
-	- utils-git library - to fix in vcs(git) or sync with remotes (bash script library to manupulate of git repositories in simple manner)
-		cmd_state_of_one_project	gis
-		cmd_save_all_projects		gis,gok
-		cmd_save_project_at_local	gac
-	- any syncronizing tool (described in PATH)
-		git
-		rsync (cwRsync)
-		subversion
+== Terms
+
+*project* - pointer to project (path, repo type, etc.)
+
+*set* - a group of projects (context), ex. in different context (ex job, my_utils, my_studies, etc.)
 
 
-## Ref impl
+== Setup
 
-clone utils_prj # you need have installed git and fixed it in PATH
-run setup 	# it makes configs in user's home within <host_name> subfolder and default set of projects
+=== Prerequisites
 
-cd <project>
-padd p1		# add alias 'p1' for your project (and add pwd as projects path)
-plist		# to view your projects in current set (default)
-touch some_file # to make changes in project (it could be manipulation on any file)
+==== Mandatory:
+	* coreutils, one of:
+		** msys on Windows, ex:
+			*** git 1.7?.5? (msys 32bit)
+			*** git 2.0.0 (msys 64bit)
+			*** msys
+			*** msys2
+			*** mingw (msys 32bit)
+			*** mingw64
+		** bash 3.2??+ (linux ??)
+	** gnu-sed (for osx only) (brew install coreutils)
 
-cd -		# change path to another
-pstate p1	# review status of project 'p1'
-pgo p1		# change path to projects path
-pstate .	# review status of current project
-pst		# to view status of all projects in current set (ex. you'll need to pull or push or add&commit you project)
-pfix . 		# add & commit your changes in local repository
-psave . 'ok'	# add, commit and push changes with massage 'ok'
-pget . 		# pull changes from remote
+==== Optional:
+	* utils-env library - to print colored messages requires (you may don't install them, then messages just willn't in color)
+	* utils-git library - to fix in vcs(git) or sync with remotes (bash script library to manupulate of git repositories in simple manner)
+		** cmd_state_of_one_project	gis
+		** cmd_save_all_projects		gis,gok
+		** cmd_save_project_at_local	gac
+	* project tools (accessable by PATH var)
+		** git
+		** rsync (cwRsync) - in dev
+		** subversion - in dev
 
-## sync round
-psta
-pgeta
-psavea
-psw set2
-psta
+=== How to install
 
-psets
-psw
-plist
-pgo
+	coreutils
+	git
+
+	$ cd <my_utils> # ex cd $HOME
+	$ clone ..
+	$ setup
+	setup 		# it makes configs in user's home within <host_name> subfolder and default set of projects
+
+=== How to uninstall
+
+	$ uninstall-utils-prj
 
 
-## Command conventions
+== Ref impl
 
-aliases
-. current project
-.. all projects in set
-... ovarall projects
+	cd <project root path>
+	padd p1		# add alias 'p1' for your project (and add pwd as projects path)
+	plist		# to view your projects in current set (default)
+	touch some_file # to make changes in project (it could be manipulation on any file)
 
-## Folder/file/content
+	cd -		# change path to another
+	pstate p1	# review status of project 'p1'
+	pgo p1		# change path to projects path
+	pstate .	# review status of current project
+	pst		# to view status of all projects in current set (ex. you'll need to pull or push or add&commit you project)
+	pfix . 		# add & commit your changes in local repository
+	psave . 'ok'	# add, commit and push changes with massage 'ok'
+	pget . 		# pull changes from remote
+
+== Sync round
+
+	psta		# view
+	pgeta
+	psavea
+	psw set2
+	psta
+
+	psets
+	psw
+	plist
+	pgo
+
+
+== Command conventions
+
+	next param used for:
+	. - current project
+	.. - all projects in set
+	... - ovarall projects
+
+== Folders / files / content
 
 	.cfg-FOLDER
 		<host1>-FOLDER
@@ -103,36 +131,7 @@ aliases
 			<prj_alias_2>-FILE
 				...
 
-## Commands
+== Commands & major files
 
-setup
-  pcfg
-pel		edit library (lib-prj)
-padd
-pmove
-pren
+	$ p-help
 
-## Control
-
-plist		[<list>]		list projects (from <the_host>.<list|default_list>): <alias>: home path
-pst
-pstx
-pstate		gis
-
-## Sync
-
-pfix
-pget
-pgetall
-psave
-psaveall
-  psync
-
-## Navigate command
-
-pgo		change dir to project home dir
-
-== Misc
-	lib-prj		utility library
-	  p-help	cat readme.adoc
-	readme.adoc	the file
