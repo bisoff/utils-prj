@@ -1,5 +1,15 @@
 #!/bin/bash
-# WARING: Don't cahnge the file before lines with 'cmd_utilsprj_wrapper' function incuding it
+
+# === release notes ===
+	# WARING: Don't change the file before and incuding line contains 'cmd_utils_prj_wrapper(){' because 'pupd' willn't work
+	# тильда в переменной для указания в пути домашней папки- крэшит команды (cd, ls ..)
+	# 	workaround: eval echo $path
+	# 	re="~(.*)"; if [[ $path =~ $re ]]; then  path=${BASH_REMATCH[1]}; fi; cd $HOME$path
+	# if you want edit lib-prj and trace it, you can use next cmd: 
+	# 	$ UTILS_PRJ_TRACE=1; <cmd>; UTILS_PRJ_TRACE=0
+	# alias change didn't take effect if you run new alias in one command with 'pupd' throuhg ';'. Run 'pupd' separatly like this:
+	#	$ pupd; 
+	#	$ <cmd_by_new_alias>
 
 # === globals ===
 UTILS_PRJ_TRACE=0
@@ -28,7 +38,7 @@ case "$UTILS_PRJ_THE_OS" in
   esac
 alias log_print='[ "$UTILS_PRJ_TRACE" == "1" ] && echo -e '
 
-cmd_utils_prj_wrapper() {
+cmd_utils_prj_wrapper(){
 	local cmd_one="$1"
 
 	local utils_prj_timestamp_current
@@ -70,13 +80,6 @@ cmd_utils_prj_wrapper() {
 	eval $cmd_one "$params" #"$@*"
 	UTILS_PRJ_TRACE=0
 	}
-
-# === release notes ===
-	# тильда в переменной для указания в пути домашней папки- крэшит команды (cd, ls ..)
-		# workaround: eval echo $path
-		# re="~(.*)"; if [[ $path =~ $re ]]; then  path=${BASH_REMATCH[1]}; fi; cd $HOME$path
-	# if you want edit lib-prj and then UTILS_PRJ_TRACE it, you can use next cmd: UTILS_PRJ_TRACE=1; <cmd>; UTILS_PRJ_TRACE=0
-	#	note: alias chages didn't took effect if you run cmd in one command line (throuhg ';'). Run 'pupd' and next command ('UTILS_PRJ_TRACE=1; <cmd>; UTILS_PRJ_TRACE=0') lunch after prompt
 
 # === install ===
 utils-prj-setup(){
@@ -122,7 +125,7 @@ cmd_prj_help(){
 	while IFS='' read -r line || [[ -n "$line" ]]; do
 		eval "echo -e \"$line\""
 	done < <(cat $UTILS_PRJ_HOME/help.clr ) #| head -n 2
-}
+	}
 
 # === config functions ===
 cmd_show_current_config(){	# pshow  green
