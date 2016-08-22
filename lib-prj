@@ -532,7 +532,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			if [ "$changes" == "0" ]; then
 				echo -e "\n${red}PULL${norm} $prj_name: $prj_path" 
 
-				git pull --stat --no-rebase #--all --quiet
+				git pull -vv --stat --no-rebase #--all --quiet
 				local LOCAL2=$(git rev-parse HEAD)
 				#echo LOCAL1: $LOCAL1 1>&2
 				#echo LOCAL2: $LOCAL2 1>&2
@@ -543,7 +543,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			  else
 				echo
 				git diff --stat=200 --color | sed -n '$! p' || return
-				echo -e -n "${red}FETCH${norm} $prj_name: $prj_path" 
+				echo -e -n "\n${red}FETCH${norm} $prj_name: $prj_path" 
 				git fetch || return # && git diff remote ??
 				local LOCAL2=$(git rev-parse HEAD)
 				#echo LOCAL1: $LOCAL1 1>&2
@@ -569,7 +569,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				# rebase = false
 				# git push --quiet # gus 
 			  else
-				echo -e "${yellow}Changes not found ${norm}" 
+				echo -e "\n${yellow}Changes not found ${norm}" 
 				#return #&& echo -e "${red}FIXING${norm}" 
 			  fi
 			#git remote | xargs -L1 git push --all --quiet -u
