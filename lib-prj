@@ -564,7 +564,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				echo 
 				gac "$msg" 
 				echo 
-				git remote | xargs -L1 git push --all --quiet -u
+				git remote | xargs -L1 cmd_git_push # git push --all --quiet -u
 				# git config --global pull.rebase false
 				# git config pull.rebase false
 				# rebase = false
