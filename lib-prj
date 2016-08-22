@@ -564,14 +564,14 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				echo 
 				gac "$msg" 
 				echo 
-				git remote | xargs -L1 cmd_git_push # git push --all --quiet -u
 				# git config --global pull.rebase false
 				# git config pull.rebase false
 				# rebase = false
 				# git push --quiet # gus 
-				return #&& echo -e "${red}FIXING${norm}" 
+				echo -e " - ${yellow}Changes not found ${norm}" 
+				#return #&& echo -e "${red}FIXING${norm}" 
 			  fi
-			echo -e " - ${yellow}Changes not found ${norm}" 
+			git remote | xargs -L1 cmd_git_push # git push --all --quiet -u
 			#echo -e "${red}PUSHING${norm}"
 			#gok "$msg"
 			;;
