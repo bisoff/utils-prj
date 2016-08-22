@@ -569,7 +569,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				# rebase = false
 				# git push --quiet # gus 
 			  else
-				echo -e "\n${yellow}Changes not found ${norm}" 
+				echo -e "\n${yellow}Local changes not found ${norm}" 
 				#return #&& echo -e "${red}FIXING${norm}" 
 			  fi
 			#git remote | xargs -L1 git push --all --quiet -u
