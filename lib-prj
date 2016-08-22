@@ -573,11 +573,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				#return #&& echo -e "${red}FIXING${norm}" 
 			  fi
 			#git remote | xargs -L1 git push --all --quiet -u
-		  	remotes=$(git remote show)
-			for name in $remotes; do 
-				echo -e "git PUSH to ${red}$name$norm: $green$curr_branch$norm"  #-u
-				git push "$name" "$curr_branch" #all --all
-			  done
+		  	cmd_git_push all
 
 			#echo -e "${red}PUSHING${norm}"
 			#gok "$msg"
