@@ -568,7 +568,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				# git config pull.rebase false
 				# rebase = false
 				# git push --quiet # gus 
-				echo -e " - ${yellow}Changes not found ${norm}" 
+			  else
+				echo -e "${yellow}Changes not found ${norm}" 
 				#return #&& echo -e "${red}FIXING${norm}" 
 			  fi
 			#git remote | xargs -L1 git push --all --quiet -u
