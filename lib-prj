@@ -14,7 +14,7 @@
 # === globals ===
 UTILS_PRJ_TRACE=0
 UTILS_PRJ_HOME=$(dirname ${BASH_SOURCE[0]})
-UTILS_PRJ_CONFIGS=`eval echo ~/.utils-prj` # fix '~' bug
+#UTILS_PRJ_CONFIGS=`eval echo $HOME/.utils-prj` # fix '~' bug
 UTILS_PRJ_THE_HOST=$(uname -n)
 UTILS_PRJ_THE_OS=$(uname -s)
 UTILS_PRJ_INCLUDE="utils-prj-include"
@@ -23,12 +23,12 @@ case "$UTILS_PRJ_THE_OS" in
 	MINGW*)
 		UTILS_PRJ_SED_BACKUP="" #|MSYS*
 		UTILS_PRJ_TIMESTAMP=`stat -c %y $HOME_UTILS_PRJ/lib-prj`
-		UTILS_PRJ_ALIAS_TIMESTAMP=`stat -c %y $UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES`
+		UTILS_PRJ_ALIAS_TIMESTAMP=`stat -c %y $HOME/.utils-prj/$UTILS_PRJ_ALIASES`
 		;;
 	Darwin)
 		UTILS_PRJ_SED_BACKUP="''"
 		UTILS_PRJ_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME_UTILS_PRJ/lib-prj")
-		UTILS_PRJ_ALIAS_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES")
+		UTILS_PRJ_ALIAS_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME/.utils-prj/$UTILS_PRJ_ALIASES")
 		;;
 	# linux??)
 		# UTILS_PRJ_SED_BACKUP=??
@@ -45,11 +45,11 @@ cmd_utils_prj_wrapper(){
 	case "$UTILS_PRJ_THE_OS" in
 		MINGW*)
 			utils_prj_timestamp_current=`stat -c %y $HOME_UTILS_PRJ/lib-prj`
-			utils_prj_alias_timestamp_current=`stat -c %y $UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES`
+			utils_prj_alias_timestamp_current=`stat -c %y $HOME/.utils-prj/$UTILS_PRJ_ALIASES`
 			;;
 		Darwin)
 			utils_prj_timestamp_current=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME_UTILS_PRJ/lib-prj")
-			utils_prj_alias_timestamp_current=$(stat -f "%Sm" -t "%h %U %G %s" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES")
+			utils_prj_alias_timestamp_current=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME/.utils-prj/$UTILS_PRJ_ALIASES")
 			;;
 		# linux??)
 			# UTILS_PRJ_TIMESTAMP=??
@@ -60,7 +60,7 @@ cmd_utils_prj_wrapper(){
 	#echo -e "UTILS_PRJ_TIMESTAMP:\t\t$UTILS_PRJ_TIMESTAMP"
 
 	[ "$utils_prj_timestamp_current" != "$UTILS_PRJ_TIMESTAMP" ] && echo "Updating commands..." && source "$HOME_UTILS_PRJ/lib-prj"
-	[ "$utils_prj_alias_timestamp_current" != "$UTILS_PRJ_ALIAS_TIMESTAMP" ] && echo "Updating aliases..." && source "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
+	[ "$utils_prj_alias_timestamp_current" != "$UTILS_PRJ_ALIAS_TIMESTAMP" ] && echo "Updating aliases..." && source "$HOME/.utils-prj/$UTILS_PRJ_ALIASES"
 	#echo "wrapper2"
 	shift
 	local params
@@ -87,7 +87,7 @@ utils-prj-setup(){
 	[ ! -d ~/.utils-git ] && echo "to run commands on git repos required utils-git"
 	[ ! -d ~/.utils-env ] && echo "to get messages in colored manner required utils-env"
 
-	[ ! -d "$UTILS_PRJ_CONFIGS" ] && mkdir "$UTILS_PRJ_CONFIGS"
+	[ ! -d "$HOME/.utils-prj" ] && mkdir "$HOME/.utils-prj"
 	[ ! -f "UTILS_PRJ_CONFIGS/$utils_include" ] && 	copy "$UTILS_PRJ_HOME/$UTILS_PRJ_INCLUDE" "UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
 	# sed REPLACE path in 'export HOME_UTILS_PRJ= ex to "/C/app/utils-prj"
 	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES" ] && copy "$UTILS_PRJ_HOME/$UTILS_PRJ_ALIASES" "UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
@@ -96,7 +96,7 @@ utils-prj-setup(){
 	touch "$bash_profile"
 	# [ if not found '. ~/.utils-prj/include ] && echo '. ~/.utils-prj/include' >> .bash_profile
 	# echo "add to PATH?" read  [] echo "export PATH=$PATH:$UTILS_PRJ_HOME" >> $utils_include
-	mkdir "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
+	mkdir "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST"
 	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" ] && copy "$UTILS_PRJ_HOME/default" "UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default"
 	touch "UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/!projects"
 	echo "'p-help' - print readme.adoc"
@@ -113,7 +113,7 @@ utils-prj-uninstall(){
 	rm "UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
 	rm "UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
 	# echo remove host aliases also ?; read; 
-		# rm -r -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
+		# rm -r -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST"
 		# cd "UTILS_PRJ_CONFIGS/.."
 		# rm "UTILS_PRJ_CONFIGS"
 	cd "$UTILS_PRJ_HOME"/..
@@ -132,7 +132,7 @@ cmd_show_current_config(){	# pshow  green
 	echo -e "${red_on_green}  Overview:  ${norm}\nutils-prj - version 1.0\nUse 'p-help' for more\n"
 	echo -e "${red_on_green}  Where installed (\$UTILS_PRJ_HOME):  ${norm}\n$UTILS_PRJ_HOME/\n"
 	echo -e "${red_on_green}  How inited (position in $HOME/.bash_profile):  ${norm}\n$(grep -n -A 2 '.utils-prj' ~/.bash_profile)\n"
-	echo -e "${red_on_green}  Settings:  ${norm}\n$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE\n$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES\n$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/*"
+	echo -e "${red_on_green}  Settings:  ${norm}\n$HOME/.utils-prj/$UTILS_PRJ_INCLUDE\n$HOME/.utils-prj/$UTILS_PRJ_ALIASES\n$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/*"
 
 	cmd_project_enum ..
 	}
@@ -152,7 +152,7 @@ cmd_project_enum(){		# plist		[<list>]
 	  log_print "current_project:\t$current_project"
 
 	if [[ "$prj_list" != "..." ]]; then
-		[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list" ] && echo -e "${red}[cmd_project_enum] Project list '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list' not found !${norm}" && return
+		[ ! -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list.list" ] && echo -e "${red}[cmd_project_enum] Project list '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list.list' not found !${norm}" && return
 	  fi
 	if [ "$current_set" == "$prj_list" ]; then
 		#echo -e "\n${red_on_green}  $prj_list ${magenta_on_green}(current set)  ${norm}"
@@ -162,9 +162,9 @@ cmd_project_enum(){		# plist		[<list>]
 	  fi
 
 	if [[ "$prj_list" == "..." ]]; then
-		for prj_name in $(find $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/. -maxdepth 1 -type f ! -name '*.list' -a ! -name default -exec basename {} \; | sort); do #  | sed -e /^$/d | tr -d '\r' | 
+		for prj_name in $(find $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/. -maxdepth 1 -type f ! -name '*.list' -a ! -name default -exec basename {} \; | sort); do #  | sed -e /^$/d | tr -d '\r' | 
 			#prj_name=`eval echo $prj_name` # normalize (<CR> ~)
-			local path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
+			local path=`sed -E -n 's/^path=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
 			if [ "$current_project" == "$prj_name" ]; then
 				echo -e "${green}$prj_name${norm}\t${green}$path ${grey}(current)${norm}"
 			  else
@@ -172,9 +172,9 @@ cmd_project_enum(){		# plist		[<list>]
 			  fi
 		  done
 	  else
-		for prj_name in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
+		for prj_name in $(cat $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list.list | sed -e /^$/d | tr -d '\r' | sort); do 
 			#prj_name=`eval echo $prj_name` # normalize (<CR> ~)
-			local path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
+			local path=`sed -E -n 's/^path=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
 			if [ "$current_project" == "$prj_name" ]; then
 				echo -e "${green}$prj_name${norm}\t${green}$path ${grey}(current)${norm}"
 			  else
@@ -213,14 +213,14 @@ cmd_project_add(){		# padd		<prj> 		[<list>]
 	  	prj_list="$prj_list.list"
 	  fi; log_print "prj_list:\t$prj_list"
 		
-	prj_file="$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name"; log_print "prj_file:\t$prj_file"
+	prj_file="$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name"; log_print "prj_file:\t$prj_file"
 	[[ -f $prj_file ]] && echo -e "${red}[cmd_project_add] Project already exists${norm}" && return
 
 	echo "path=$prj_path" 	> $prj_file
 	echo "type=git" 	>> $prj_file
 	echo "remote=" 		>> $prj_file
 
-	echo -e "$prj_name" >> "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list" # ? test to exists?
+	echo -e "$prj_name" >> "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list" # ? test to exists?
 	echo -e "[cmd_project_add] Project ${green}$prj_name - $prj_path${norm} added to ${green}$prj_list${norm}" # ? test to exists?
 	# shift loop
 	# if $prj_name == "" then folder
@@ -246,13 +246,13 @@ cmd_project_delete(){		# pdel		<prj>
 	[[ "$prj_name" == "" ]] && echo -e "Syntax: ${green}pdel ${yellow}<prj>${norm}" && return 
 	#[ "$prj_name" == "" ] && prj_name=$(get_project_name "$(pwd)")
 	#[[ "$prj_name" == "" ]] && echo -e "${red}[cmd_project_delete] prj_name param is missed !${norm}" && return 
-	[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" ]] && echo -e "[cmd_project_delete] Project '${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name${norm}' not found !" && return 
-	prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
+	[[ ! -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" ]] && echo -e "[cmd_project_delete] Project '${red}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name${norm}' not found !" && return 
+	prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
 	#prj_type=`sed -E -n 's/^type=([^#]+).*/\1/p' $UTILS_ PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
-	#prj_remote=`sed -E -n 's/^remote=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
-	rm "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" || return
+	#prj_remote=`sed -E -n 's/^remote=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
+	rm "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" || return
 	local current_set="$(get_current_set).list"
-	gsed -i -E "/^$prj_name$/d" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set" && echo -e "[cmd_project_delete] Project ${yellow}$prj_name - $prj_path${norm} is deleted from ${yellow}$current_set${norm}" 
+	gsed -i -E "/^$prj_name$/d" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$current_set" && echo -e "[cmd_project_delete] Project ${yellow}$prj_name - $prj_path${norm} is deleted from ${yellow}$current_set${norm}" 
 	}
 cmd_project_move(){		# pmove		<prj>|. 	[<list>]
 	# if list is skipped and prj_name is same 					-> update prj path
@@ -276,27 +276,27 @@ cmd_project_move(){		# pmove		<prj>|. 	[<list>]
 		[ "$project_name" == "" ] && echo -e "${red}Project not found by '$curr_path'${norm}" && return
 		if [ "$project_name" == "$prj_name" ]; then
 			# update prj path
-			gsed -i -E "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" || return #  replace home path
+			gsed -i -E "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" || return #  replace home path
 		  else
 			# upd name of prj (name and link in list)
-			[ -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" ] && echo -e "${red}Project '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name' already exist ${norm}"
-			local found=$(grep "^$project_name$" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list")
+			[ -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" ] && echo -e "${red}Project '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name' already exist ${norm}"
+			local found=$(grep "^$project_name$" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list")
 			log_print "found:\t$found"
-			[ "$found" != "$project_name" ] && echo -e "${red}Project '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name' not found in '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list' ${norm}" && return
-			mv "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$project_name" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" || return
-			gsed -i -E "s/^$project_name$/$prj_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list" || return
+			[ "$found" != "$project_name" ] && echo -e "${red}Project '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name' not found in '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list' ${norm}" && return
+			mv "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$project_name" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" || return
+			gsed -i -E "s/^$project_name$/$prj_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list" || return
 		  fi
 	  else
 		# cut prj from current list and paste to pointed list
 		[ "$prj_name" == "." ] && prj_name=$(get_project_name); log_print "prj_name:\t$prj_name"
 		local current_set=$(get_current_set); log_print "current_set:\t$current_set"
-		[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list" ]] && echo -e "${red}[cmd_project_move] Project list '$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list' not found !${norm}" && return
+		[[ ! -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list.list" ]] && echo -e "${red}[cmd_project_move] Project list '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list.list' not found !${norm}" && return
 		[ "$prj_list" == "$current_set" ] &&echo -e "${red}[cmd_project_move] Target project list '$prj_list.list' can't be current !${norm}" && return
-		echo "$prj_name" >> "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list"
-		echo -e "[cmd_project_move] Project ${green}$prj_name${norm} added to ${green}'$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list.list'${norm}" 
-		gsed -i -E "/^$prj_name$/d" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set.list" || return
-		echo -e "[cmd_project_move] Project ${yellow}$prj_name${norm} cut from ${yellow}'$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set.list'${norm}" 
-		[ "$(grep "^$prj_name$" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$current_set.list")" != "" ] && echo -e "${red}Project '$prj_name' still found in '$prj_list' ${norm}" && return
+		echo "$prj_name" >> "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list.list"
+		echo -e "[cmd_project_move] Project ${green}$prj_name${norm} added to ${green}'$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list.list'${norm}" 
+		gsed -i -E "/^$prj_name$/d" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$current_set.list" || return
+		echo -e "[cmd_project_move] Project ${yellow}$prj_name${norm} cut from ${yellow}'$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$current_set.list'${norm}" 
+		[ "$(grep "^$prj_name$" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$current_set.list")" != "" ] && echo -e "${red}Project '$prj_name' still found in '$prj_list' ${norm}" && return
 	  fi
 	cmd_project_enum # plist
 	}
@@ -330,11 +330,11 @@ cmd_project_rename(){		# pren 		<prj>
 
 	curr_prj_name=$(get_project_name $curr_path $UTILS_PRJ_TRACE) ; log_print "curr_prj_name:\t$curr_prj_name"	 #old prj name
 	[[ "$curr_prj_name" == "" ]] && echo -e "${red}[cmd_project_rename] Project file not found !${norm}" && return
-	  #prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$new_prj_name | tr -d '\r'` #; echo curr_path: $prj_path
-	#echo sed -i "s/^$curr_prj_name\$/$new_prj_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list" ; return
-	mv "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$curr_prj_name" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$new_prj_name" || return
+	  #prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$new_prj_name | tr -d '\r'` #; echo curr_path: $prj_path
+	#echo sed -i "s/^$curr_prj_name\$/$new_prj_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list" ; return
+	mv "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$curr_prj_name" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$new_prj_name" || return
 
-	gsed -i -E "s/^$curr_prj_name\$/$new_prj_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list" || return 
+	gsed -i -E "s/^$curr_prj_name\$/$new_prj_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list" || return 
 	
 	#echo "path=$new_path" 	>  $prj_path
 	#echo "type=git" 	>> $prj_file
@@ -360,11 +360,11 @@ cmd_set_enum(){			# psets
 	log_print "find_path:\t$find_path [cmd_set_enum]" 1>&2
 	local set_default=$(get_current_set)
 	(
-	cd "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
+	cd "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST"
 	local prj_list
 	for prj_list in $($find_path . -maxdepth 1 -type f -name "*.list" -exec  basename "{}" ';' ); do
 		#prj_list=`echo $prj_list` #normalize (cut <CR>)
-		#path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_list | tr -d '\r'` 
+		#path=`sed -E -n 's/^path=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list | tr -d '\r'` 
 		# prj_list=${prj_list:2}
 		prj_list="${prj_list/.list/}"
 		[ "$prj_list" == "$set_default" ] && prj_list="${green}$prj_list ${grey}(current)${norm}"
@@ -377,30 +377,30 @@ cmd_set_enum(){			# psets
 cmd_set_add(){			# psetadd	<set>
 	local set_name="$1"
 	[[ "$set_name" == "" ]] && echo -e "${red}[cmd_set_add] set_name param is missed !${norm}" && return 
-	[[ -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ]] && echo -e "[cmd_set_add] Project list '${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name/$set_name.list${norm}' already exists !" && return 
-	touch "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list"
-	[ -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ] && echo -e "[cmd_set_add] Project list '${green}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list${norm}' is added" 
+	[[ -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list" ]] && echo -e "[cmd_set_add] Project list '${red}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name/$set_name.list${norm}' already exists !" && return 
+	touch "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list"
+	[ -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list" ] && echo -e "[cmd_set_add] Project list '${green}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list${norm}' is added" 
 	}
 cmd_set_delete(){		# psetdel	<set>
 	local set_name="$1"
 	[[ "$set_name" == "" ]] && echo -e "${red}[cmd_set_delete] set_name param is missed !${norm}" && return 
 	[[ "$set_name" == "$(get_current_set)" ]] && echo -e "${red}[cmd_set_delete] You can't delete default list !${norm}" && return 
-	[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ]] && echo -e "[cmd_set_delete] Project list '${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list${norm}' not found !" && return 
+	[[ ! -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list" ]] && echo -e "[cmd_set_delete] Project list '${red}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list${norm}' not found !" && return 
 	local prj_name
-	for prj_name in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list | sed -e /^$/d | tr -d '\r' | sort); do 
+	for prj_name in $(cat $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list | sed -e /^$/d | tr -d '\r' | sort); do 
 		prj_name=`eval echo $prj_name`; log_print "prj_name:\t$prj_name" # normalize (<CR> ~)
-		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
+		prj_path=`sed -E -n 's/^path=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
 		#prj_type=`sed -E -n 's/^type=([^#]+).*/\1/p' $UTILS_ PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
-		#prj_remote=`sed -E -n 's/^remote=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
+		#prj_remote=`sed -E -n 's/^remote=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
 		# echo "delete alias $prj_name:\t$prj_path"
-		[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" ] && echo -e "[cmd_set_delete] Project ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name${norm} not found " && continue
-		rm "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name" && echo -e "[cmd_set_delete] Project ${yellow}$prj_name${norm} for ${yellow}$prj_path${norm} is deleted" 
+		[ ! -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" ] && echo -e "[cmd_set_delete] Project ${red}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name${norm} not found " && continue
+		rm "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" && echo -e "[cmd_set_delete] Project ${yellow}$prj_name${norm} for ${yellow}$prj_path${norm} is deleted" 
 		# -f  ignore non-existent files, never prompt
 		# -r  remove directories and their contents recursively
 		# -v  explain what is being done
 		# -i  prompt you on every deletion.
 	  done
-	rm "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" && echo -e "[cmd_set_delete] Project list ${yellow}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list${norm} is deleted" 
+	rm "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list" && echo -e "[cmd_set_delete] Project list ${yellow}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list${norm} is deleted" 
 	}
 cmd_set_rename(){		# psetren
 	# verify or define by path
@@ -412,16 +412,16 @@ cmd_set_rename(){		# psetren
 	[[ "$set_name" == "" ]] && echo -e "${red}[cmd_set_rename] set_name param is missed !${norm}" && return 
 	local set_name_current="$(get_current_set)"; log_print "set_name_current:\t$set_name_current" # normalize (<CR> ~)
 	[[ "$set_name_current" == "" ]] && echo -e "${red}[cmd_set_rename] Project list '$set_name' not found !${norm}" && return 
-	[[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name_current.list" ]] && echo -e "${red}[cmd_set_rename] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name_current.listnot found !${norm}" && return 
-	[ -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ] && echo -e "${red}[cmd_set_rename] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list already exist !${norm}" && return 
-	eval mv "'$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name_current.list'" "'$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list'" || return
-	gsed -i -E "s/^(default_list=)(.*)/\1$set_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_rename] Current project list now is ${green}$set_name${norm}" 
+	[[ ! -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name_current.list" ]] && echo -e "${red}[cmd_set_rename] Project list ${red}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name_current.listnot found !${norm}" && return 
+	[ -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list" ] && echo -e "${red}[cmd_set_rename] Project list ${red}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list already exist !${norm}" && return 
+	eval mv "'$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name_current.list'" "'$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list'" || return
+	gsed -i -E "s/^(default_list=)(.*)/\1$set_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_rename] Current project list now is ${green}$set_name${norm}" 
 	}
 cmd_set_switch(){		# psetsw	<list>|.  			# set as default
 	local set_name="$1"
 	[ "$set_name" == "" ] && echo -e "${red}[cmd_set_switch] set_name param is missed !${norm}" && return 
-	[ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list" ] && echo -e "${red}[cmd_set_switch] Project list ${red}$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$set_name.list not found !${norm}" && cmd_set_enum && return 
-	gsed -i -E "s/^(default_list=)(.*)/\1$set_name/g" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_switch] Current project list is ${green}$set_name${norm} now"
+	[ ! -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list" ] && echo -e "${red}[cmd_set_switch] Project list ${red}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list not found !${norm}" && cmd_set_enum && return 
+	gsed -i -E "s/^(default_list=)(.*)/\1$set_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_switch] Current project list is ${green}$set_name${norm} now"
 	}
 
 # == data sync ===
@@ -458,7 +458,7 @@ cmd_project_action(){		# prs 		<cmd> <obj> [<msg>]
 	log_print "objtype:\t$objtype"
 	log_print "obj(2):\t\t$obj"
 	[ "$objtype" == "" ] && echo -e "${red}[cmd_project_action] Object type not found for '$obj' !${norm}" && return
-	[ "$obj" == "" ] && echo "[cmd_project_action] $objtype not found by 'current path' in $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST !" && return
+	[ "$obj" == "" ] && echo "[cmd_project_action] $objtype not found by 'current path' in $HOME/.utils-prj/$UTILS_PRJ_THE_HOST !" && return
 	# todo: multiple list for one prj
 	#[[ ! -d "$prj_path_norm" ]] && echo -e "${red}[SAVE PROJECT] project path '$prj_path_norm' not found !${norm}" && return
 
@@ -469,7 +469,7 @@ cmd_project_action(){		# prs 		<cmd> <obj> [<msg>]
 		if [ "$obj_orig" == "." ]; then 
 			prj_path=`eval echo $(pwd)`
 		  else
-			prj_path=$(get_project_path $obj) #"$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"    NO_UTILS_PRJ_TRACE
+			prj_path=$(get_project_path $obj) #"$HOME/.utils-prj/$UTILS_PRJ_THE_HOST"    NO_UTILS_PRJ_TRACE
 		  fi
 		[ "$prj_path" != "" ] && cmd_project_sync "$obj" "$prj_path" "$cmd" "$msg"
 		return
@@ -481,10 +481,10 @@ cmd_project_action(){		# prs 		<cmd> <obj> [<msg>]
 		local tab="        " # mingw didn't background tabs
 		echo -e "\n${black_on_green}$tab$tab${red_on_green}$obj ${magenta_on_green}$tab$tab${norm}\n"
 
-		for prj_name in $(cat $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$obj.list | sed -e /^$/d | tr -d '\r' | sort); do 
+		for prj_name in $(cat $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$obj.list | sed -e /^$/d | tr -d '\r' | sort); do 
 			#prj_name=`echo $prj_name` # normalize
 			log_print "prj_name:\t$prj_name"
-			prj_path=$(get_project_path "$prj_name") #"$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"    dont_UTILS_PRJ_TRACE NO_UTILS_PRJ_TRACE
+			prj_path=$(get_project_path "$prj_name") #"$HOME/.utils-prj/$UTILS_PRJ_THE_HOST"    dont_UTILS_PRJ_TRACE NO_UTILS_PRJ_TRACE
 			[ "$prj_path" == "" ] && continue
 			log_print "prj_path:\t$prj_path"
 			cmd_project_sync "$prj_name" "$prj_path" "$cmd" "$msg" || return #$prj_path  [ "$prj_path" != "" ] && 
@@ -608,13 +608,13 @@ cmd_project_go(){		# pgo 	<prj> [<list>?] # dubl aliases?
 	#log_print "UTILS_PRJ_HOME:\t$UTILS_PRJ_HOME"
 	#log_print "UTILS_PRJ_THE_HOST: $UTILS_PRJ_THE_HOST"
 		# repos=$1; repos=$(get_current_set $repos) # echo repos: $repos
-	#echo path: "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST" 
-	#get_project_name_verified "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST" $project
+	#echo path: "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST" 
+	#get_project_name_verified "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST" $project
 	prj_path=$(get_project_path $project) #_verified
-	log_print "prj_path:\t$prj_path" # "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST" 
+	log_print "prj_path:\t$prj_path" # "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST" 
 	[[ "$prj_path" == "" ]] && echo -e "${yellow}[cmd_project_go] project ${red}'$log_print'${yellow} not found !${norm}" && return
 	# extract path of repo
-	#project_path="$(sed -E -n 's/^path=([^#]*)/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_repo | tr -d '\r')" 
+	#project_path="$(sed -E -n 's/^path=([^#]*)/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_repo | tr -d '\r')" 
 	#log_print "project_path:\t$project_path"
 
 	echo "go to: $prj_path"
@@ -643,7 +643,7 @@ cmd_project_exec(){		# pcmd <prj> <cmd>
 get_current_set(){
 	#local project_list=$1
 	#if [[ "$project_list" == "" ]]; then
-		local project_list="$(sed -E -n 's/^default_list=([^#]*)/\1/p' "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" | tr -d '\r')"
+		local project_list="$(sed -E -n 's/^default_list=([^#]*)/\1/p' "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/default" | tr -d '\r')"
 	# fi
 	echo "$project_list" # return value
 	}
@@ -651,7 +651,7 @@ get_project_name(){		# <project_path>
 	# to test - bp; UTILS_PRJ_TRACE=1;get_project_name "/c/app/utils-env"
 	local project_path="$1" 
 	[ "$2" != "" ] && local UTILS_PRJ_TRACE=$2
-	#log_print "root:\t\t$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST" 1>&2 # local root=$1; 
+	#log_print "root:\t\t$HOME/.utils-prj/$UTILS_PRJ_THE_HOST" 1>&2 # local root=$1; 
 	#log_print "project_path:\t$project_path [get_project_name]" 1>&2
 	#[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT BY PATH] root for project is missed !" 1>&2 && return
 	[[ "$project_path" == "" ]] && echo -e "${red}[get_project_name] param 'project_path' is missed !${norm}" 1>&2 && return # project_path=$(pwd)
@@ -659,13 +659,13 @@ get_project_name(){		# <project_path>
 		#echo "[get_project_name] project_path is missed !" 1>&2 && return
 	
 	(
-	cd "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST" #[ $UTILS_PRJ_TRACE -eq 1 ] &&  pwd 
+	cd "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST" #[ $UTILS_PRJ_TRACE -eq 1 ] &&  pwd 
 	find_path="find"
 	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find"
 	log_print "find_path:\t[get_project_name] $find_path" 1>&2
 	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default -exec basename "{}" ';'); do # all files w/o extensions | sed 's/^\.\///'
 		log_print "prj_loop:\t[get_project_name] $prj_loop" 1>&2
-		looped_path=`eval echo $(sed -E -n 's/^path=([^#]+).*/\1/p' $UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_loop | tr -d '\r')` 
+		looped_path=`eval echo $(sed -E -n 's/^path=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_loop | tr -d '\r')` 
 		log_print "looped_path:\t[get_project_name] $looped_path" 1>&2
 		if [[ "$project_path" == "$looped_path" ]]; then
 			echo $prj_loop
@@ -682,12 +682,12 @@ get_project_path(){		# <prj>
 	#[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT PATH] root for project is missed !" 1>&2 && return ; log_print "root:\t\t$root [get_project_path]" 1>&2
 	[[ "$prj_name" == "" ]] && echo "[get_project_path] project name is missed !" 1>&2 && (log_print "prj_name:\t\t[get_project_path] $prj_name" 1>&2) && return
 	
-	#(	cd "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
+	#(	cd "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST"
 		#local find_path="find"
 		#[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find"
 		#log_print "find_path:\t[get_project_path] $find_path" 1>&2
 
-	local prj_file="$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/$prj_name"
+	local prj_file="$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name"
 	[ ! -f "$prj_file" ] && echo -e "${red} Project file '$prj_file' not found !${norm}" 1>&2 && return
 		#for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default -exec basename "{}" ';'); do  #| tr -d '\r' | sed 's/^\.\///' 
 		#	log_print "prj_loop:\t[get_project_path] $prj_loop" 1>&2
@@ -709,7 +709,7 @@ get_object_type(){		# <prj|list>
 	log_print "find_path:\t[get_object_type] $find_path" 1>&2
 
 	(
-	cd "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST"
+	cd "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST"
 	local fname
 	for fname in $($find_path . -maxdepth 1 -type f ! -name default -exec basename "{}" ';'); do
 		#fname=`echo $fname` #normalize (cut <CR>)
