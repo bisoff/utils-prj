@@ -22,11 +22,13 @@ UTILS_PRJ_ALIASES="utils-prj-aliases"
 case "$UTILS_PRJ_THE_OS" in
 	MINGW*)
 		UTILS_PRJ_SED_BACKUP="" #|MSYS*
+		UTILS_PRJ_SED=""sed
 		UTILS_PRJ_TIMESTAMP=`stat -c %y $HOME_UTILS_PRJ/lib-prj`
 		UTILS_PRJ_ALIAS_TIMESTAMP=`stat -c %y $HOME/.utils-prj/$UTILS_PRJ_ALIASES`
 		;;
 	Darwin)
 		UTILS_PRJ_SED_BACKUP="''"
+		UTILS_PRJ_SED="gsed"
 		UTILS_PRJ_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME_UTILS_PRJ/lib-prj")
 		UTILS_PRJ_ALIAS_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME/.utils-prj/$UTILS_PRJ_ALIASES")
 		;;
@@ -415,7 +417,7 @@ cmd_set_rename(){		# psetren
 	[[ ! -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name_current.list" ]] && echo -e "${red}[cmd_set_rename] Project list ${red}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name_current.listnot found !${norm}" && return 
 	[ -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list" ] && echo -e "${red}[cmd_set_rename] Project list ${red}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list already exist !${norm}" && return 
 	eval mv "'$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name_current.list'" "'$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list'" || return
-	gsed -i -E "s/^(default_list=)(.*)/\1$set_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_rename] Current project list now is ${green}$set_name${norm}" 
+	$UTILS_PRJ_SED -i -E "s/^(default_list=)(.*)/\1$set_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_rename] Current project list now is ${green}$set_name${norm}" 
 	}
 cmd_set_switch(){		# psetsw	<list>|.  			# set as default
 	local set_name="$1"
@@ -533,6 +535,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				echo -e "\n${red}PULL${norm} $prj_name: $prj_path" 
 
 				git pull -vv --stat --no-rebase #--all --quiet
+					# -vv   list out your local branches with more information including what each branch is tracking and if your local branch is ahead, behind or both.
 				local LOCAL2=$(git rev-parse HEAD)
 				#echo LOCAL1: $LOCAL1 1>&2
 				#echo LOCAL2: $LOCAL2 1>&2
