@@ -1,3 +1,9 @@
+		☐	uj - pst* - добавить вывод ветки
+		☐	uj - save & test alias timestamp
+		☐	uj - pst tel
+				Project file '/Users/a.bysov/.utils-prj/iMac-admin-4.local/tel' not found !
+		☐	uj - pstl - align headers
+
 	gsed - add alias if linux/mingw
 	☐	utils-prj: pmove (поменять путь если имя указано и найдено но пути отличаются)
 	☐	utils_prj: remote - from rebase to merge 
