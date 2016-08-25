@@ -534,7 +534,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			if [ "$changes" == "0" ]; then
 				echo -e "\n${red}PULL${norm} $prj_name: $prj_path" 
 
-				git pull -vv --stat --no-rebase #--all --quiet
+				git pull --stat --no-rebase #--all --quiet -vv 
 					# -vv   list out your local branches with more information including what each branch is tracking and if your local branch is ahead, behind or both.
 				local LOCAL2=$(git rev-parse HEAD)
 				#echo LOCAL1: $LOCAL1 1>&2
