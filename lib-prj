@@ -22,7 +22,7 @@ UTILS_PRJ_ALIASES="utils-prj-aliases"
 case "$UTILS_PRJ_THE_OS" in
 	MINGW*)
 		UTILS_PRJ_SED_BACKUP="" #|MSYS*
-		UTILS_PRJ_SED=""sed
+		UTILS_PRJ_SED="sed"
 		UTILS_PRJ_TIMESTAMP=`stat -c %y $HOME_UTILS_PRJ/lib-prj`
 		UTILS_PRJ_ALIAS_TIMESTAMP=`stat -c %y $HOME/.utils-prj/$UTILS_PRJ_ALIASES`
 		;;
@@ -526,7 +526,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			# [ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
 	  		;;
 		"fix") # pfix
-			[ "$changes" != "0" ] && echo -e "${red}FIXING${norm}" && git status -s --untracked-files && gac "$msg" && return
+			[ "$changes" != "0" ] && echo -e "\n${red}FIXING${norm}" && git status -s --untracked-files && gac "$msg" && return
 			echo -e "${yellow}Changes not found ${norm}" 
 			;;
 		"pull") # pget
