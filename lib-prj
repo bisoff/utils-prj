@@ -526,7 +526,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			# [ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
 	  		;;
 		"fix") # pfix
-			[ "$changes" != "0" ] && echo -e "\n${red}FIXING${norm}" && git status -s --untracked-files && gac "$msg" && return
+			[ "$changes" != "0" ] && echo -e "\n${red}FIXING${norm}" && git status -s --untracked-files && cmd_git_append_and_commit "$msg" && return
 			echo -e "${yellow}Changes not found ${norm}" 
 			;;
 		"pull") # pget
@@ -565,12 +565,12 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				echo 
 				git status -s --untracked-files 
 				echo 
-				gac "$msg" 
+				cmd_git_append_and_commit "$msg" 
 				echo 
 				# git config --global pull.rebase false
 				# git config pull.rebase false
 				# rebase = false
-				# git push --quiet # gus 
+				# git push --quiet # cmd_git_push 
 			  else
 				echo -e "\n${yellow}Local changes not found ${norm}" 
 				#return #&& echo -e "${red}FIXING${norm}" 
@@ -579,10 +579,10 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 		  	cmd_git_push all
 
 			#echo -e "${red}PUSHING${norm}"
-			#gok "$msg"
+			#cmd_git_commit_and_push "$msg"
 			;;
 		"full") # psync
-			[ "$changes" != "0" ] && gac "$msg" && echo # fix prj when need (add/commit) 
+			[ "$changes" != "0" ] && cmd_git_append_and_commi "$msg" && echo # fix prj when need (add/commit) 
 
 			#echo -n "Ask remote for last commit .. " 
 			local sync_status=$(get_sync_status remote notice) # notice/silent NO_UTILS_PRJ_TRACE  ask for 'need to pull'
