@@ -39,6 +39,11 @@ case "$UTILS_PRJ_THE_OS" in
 		# fail !
   esac
 alias log_print='[ "$UTILS_PRJ_TRACE" == "1" ] && echo -e '
+if [ "`type -t cmd_utils_git_wrapper`" == "function" ]; then
+	UTILS_PRJ_USE_UTILS_GIT=true
+  else
+  	UTILS_PRJ_USE_UTILS_GIT=false
+  fi
 
 cmd_utils_prj_wrapper(){
 	local cmd_one="$1"
@@ -354,23 +359,34 @@ cmd_project_rename(){		# pren 		<prj>
 	# if $set == "" then default
 	}
 
-cmd_set_enum(){			# psets
+cmd_set_enum(){			# pset psets
+	local prj_to=$1
+	#echo prj_to: $prj_to
 	#echo -e "\n${grey_back}          project sets          ${norm}"
-
 	local find_path="find" # linux/osx
 	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find" # in windows $EXEPATH ex. C:\app\git - std env by git bash
 	log_print "find_path:\t$find_path [cmd_set_enum]" 1>&2
 	local set_default=$(get_current_set)
+	#echo set_default: $set_default
 	(
 	cd "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST"
-	local prj_list
-	for prj_list in $($find_path . -maxdepth 1 -type f -name "*.list" -exec  basename "{}" ';' ); do
-		#prj_list=`echo $prj_list` #normalize (cut <CR>)
+	local next_set
+	for next_set in $($find_path . -maxdepth 1 -type f -name "*.list" -exec  basename "{}" ';' ); do
+		#next_set=`echo $next_set` #normalize (cut <CR>)
 		#path=`sed -E -n 's/^path=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list | tr -d '\r'` 
 		# prj_list=${prj_list:2}
-		prj_list="${prj_list/.list/}"
-		[ "$prj_list" == "$set_default" ] && prj_list="${green}$prj_list ${grey}(current)${norm}"
-		echo -e "$prj_list"
+		next_set="${next_set/.list/}"
+		[ "$next_set" == "$set_default" ] && next_set="${green}$next_set ${grey}(current)${norm}"
+		if [ "$prj_to" == "" ]; then
+			echo -e "$next_set"
+		  else
+			if [ "$prj_to" == "$next_set" ]; then
+				cmd_set_switch "$prj_to"
+				return
+			  #else
+  			  #	echo -e "$next_set"
+			  fi
+		  fi
 		#cmd_enum_projects "$prj_list"
 	  done
 	)
@@ -530,24 +546,44 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 		"local"|"remote") # st[x]
 			# state
 			echo
-			git status -s --untracked-files # "$*" - mask  echo "$gis" #
-			#echo -e -n "Ask ${yellow}$cmd${norm} for last commit .. "  #[ "$remote_mode" = "remote" ] && 
+			if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+				cmd_git_status_with_untracked
+			  else
+				git status -s --untracked-files # "$*" - mask  echo "$gis" #
+			  fi
+				#echo -e -n "Ask ${yellow}$cmd${norm} for last commit .. "  #[ "$remote_mode" = "remote" ] && 
 			local sync_status=$(get_sync_status "$cmd" notice) # notice/silent NO_UTILS_PRJ_TRACE
-			#[ "$sync_status" == "ok" ] && echo -e "${green}same${norm}"
-			#[[ "$sync_status" = "remote" && "$sync_status" == "ok" ]] && echo -e "${green}same${norm}"
+				#[ "$sync_status" == "ok" ] && echo -e "${green}same${norm}"
+				#[[ "$sync_status" = "remote" && "$sync_status" == "ok" ]] && echo -e "${green}same${norm}"
 			log_print "sync_status:\t$sync_status"
-			# [ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
+				# [ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
 	  		;;
 		"fix") # pfix
-			[ "$changes" != "0" ] && echo -e "\n${red}FIXING${norm}" && git status -s --untracked-files && cmd_git_append_and_commit "$msg" && return
-			echo -e "${yellow}Changes not found ${norm}" 
+			if [ "$changes" != "0" ]; then 
+				echo -e "\n${red}FIXING${norm}" 
+				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+					cmd_git_status_with_untracked
+					cmd_git_append_and_commit "$msg" 
+				  else
+					git status -s --untracked-files
+					git add -A .
+					git commit -m "$msg"
+				  fi
+				return
+			  else
+				echo -e "${yellow}Changes not found ${norm}" 
+			  fi
 			;;
 		"pull") # pget
 			local LOCAL1=$(git rev-parse HEAD)
 			if [ "$changes" == "0" ]; then
 				echo -e "\n${red}PULL${norm} $prj_name: $prj_path" 
 
-				git pull --all --no-rebase # --stat --all --quiet -vv 
+				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+					cmd_git_pull
+				  else
+					git pull --all --no-rebase # --stat --all --quiet -vv 
+				  fi
 					# -vv   list out your local branches with more information including what each branch is tracking and if your local branch is ahead, behind or both.
 				local LOCAL2=$(git rev-parse HEAD)
 				#echo LOCAL1: $LOCAL1 1>&2
@@ -558,9 +594,14 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				  fi
 			  else
 				echo
-				git diff --stat=200 --color | sed -n '$! p' || return
 				echo -e -n "\n${red}FETCH${norm} $prj_name: $prj_path" 
-				git fetch || return # && git diff remote ??
+				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+					cmd_git_diff_file_list_this_and_prior_commits
+					cmd_git_fetch
+				  else
+					git diff --stat=200 --color | sed -n '$! p' || return
+					git fetch || return # && git diff remote ??
+				  fi
 				local LOCAL2=$(git rev-parse HEAD)
 				#echo LOCAL1: $LOCAL1 1>&2
 				#echo LOCAL2: $LOCAL2 1>&2
@@ -576,9 +617,16 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 		"push") # psave
 			if [ "$changes" != "0" ] ; then
 				echo 
-				git status -s --untracked-files 
-				echo 
-				cmd_git_append_and_commit "$msg" 
+				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+					cmd_git_status_with_untracked
+					echo 
+					cmd_git_append_and_commit "$msg" 
+				  else
+					git status -s --untracked-files 
+					echo 
+					git add -A .
+					git commit -m "$msg"
+				  fi
 				echo 
 				# git config --global pull.rebase false
 				# git config pull.rebase false
@@ -589,20 +637,49 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				#return #&& echo -e "${red}FIXING${norm}" 
 			  fi
 			#git remote | xargs -L1 git push --all --quiet -u
-		  	cmd_git_push all
+			if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+			  	cmd_git_push all
+			  else
+			  	remotes=$(git remote show)
+			  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
+				for name in $remotes; do 
+					echo -e "git PUSH to ${red}$name$norm: $green$curr_branch$norm"  #-u
+					git push "$name" "$curr_branch" #all --all
+				  done
+			  fi
 
 			#echo -e "${red}PUSHING${norm}"
 			#cmd_git_commit_and_push "$msg"
 			;;
 		"full") # psync
-			[ "$changes" != "0" ] && cmd_git_append_and_commi "$msg" && echo # fix prj when need (add/commit) 
+			if [ "$changes" != "0" ]; then
+				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+				  	cmd_git_append_and_commit "$msg"
+				  else
+					git add -A .
+					git commit -m "$msg"
+				  fi
+				echo # fix prj when need (add/commit) 
+			  fi
 
 			#echo -n "Ask remote for last commit .. " 
 			local sync_status=$(get_sync_status remote notice) # notice/silent NO_UTILS_PRJ_TRACE  ask for 'need to pull'
 			log_print "sync_status:\t$sync_status"
 			#sync_status=`eval echo $sync_status`
-			[[ "$sync_status" == "pull" || "$sync_status" == "diverged" ]] && git pull # pull when need
-			[[ "$sync_status" == "push" || "$sync_status" == "diverged" ]] && git remote | xargs -L1 git push --all --quiet -u #git push # push when need
+			if [[ "$sync_status" == "pull" || "$sync_status" == "diverged" ]];then
+				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+					cmd_git_pull all
+				  else
+					git pull # pull when need
+				  fi
+			  fi
+			if [[ "$sync_status" == "push" || "$sync_status" == "diverged" ]]; then
+				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+					cmd_git_push all
+				  else
+					git remote | xargs -L1 git push --all --quiet -u #git push # push when need
+				  fi
+			  fi
 			;;
 		*)
 			echo -e "${red}[cmd_project_sync] Project command '$cmd' not found !${norm} " && return
@@ -788,3 +865,4 @@ get_sync_status(){		# <remote_mode>
 	log_print "changes:\t[get_sync_status] $changes" 1>&2
 	echo "$status" # for extra handle
 	}
+
