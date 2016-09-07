@@ -577,11 +577,12 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 		"pull") # pget
 			local LOCAL1=$(git rev-parse HEAD)
 			if [ "$changes" == "0" ]; then
-				echo -e "\n${red}PULL${norm} $prj_name: $prj_path" 
 
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+					echo 
 					cmd_git_pull
 				  else
+					echo -e "\n${red}PULL${norm} $prj_name: $prj_path" 
 					git pull --all --no-rebase # --stat --all --quiet -vv 
 				  fi
 					# -vv   list out your local branches with more information including what each branch is tracking and if your local branch is ahead, behind or both.
@@ -594,12 +595,13 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				  fi
 			  else
 				echo
-				echo -e -n "\n${red}FETCH${norm} $prj_name: $prj_path" 
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+					echo 
 					cmd_git_diff_file_list_this_and_prior_commits
 					cmd_git_fetch
 				  else
 					git diff --stat=200 --color | sed -n '$! p' || return
+					echo -e -n "\n${red}FETCH${norm} $prj_name: $prj_path" 
 					git fetch || return # && git diff remote ??
 				  fi
 				local LOCAL2=$(git rev-parse HEAD)
