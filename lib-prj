@@ -643,7 +643,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			  	remotes=$(git remote show)
 			  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
 				for name in $remotes; do 
-					echo -e "git PUSH to ${red}$name$norm: $green$curr_branch$norm"  #-u
+					echo -e "git ${red}PUSH${norm} to ${green}$name$norm: $green$curr_branch$norm"  #-u
 					git push "$name" "$curr_branch" #all --all
 				  done
 			  fi
