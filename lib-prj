@@ -39,6 +39,8 @@ case "$UTILS_PRJ_THE_OS" in
 		# fail !
   esac
 alias log_print='[ "$UTILS_PRJ_TRACE" == "1" ] && echo -e '
+alias error='cmd_utils_git_error'
+
 if [ "`type -t cmd_utils_git_wrapper`" == "function" ]; then
 	UTILS_PRJ_USE_UTILS_GIT=true
   else
@@ -277,25 +279,37 @@ cmd_project_move(){		# pmove		<prj>|. 	[<list>]
 
 	# TODO: detect repo type (git/svn/hg - .git foder / .svn folder? / ..) and return if new_path not a repo 
 
-	if [ "$prj_list" == "" ]; then
+	if [ "$prj_list" == "" ]; then # 
 		local prj_list="$(get_current_set).list"
-		local project_name=$(get_project_name); log_print "project_name:\t$project_name"
-		[ "$project_name" == "" ] && echo -e "${red}Project not found by '$curr_path'${norm}" && return
-		if [ "$project_name" == "$prj_name" ]; then
-			# update prj path
-			gsed -i -E "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" || return #  replace home path
+		if [ "$prj_name" == "" ]; then
+			log_print "${cyan}rename alias${norm}"
+			local project_name=$(get_project_name)
+			log_print "project_name:\t$project_name" # find by path
+			[ "$project_name" == "" ] && echo -e "${red}Project not found by '$curr_path'${norm}" && return
+			# 
 		  else
-			# upd name of prj (name and link in list)
-			[ -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" ] && echo -e "${red}Project '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name' already exist ${norm}"
-			local found=$(grep "^$project_name$" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list")
-			log_print "found:\t$found"
-			[ "$found" != "$project_name" ] && echo -e "${red}Project '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name' not found in '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list' ${norm}" && return
-			mv "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$project_name" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" || return
-			gsed -i -E "s/^$project_name$/$prj_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list" || return
+			local project_path=$(get_project_path $prj_name)
+			log_print "project_path:\t$project_path"
+			[ "$project_path" == "" ] && error "${red}Project path not found for '$prj_name'${norm}" && return
+			if [ "$project_path" != "%curr_path" ]; then
+				log_print "${cyan}update prj path${norm}"
+				gsed -i -E "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" || return #  replace home path
+			  else
+				log_print "${cyan}rename prj alias${norm}"
+				# upd name of prj  (rename filename and alias inside list)
+				[ -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" ] && echo -e "${red}Project '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name' already exist ${norm}"
+				local found=$(grep "^$project_name$" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list")
+				log_print "found:\t$found"
+				[ "$found" != "$project_name" ] && echo -e "${red}Project '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name' not found in '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list' ${norm}" && return
+				mv "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$project_name" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" || return
+				gsed -i -E "s/^$project_name$/$prj_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list" || return
+			  fi
 		  fi
 	  else
 		# cut prj from current list and paste to pointed list
-		[ "$prj_name" == "." ] && prj_name=$(get_project_name); log_print "prj_name:\t$prj_name"
+		[ "$prj_name" == "." ] && prj_name=$(get_project_name)
+		log_print "prj_list:\t$prj_list"
+		log_print "prj_name:\t$prj_name"
 		local current_set=$(get_current_set); log_print "current_set:\t$current_set"
 		[[ ! -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list.list" ]] && echo -e "${red}[cmd_project_move] Project list '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list.list' not found !${norm}" && return
 		[ "$prj_list" == "$current_set" ] &&echo -e "${red}[cmd_project_move] Target project list '$prj_list.list' can't be current !${norm}" && return
@@ -305,7 +319,7 @@ cmd_project_move(){		# pmove		<prj>|. 	[<list>]
 		echo -e "[cmd_project_move] Project ${yellow}$prj_name${norm} cut from ${yellow}'$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$current_set.list'${norm}" 
 		[ "$(grep "^$prj_name$" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$current_set.list")" != "" ] && echo -e "${red}Project '$prj_name' still found in '$prj_list' ${norm}" && return
 	  fi
-	cmd_project_enum # plist
+	cmd_project_enum . # plist
 	}
 cmd_project_rename(){		# pren 		<prj>
 	# pren <prj> [<list>]  - rename prj name (alias) (find prj by curr_path)
