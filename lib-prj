@@ -38,7 +38,7 @@ case "$UTILS_PRJ_THE_OS" in
 	*)
 		# fail !
   esac
-alias log_print='[ "$UTILS_PRJ_TRACE" == "1" ] && echo -e '
+alias log_print='[ "$UTILS_PRJ_TRACE" == "1" ] && echo -e 1>&2 '
 alias error='cmd_utils_git_error'
 
 if [ "`type -t cmd_utils_git_wrapper`" == "function" ]; then
@@ -86,7 +86,10 @@ cmd_utils_prj_wrapper(){
 		shift
 	done
 	#echo "params: $params"
+	[ "$UTILS_PRJ_TRACE" == "1" ] && UTILS_GIT_TRACE=1
 	eval $cmd_one "$params" #"$@*"
+	UTILS_PRJ_TRACE=0
+	UTILS_GIT_TRACE=0
 	}
 
 # === install ===
@@ -555,7 +558,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 
 	#local gis=$(git status -s --untracked-files)
 	local changes=`echo $(git status -s --untracked-files | wc -l)`
-	log_print "changes:\t$changes"
+	log_print "\nlocal changes:\t$changes"
 	case "$cmd" in
 		"local"|"remote") # st[x]
 			# state
@@ -569,6 +572,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			local sync_status=$(get_sync_status "$cmd" notice) # notice/silent NO_UTILS_PRJ_TRACE
 				#[ "$sync_status" == "ok" ] && echo -e "${green}same${norm}"
 				#[[ "$sync_status" = "remote" && "$sync_status" == "ok" ]] && echo -e "${green}same${norm}"
+			#if [ "$sync_status" == "no_upstream" ]; then
+
 			log_print "sync_status:\t$sync_status"
 				# [ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
 	  		;;
@@ -842,7 +847,7 @@ get_sync_status(){		# <remote_mode>
 	local use_remote_host="$1"  	# true / false
 	local result_format="$2" 		# when 'silent' then print yes/no else print msg for user 
 	[ "$3" != "" ] && local UTILS_PRJ_TRACE=$3
-	echo use_remote_host: $use_remote_host 1>&2
+	log_print "use_remote_host: $use_remote_host" #1>&2
 	[ "$use_remote_host" == "" ] && use_remote_host=local
 	[ "$result_format" == "" ] && result_format=notice
 
@@ -854,18 +859,34 @@ get_sync_status(){		# <remote_mode>
 
 	#log_print $([ "$result_format" != "silent" ] && echo "notice mode [get_sync_status]") 1>&2
 	local status
+	log_print "\n[get_sync_status] git rev-parse HEAD"
 	local LOCAL=$(git rev-parse HEAD) # хеш коммита для указанной ревизии - @ alone is a shortcut for HEAD.
-	if [[ "$use_remote_host" == "true" ]]; then
-		echo -remote-
-		local REMOTE=$(git ls-remote 2>/dev/null | awk "/HEAD/ {print \$1}") # from remote host
+	log_print "[get_sync_status] LOCAL: $LOCAL"
+	if [[ "$use_remote_host" == "remote" || "$use_remote_host" == "true" ]]; then
+		log_print "[get_sync_status] get remote"
+		local REMOTE=$(git ls-remote 2>/dev/null ) # from remote host
+		res_code=$?
+		#log_print "LOCAL: $LOCAL"
+		log_print "[get_sync_status] res_code: $res_code"
+		REMOTE=`awk "/HEAD/ {print \$1}" <<< $REMOTE`
+		log_print "[get_sync_status] REMOTE: $REMOTE"
 	  else
+	  	log_print "[get_sync_status] last pulled head of remote"
 		local REMOTE=$(git rev-parse @{u}) # last pulled head of remote
 	  fi
-	local BASE=$(git merge-base @ @{u}) # merge-base возвращает ближайшего общего предка для двух веток, то есть sha-id какого-то комита;   @{u} = @{upstream}
+	log_print "[get_sync_status] git merge-base @ @{u}"
+	local BASE
+	BASE=`git merge-base @ @{u} 2> /dev/null` # merge-base возвращает ближайшего общего предка для двух веток, то есть sha-id какого-то комита;   @{u} = @{upstream}  
+	res_code=$?
+	log_print "[get_sync_status] res_code: $res_code"
+	log_print "[get_sync_status] BASE: $BASE"
+	#[ "$res_code" != "0" ] && echo "no_upstream" && return
+	log_print "[get_sync_status] BASE: $BASE"
 	#echo LOCAL:$LOCAL REMOTE:$REMOTE BASE:$BASE
-	if [ $LOCAL = $REMOTE ]; then 		status="ok" # same
-	  elif [ $LOCAL = $BASE ]; then		status="pull"
-	  elif [ $REMOTE = $BASE ]; then	status="push"
+	if [ "$LOCAL" == "$REMOTE" ]; then 	status="ok" # same
+	  elif [ "$LOCAL" == "$BASE" ]; then	status="pull"
+	  elif [ "$REMOTE" == "" ]; then	status="no_upstream"
+	  elif [ "$REMOTE" == "$BASE"]; then	status="push"
 	  else				  	status="diverged"
 	  fi
 
@@ -876,9 +897,10 @@ get_sync_status(){		# <remote_mode>
 		[ "$status" == "pull" ] 			&& echo -e "${yellow}NEED TO PULL !${norm}" 1>&2
 		[ "$status" == "push" ] 			&& echo -e "${green}NEED TO PUSH${norm}" 1>&2
 		[ "$status" == "diverged" ] 			&& echo -e "${red_bright}DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
+		[ "$status" == "no_upstream" ] 			&& echo -e "${red_bright}NO UPSTREAM !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
 	  fi
-	log_print "status:\t\t[get_sync_status] $status" 1>&2
-	log_print "changes:\t[get_sync_status] $changes" 1>&2
+	log_print "[get_sync_status] status:\t\t[get_sync_status] $status" 1>&2
+	log_print "[get_sync_status] changes:\t[get_sync_status] $changes" 1>&2
 	echo "$status" # for extra handle
 	}
 
