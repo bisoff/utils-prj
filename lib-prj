@@ -579,7 +579,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 	  		;;
 		"fix") # pfix
 			if [ "$changes" != "0" ]; then 
-				echo -e "\n${red}FIXING${norm}" 
+				echo -e "\n${cyan}FIXING${norm}" 
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					cmd_git_status_with_untracked
 					cmd_git_append_and_commit "$msg" 
@@ -590,7 +590,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				  fi
 				return
 			  else
-				echo -e "${yellow}Changes not found ${norm}" 
+				echo -e "\n${yellow}Changes not found ${norm}" 
 			  fi
 			;;
 		"pull") # pget
@@ -601,7 +601,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 					echo 
 					cmd_git_pull
 				  else
-					echo -e "\n${red}PULL${norm} $prj_name: $prj_path" 
+					echo -e "\n${cyan}PULL${norm} $prj_name: $prj_path" 
 					git pull --all --no-rebase # --stat --all --quiet -vv 
 				  fi
 					# -vv   list out your local branches with more information including what each branch is tracking and if your local branch is ahead, behind or both.
@@ -620,7 +620,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 					cmd_git_fetch
 				  else
 					git diff --stat=200 --color | sed -n '$! p' || return
-					echo -e -n "\n${red}FETCH${norm} $prj_name: $prj_path" 
+					echo -e -n "\n${cyan}FETCH${norm} $prj_name: $prj_path" 
 					git fetch || return # && git diff remote ??
 				  fi
 				local LOCAL2=$(git rev-parse HEAD)
