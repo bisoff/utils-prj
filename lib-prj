@@ -564,7 +564,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			# state
 			echo
 			if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-				cmd_git_status_with_untracked
+				cmd_utils_git_wrapper cmd_git_status_with_untracked
 			  else
 				git status -s --untracked-files # "$*" - mask  echo "$gis" #
 			  fi
@@ -581,8 +581,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			if [ "$changes" != "0" ]; then 
 				echo -e "\n${cyan}FIXING${norm}" 
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-					cmd_git_status_with_untracked
-					cmd_git_append_and_commit "$msg" 
+					cmd_utils_git_wrapper cmd_git_status_with_untracked
+					cmd_utils_git_wrapper cmd_git_append_and_commit "$msg" 
 				  else
 					git status -s --untracked-files
 					git add -A .
@@ -616,8 +616,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				echo
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					echo 
-					cmd_git_diff_file_list_this_and_prior_commits
-					cmd_git_fetch
+					cmd_utils_git_wrapper cmd_git_diff_file_list_this_and_prior_commits
+					cmd_utils_git_wrapper cmd_git_fetch
 				  else
 					git diff --stat=200 --color | sed -n '$! p' || return
 					echo -e -n "\n${cyan}FETCH${norm} $prj_name: $prj_path" 
@@ -639,9 +639,9 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			if [ "$changes" != "0" ] ; then
 				echo 
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-					cmd_git_status_with_untracked
+					cmd_utils_git_wrapper cmd_git_status_with_untracked
 					echo 
-					cmd_git_append_and_commit "$msg" 
+					cmd_utils_git_wrapper cmd_git_append_and_commit "$msg" 
 				  else
 					git status -s --untracked-files 
 					echo 
@@ -659,7 +659,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			  fi
 			#git remote | xargs -L1 git push --all --quiet -u
 			if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-			  	cmd_git_push all
+			  	cmd_utils_git_wrapper cmd_git_push all
 			  else
 			  	remotes=$(git remote show)
 			  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
@@ -689,14 +689,14 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			#sync_status=`eval echo $sync_status`
 			if [[ "$sync_status" == "pull" || "$sync_status" == "diverged" ]];then
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-					cmd_git_pull all
+					cmd_utils_git_wrapper cmd_git_pull all
 				  else
 					git pull # pull when need
 				  fi
 			  fi
 			if [[ "$sync_status" == "push" || "$sync_status" == "diverged" ]]; then
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-					cmd_git_push all
+					cmd_utils_git_wrapper cmd_git_push all
 				  else
 					git remote | xargs -L1 git push --all --quiet -u #git push # push when need
 				  fi
