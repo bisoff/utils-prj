@@ -860,20 +860,22 @@ get_sync_status(){		# <remote_mode>
 	#log_print $([ "$result_format" != "silent" ] && echo "notice mode [get_sync_status]") 1>&2
 	local status
 	log_print "\n[get_sync_status] git rev-parse HEAD"
-	local LOCAL=$(git rev-parse HEAD) # хеш коммита для указанной ревизии - @ alone is a shortcut for HEAD.
+	local LOCAL
+	LOCAL=$(git rev-parse HEAD) # хеш коммита для указанной ревизии - @ alone is a shortcut for HEAD.
+	local REMOTE
 	log_print "[get_sync_status] LOCAL: $LOCAL"
 	if [[ "$use_remote_host" == "remote" || "$use_remote_host" == "true" ]]; then
 		log_print "[get_sync_status] get remote"
-		local REMOTE=$(git ls-remote 2>/dev/null ) # from remote host
-		res_code=$?
-		#log_print "LOCAL: $LOCAL"
-		log_print "[get_sync_status] res_code: $res_code"
-		REMOTE=`awk "/HEAD/ {print \$1}" <<< $REMOTE`
+		REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
 		log_print "[get_sync_status] REMOTE: $REMOTE"
+		res_code=$?
+		log_print "[get_sync_status] res_code: $res_code"
+		#REMOTE=` <<< $REMOTE`
 	  else
 	  	log_print "[get_sync_status] last pulled head of remote"
-		local REMOTE=$(git rev-parse @{u}) # last pulled head of remote
+		REMOTE=$(git rev-parse @{u}) # last pulled head of remote
 	  fi
+	log_print "[get_sync_status] REMOTE: $REMOTE"
 	log_print "[get_sync_status] git merge-base @ @{u}"
 	local BASE
 	BASE=`git merge-base @ @{u} 2> /dev/null` # merge-base возвращает ближайшего общего предка для двух веток, то есть sha-id какого-то комита;   @{u} = @{upstream}  
@@ -892,11 +894,11 @@ get_sync_status(){		# <remote_mode>
 
 	local changes=`echo $(git status -s --untracked-files | wc -l)` # cut tab
 	if [ "$result_format" == "notice" ]; then
-		[[ "$status" == "ok" && "$changes" != "0" ]] 	&& echo -e "${yellow}NEED TO COMMIT AND PUSH${norm}" 1>&2
+		[[ "$status" == "ok" && "$changes" != "0" ]] 	&& echo -e "${red_blink}NEED TO COMMIT AND PUSH${norm}" 1>&2
 		[[ "$status" == "ok" && "$changes" == "0" ]]	&& echo -e "${green}same${norm}" 1>&2
-		[ "$status" == "pull" ] 			&& echo -e "${yellow}NEED TO PULL !${norm}" 1>&2
+		[ "$status" == "pull" ] 			&& echo -e "${red_blink}NEED TO PULL !${norm}" 1>&2
 		[ "$status" == "push" ] 			&& echo -e "${green}NEED TO PUSH${norm}" 1>&2
-		[ "$status" == "diverged" ] 			&& echo -e "${red_bright}DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
+		[ "$status" == "diverged" ] 			&& echo -e "${red_blink}DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
 		[ "$status" == "no_upstream" ] 			&& echo -e "${red_bright}NO UPSTREAM !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
 	  fi
 	log_print "[get_sync_status] status:\t\t[get_sync_status] $status" 1>&2
