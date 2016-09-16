@@ -602,7 +602,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			LOCAL1=$(git rev-parse HEAD)
 			BASE=`git merge-base @ @{u} 2> /dev/null` 
 			curr_remote=`current_remote`
-			echo -e -n "\nAsk ${green}$curr_remote${norm} for last commit .. " 1>&2
+			echo -e -n "\n  Ask ${green}$curr_remote${norm} for last commit .. " 1>&2
 			REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
 			if [ "$changes" == "0" ]; then
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
@@ -655,7 +655,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			BASE=`git merge-base @ @{u} 2> /dev/null` 
 
 			curr_remote=`current_remote`
-			echo -e -n "\nAsk ${green}$curr_remote${norm} for last commit .. " 1>&2
+			echo -e -n "\n  Ask ${green}$curr_remote${norm} for last commit .. " 1>&2
 			REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
 
 			if [[ "$changes" != "0" ]]; then
@@ -692,6 +692,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 						git push "$name" "$curr_branch" #all --all
 					  done
 				  fi
+			  else
+				echo -e -n "\n  ${yellow}Changes not found ${norm}" 
 			  fi
 			#echo -e "${red}PUSHING${norm}"
 			#cmd_git_commit_and_push "$msg"
