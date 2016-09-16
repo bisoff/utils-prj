@@ -683,7 +683,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				#return #&& echo -e "${red}FIXING${norm}" 
 			  fi
 			#git remote | xargs -L1 git push --all --quiet -u
-			if [[ "$BASE" != "$REMOTE" || "$BASE" != "$LOCAL" ]]; then
+			if [[ "$BASE" != "$REMOTE" || "$BASE" != "$LOCAL" || "$changes" != "0" ]]; then
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 				  	cmd_utils_git_wrapper cmd_git_push all
 				  else
