@@ -557,7 +557,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 	eval cd "$prj_path"
 
 	#local gis=$(git status -s --untracked-files)
-	local changes=`echo $(git status -s --untracked-files | wc -l)`
+	local changes
+	changes=`echo $(git status -s --untracked-files | wc -l)`
 	log_print "\nlocal changes:\t$changes"
 	case "$cmd" in
 		"local"|"remote") # st[x]
@@ -594,22 +595,33 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			  fi
 			;;
 		"pull") # pget
-			local LOCAL1=$(git rev-parse HEAD)
+			local LOCAL1 # old
+			local LOCAL2 # after pull 
+			local BASE
+			local REMOTE
+			LOCAL1=$(git rev-parse HEAD)
+			BASE=`git merge-base @ @{u} 2> /dev/null` 
+			echo -e -n "\nAsk ${green}$curr_remote${norm} for last commit .. " 1>&2
+			REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
 			if [ "$changes" == "0" ]; then
-
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-					echo 
-					cmd_git_pull
+					if [ "$BASE" != "$REMOTE" ]; then
+						echo 
+						curr_remote=`current_remote`
+						cmd_git_pull
+					  #else
+					  #	notice "Remote is actual"
+					  fi
 				  else
 					echo -e "\n${cyan}PULL${norm} $prj_name: $prj_path" 
 					git pull --all --no-rebase # --stat --all --quiet -vv 
 				  fi
 					# -vv   list out your local branches with more information including what each branch is tracking and if your local branch is ahead, behind or both.
-				local LOCAL2=$(git rev-parse HEAD)
 				#echo LOCAL1: $LOCAL1 1>&2
 				#echo LOCAL2: $LOCAL2 1>&2
+				LOCAL2=$(git rev-parse HEAD)
 				if [ "$LOCAL1" == "$LOCAL2" ]; then
-					echo -e "${yellow}Changes not found ${norm}" 
+					echo -e "\n${yellow}Changes not found ${norm}" 
 				#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
 				  fi
 			  else
@@ -636,9 +648,20 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			#echo
 			;;
 		"push") # psave
-			if [ "$changes" != "0" ] ; then
-				echo 
+			local LOCAL
+			local BASE
+			local REMOTE
+			LOCAL=$(git rev-parse HEAD)
+			BASE=`git merge-base @ @{u} 2> /dev/null` 
+
+			curr_remote=`current_remote`
+			echo -e -n "\nAsk ${green}$curr_remote${norm} for last commit .. " 1>&2
+			REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
+
+			if [[ "$changes" != "0" ]]; then
+				# append_and_commit
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+					#echo 
 					cmd_utils_git_wrapper cmd_git_status_with_untracked
 					echo 
 					cmd_utils_git_wrapper cmd_git_append_and_commit "$msg" 
@@ -653,26 +676,32 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				# git config pull.rebase false
 				# rebase = false
 				# git push --quiet # cmd_git_push 
-			  else
-				echo -e "\n${yellow}Local changes not found ${norm}" 
+			  #else
+				#echo -e "\n${yellow}Changes not found ${norm}" 
 				#return #&& echo -e "${red}FIXING${norm}" 
 			  fi
 			#git remote | xargs -L1 git push --all --quiet -u
-			if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-			  	cmd_utils_git_wrapper cmd_git_push all
-			  else
-			  	remotes=$(git remote show)
-			  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
-				for name in $remotes; do 
-					echo -e "git ${red}PUSH${norm} to ${green}$name$norm: $green$curr_branch$norm"  #-u
-					git push "$name" "$curr_branch" #all --all
-				  done
+			if [[ "$BASE" != "$REMOTE" || "$BASE" != "$LOCAL" ]]; then
+				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+				  	cmd_utils_git_wrapper cmd_git_push all
+				  else
+				  	remotes=$(git remote show)
+				  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
+					for name in $remotes; do 
+						echo -e "git ${red}PUSH${norm} to ${green}$name$norm: $green$curr_branch$norm"  #-u
+						git push "$name" "$curr_branch" #all --all
+					  done
+				  fi
 			  fi
-
 			#echo -e "${red}PUSHING${norm}"
 			#cmd_git_commit_and_push "$msg"
 			;;
 		"full") # psync
+			cmd_project_sync $prj_name $prj_path "fix" $msg
+			cmd_project_sync $prj_name $prj_path "pull" $msg
+			cmd_project_sync $prj_name $prj_path "push" $msg
+			return
+
 			if [ "$changes" != "0" ]; then
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 				  	cmd_git_append_and_commit "$msg"
