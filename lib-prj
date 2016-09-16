@@ -560,6 +560,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 	local changes
 	changes=`echo $(git status -s --untracked-files | wc -l)`
 	log_print "\nlocal changes:\t$changes"
+	local sync_status
+	local curr_remote
 	case "$cmd" in
 		"local"|"remote") # st[x]
 			# state
@@ -570,7 +572,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				git status -s --untracked-files # "$*" - mask  echo "$gis" #
 			  fi
 				#echo -e -n "Ask ${yellow}$cmd${norm} for last commit .. "  #[ "$remote_mode" = "remote" ] && 
-			local sync_status=$(get_sync_status "$cmd" notice) # notice/silent NO_UTILS_PRJ_TRACE
+			sync_status=$(get_sync_status "$cmd" notice) # notice/silent NO_UTILS_PRJ_TRACE
 				#[ "$sync_status" == "ok" ] && echo -e "${green}same${norm}"
 				#[[ "$sync_status" = "remote" && "$sync_status" == "ok" ]] && echo -e "${green}same${norm}"
 			#if [ "$sync_status" == "no_upstream" ]; then
@@ -885,8 +887,11 @@ get_sync_status(){		# <remote_mode>
 	log_print "use_remote_host: [get_sync_status] $use_remote_host" 1>&2
 	log_print "result_format:\t[get_sync_status] $result_format" 1>&2
 
-	[[ "$result_format" == "notice" && "$use_remote_host" == "local" ]] && echo -e -n "Ask ${green}$use_remote_host${norm} for last commit .. " 1>&2
-	[[ "$result_format" == "notice" && "$use_remote_host" == "remote" ]] && echo -e -n "Ask ${green}$use_remote_host${norm} for last commit .. " 1>&2
+	local curr_remote
+	curr_remote=`current_remote`
+	[[ "$result_format" == "notice" ]] && [[ "$use_remote_host" == "local" || "$use_remote_host" == "remote" ]] && echo -e -n "  Ask ${green}$curr_remote${norm} for last commit .. " 1>&2
+	#[[ "$result_format" == "notice" && "$use_remote_host" == "local" ]] && echo -e -n "  Ask ${green}$curr_remote${norm} for last commit .. " 1>&2
+	#[[ "$result_format" == "notice" && "$use_remote_host" == "remote" ]] && echo -e -n "  Ask ${green}$curr_remote${norm} for last commit .. " 1>&2
 
 	#log_print $([ "$result_format" != "silent" ] && echo "notice mode [get_sync_status]") 1>&2
 	local status
@@ -914,12 +919,11 @@ get_sync_status(){		# <remote_mode>
 	log_print "[get_sync_status] res_code: $res_code"
 	log_print "[get_sync_status] BASE: $BASE"
 	#[ "$res_code" != "0" ] && echo "no_upstream" && return
-	log_print "[get_sync_status] BASE: $BASE"
 	#echo LOCAL:$LOCAL REMOTE:$REMOTE BASE:$BASE
 	if [ "$LOCAL" == "$REMOTE" ]; then 	status="ok" # same
 	  elif [ "$LOCAL" == "$BASE" ]; then	status="pull"
 	  elif [ "$REMOTE" == "" ]; then	status="no_upstream"
-	  elif [ "$REMOTE" == "$BASE"]; then	status="push"
+	  elif [ "$REMOTE" == "$BASE" ]; then	status="push"
 	  else				  	status="diverged"
 	  fi
 
