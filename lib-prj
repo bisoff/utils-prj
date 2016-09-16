@@ -663,7 +663,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			if [[ "$changes" != "0" ]]; then
 				# append_and_commit
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-					#echo 
+					echo 
 					cmd_utils_git_wrapper cmd_git_status_with_untracked
 					echo 
 					cmd_utils_git_wrapper cmd_git_append_and_commit "$msg" 
