@@ -601,13 +601,13 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			local REMOTE
 			LOCAL1=$(git rev-parse HEAD)
 			BASE=`git merge-base @ @{u} 2> /dev/null` 
+			curr_remote=`current_remote`
 			echo -e -n "\nAsk ${green}$curr_remote${norm} for last commit .. " 1>&2
 			REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
 			if [ "$changes" == "0" ]; then
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					if [ "$BASE" != "$REMOTE" ]; then
 						echo 
-						curr_remote=`current_remote`
 						cmd_git_pull
 					  #else
 					  #	notice "Remote is actual"
@@ -621,7 +621,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				#echo LOCAL2: $LOCAL2 1>&2
 				LOCAL2=$(git rev-parse HEAD)
 				if [ "$LOCAL1" == "$LOCAL2" ]; then
-					echo -e "\n${yellow}Changes not found ${norm}" 
+					echo -e -n "\n${yellow}Changes not found ${norm}" 
 				#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
 				  fi
 			  else
@@ -642,7 +642,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 					echo -e -n "\n${yellow}Remote not changed${norm}" 
 				#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
 				  else
-				  	echo -e "\n${red_blink}NEEDS_COMMIT${norm}" 
+				  	echo -e -n "\n${red_blink}NEEDS_COMMIT${norm}" 
 				  fi
 			  fi
 			#echo
