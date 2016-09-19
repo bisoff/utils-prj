@@ -929,12 +929,12 @@ get_sync_status(){		# <remote_mode>
 
 	local changes=`echo $(git status -s --untracked-files | wc -l)` # cut tab
 	if [ "$result_format" == "notice" ]; then
-		[[ "$status" == "ok" && "$changes" != "0" ]] 	&& echo -e "${red_blink}NEED TO COMMIT AND PUSH${norm}" 1>&2
-		[[ "$status" == "ok" && "$changes" == "0" ]]	&& echo -e "${green}same${norm}" 1>&2
-		[ "$status" == "pull" ] 			&& echo -e "${red_blink}NEED TO PULL !${norm}" 1>&2
-		[ "$status" == "push" ] 			&& echo -e "${green}NEED TO PUSH${norm}" 1>&2
-		[ "$status" == "diverged" ] 			&& echo -e "${red_blink}DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
-		[ "$status" == "no_upstream" ] 			&& echo -e "${red_bright}NO UPSTREAM !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
+		[[ "$status" == "ok" && "$changes" != "0" ]] 	&& echo -e "\n${red_back}NEED TO COMMIT AND PUSH${norm}" 1>&2
+		[[ "$status" == "ok" && "$changes" == "0" ]]	&& echo -e "\n${green}same${norm}" 1>&2
+		[ "$status" == "pull" ] 			&& echo -e "\n${red_back}NEED TO PULL !${norm}" 1>&2
+		[ "$status" == "push" ] 			&& echo -e "\n${red_back}NEED TO PUSH${norm}" 1>&2
+		[ "$status" == "diverged" ] 			&& echo -e "\n${red_back}DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
+		[ "$status" == "no_upstream" ] 			&& echo -e "\n${red_back}NO UPSTREAM !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
 	  fi
 	log_print "[get_sync_status] status:\t\t[get_sync_status] $status" 1>&2
 	log_print "[get_sync_status] changes:\t[get_sync_status] $changes" 1>&2
