@@ -558,7 +558,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 
 	#local gis=$(git status -s --untracked-files)
 	local changes
-	changes=`echo $(git status -s --untracked-files | wc -l)`
+	changes=`git status -s --untracked-files | wc -l`
 	log_print "\nlocal changes:\t$changes"
 	local sync_status
 	local curr_remote
@@ -673,7 +673,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 					git add -A .
 					git commit -m "$msg"
 				  fi
-				echo 
+				#echo 
 				# git config --global pull.rebase false
 				# git config pull.rebase false
 				# rebase = false
