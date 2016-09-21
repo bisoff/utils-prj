@@ -558,16 +558,17 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 
 	#local gis=$(git status -s --untracked-files)
 	local changes
-	changes=`git status -s --untracked-files | wc -l`
-	log_print "\nlocal changes:\t$changes"
+	changes=$(echo `git status -s --untracked-files | wc -l`)
+	log_print "\nlocal changes:\t-$changes-"
 	local sync_status
 	local curr_remote
+	local UTILS_GIT_TRACE=0
 	case "$cmd" in
 		"local"|"remote") # st[x]
 			# state
 			echo
 			if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-				cmd_utils_git_wrapper cmd_git_status_with_untracked
+				UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_status_with_untracked
 			  else
 				git status -s --untracked-files # "$*" - mask  echo "$gis" #
 			  fi
@@ -580,7 +581,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			log_print "sync_status:\t$sync_status"
 				# [ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
 	  		;;
-		"fix") # pfix
+		"fix") # pfix	
 			if [ "$changes" != "0" ]; then 
 				echo -e "\n${cyan}FIXING${norm}" 
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
@@ -662,6 +663,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 
 			if [[ "$changes" != "0" ]]; then
 				# append_and_commit
+				log_print "commit changes"
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					echo 
 					cmd_utils_git_wrapper cmd_git_status_with_untracked
@@ -685,8 +687,9 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			#git remote | xargs -L1 git push --all --quiet -u
 			if [[ "$BASE" != "$REMOTE" || "$BASE" != "$LOCAL" || "$changes" != "0" ]]; then
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-				  	cmd_utils_git_wrapper cmd_git_push all
+				  	UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_push all
 				  else
+				  	log_print "local push"
 				  	remotes=$(git remote show)
 				  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
 					for name in $remotes; do 
