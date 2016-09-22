@@ -602,6 +602,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			local LOCAL2 # after pull 
 			local BASE
 			local REMOTE
+			[ "$changes" != "0" ] && echo -e -n "\n${red_back}NEEDS COMMIT FIRST${norm}" 
 			LOCAL1=$(git rev-parse HEAD)
 			BASE=`git merge-base @ @{u} 2> /dev/null` 
 			curr_remote=`current_remote`
