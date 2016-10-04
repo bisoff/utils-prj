@@ -22,13 +22,15 @@ UTILS_PRJ_ALIASES="utils-prj-aliases"
 case "$UTILS_PRJ_THE_OS" in
 	MINGW*)
 		UTILS_PRJ_SED_BACKUP="" #|MSYS*
-		UTILS_PRJ_SED="sed"
+		 #UTILS_PRJ_SED="sed"
+		alias sed='sed'
 		UTILS_PRJ_TIMESTAMP=`stat -c %y $HOME_UTILS_PRJ/lib-prj`
 		UTILS_PRJ_ALIAS_TIMESTAMP=`stat -c %y $HOME/.utils-prj/$UTILS_PRJ_ALIASES`
 		;;
 	Darwin)
 		UTILS_PRJ_SED_BACKUP="''"
-		UTILS_PRJ_SED="gsed"
+		# UTILS_PRJ_SED="gsed"
+		alias sed='gsed'
 		UTILS_PRJ_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME_UTILS_PRJ/lib-prj")
 		UTILS_PRJ_ALIAS_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME/.utils-prj/$UTILS_PRJ_ALIASES")
 		;;
@@ -264,7 +266,7 @@ cmd_project_delete(){		# pdel		<prj>
 	#prj_remote=`sed -E -n 's/^remote=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name | tr -d '\r'`
 	rm "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" || return
 	local current_set="$(get_current_set).list"
-	gsed -i -E "/^$prj_name$/d" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$current_set" && echo -e "[cmd_project_delete] Project ${yellow}$prj_name - $prj_path${norm} is deleted from ${yellow}$current_set${norm}" 
+	sed -i -E "/^$prj_name$/d" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$current_set" && echo -e "[cmd_project_delete] Project ${yellow}$prj_name - $prj_path${norm} is deleted from ${yellow}$current_set${norm}" 
 	}
 cmd_project_move(){		# pmove		<prj>|. 	[<list>]
 	# if list is skipped and prj_name is same 					-> update prj path
@@ -296,7 +298,7 @@ cmd_project_move(){		# pmove		<prj>|. 	[<list>]
 			[ "$project_path" == "" ] && error "${red}Project path not found for '$prj_name'${norm}" && return
 			if [ "$project_path" != "%curr_path" ]; then
 				log_print "${cyan}update prj path${norm}"
-				gsed -i -E "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" || return #  replace home path
+				sed -i -E "s/^(path=)(.*)/\1${curr_path//\//\\/}/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" || return #  replace home path
 			  else
 				log_print "${cyan}rename prj alias${norm}"
 				# upd name of prj  (rename filename and alias inside list)
@@ -305,7 +307,7 @@ cmd_project_move(){		# pmove		<prj>|. 	[<list>]
 				log_print "found:\t$found"
 				[ "$found" != "$project_name" ] && echo -e "${red}Project '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name' not found in '$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list' ${norm}" && return
 				mv "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$project_name" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name" || return
-				gsed -i -E "s/^$project_name$/$prj_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list" || return
+				sed -i -E "s/^$project_name$/$prj_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list" || return
 			  fi
 		  fi
 	  else
@@ -318,7 +320,7 @@ cmd_project_move(){		# pmove		<prj>|. 	[<list>]
 		[ "$prj_list" == "$current_set" ] &&echo -e "${red}[cmd_project_move] Target project list '$prj_list.list' can't be current !${norm}" && return
 		echo "$prj_name" >> "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list.list"
 		echo -e "[cmd_project_move] Project ${green}$prj_name${norm} added to ${green}'$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list.list'${norm}" 
-		gsed -i -E "/^$prj_name$/d" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$current_set.list" || return
+		sed -i -E "/^$prj_name$/d" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$current_set.list" || return
 		echo -e "[cmd_project_move] Project ${yellow}$prj_name${norm} cut from ${yellow}'$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$current_set.list'${norm}" 
 		[ "$(grep "^$prj_name$" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$current_set.list")" != "" ] && echo -e "${red}Project '$prj_name' still found in '$prj_list' ${norm}" && return
 	  fi
@@ -358,7 +360,7 @@ cmd_project_rename(){		# pren 		<prj>
 	#echo sed -i "s/^$curr_prj_name\$/$new_prj_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list" ; return
 	mv "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$curr_prj_name" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$new_prj_name" || return
 
-	gsed -i -E "s/^$curr_prj_name\$/$new_prj_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list" || return 
+	sed -i -E "s/^$curr_prj_name\$/$new_prj_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_list" || return 
 	
 	#echo "path=$new_path" 	>  $prj_path
 	#echo "type=git" 	>> $prj_file
@@ -450,7 +452,7 @@ cmd_set_rename(){		# psetren
 	[[ ! -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name_current.list" ]] && echo -e "${red}[cmd_set_rename] Project list ${red}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name_current.listnot found !${norm}" && return 
 	[ -f "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list" ] && echo -e "${red}[cmd_set_rename] Project list ${red}$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list already exist !${norm}" && return 
 	eval mv "'$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name_current.list'" "'$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$set_name.list'" || return
-	$UTILS_PRJ_SED -i -E "s/^(default_list=)(.*)/\1$set_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_rename] Current project list now is ${green}$set_name${norm}" 
+	sed -i -E "s/^(default_list=)(.*)/\1$set_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/default" && echo -e "[cmd_set_rename] Current project list now is ${green}$set_name${norm}" 
 	}
 cmd_set_switch(){		# psetsw	<list>|.  			# set as default
 	local set_name="$1"
@@ -465,8 +467,8 @@ cmd_set_switch(){		# psetsw	<list>|.  			# set as default
 			cmd_set_enum
 			# return 
 		  else
-		  	#type gsed
-			gsed -i -E "s/^(default_list=)(.*)/\1$set_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/default" 
+		  	#type sed
+			sed -i -E "s/^(default_list=)(.*)/\1$set_name/g" "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/default" 
 			echo -e "[cmd_set_switch] Current project list is ${green}$set_name${norm} now"
 		  fi
 	  fi
