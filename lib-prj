@@ -615,6 +615,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			log_print "[cmd_project_sync] REMOTE: $REMOTE"
 			log_print "[cmd_project_sync] res_code: $res_code"
 			if [ "$REMOTE" == "" ]; then
+				echo
 				error "NO UPSTREAM"
 				return 1
 			  fi
@@ -676,6 +677,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			log_print "[cmd_project_sync] res_code: $res_code"
 			log_print "[cmd_project_sync] REMOTE: $REMOTE"
 			if [ "$REMOTE" == "" ]; then
+				echo
 				error "NO UPSTREAM"
 				return 1
 			  fi
