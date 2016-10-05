@@ -587,8 +587,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			if [ "$changes" != "0" ]; then 
 				echo -e "\n${cyan}FIXING${norm}" 
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-					cmd_utils_git_wrapper cmd_git_status_with_untracked
-					cmd_utils_git_wrapper cmd_git_append_and_commit "$msg" 
+					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_status_with_untracked
+					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_append_and_commit "$msg" 
 				  else
 					git status -s --untracked-files
 					git add -A .
@@ -609,7 +609,16 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			BASE=`git merge-base @ @{u} 2> /dev/null` 
 			curr_remote=`current_remote`
 			echo -e -n "\n  Ask ${green}$curr_remote${norm} for last commit .. " 1>&2
+
 			REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
+			res_code=$?
+			log_print "[cmd_project_sync] REMOTE: $REMOTE"
+			log_print "[cmd_project_sync] res_code: $res_code"
+			if [ "$REMOTE" == "" ]; then
+				error "NO UPSTREAM"
+				return 1
+			  fi
+
 			if [ "$changes" == "0" ]; then
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					if [ "$BASE" != "$REMOTE" ]; then
@@ -634,8 +643,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				echo
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					echo 
-					cmd_utils_git_wrapper cmd_git_diff_file_list_this_and_prior_commits
-					cmd_utils_git_wrapper cmd_git_fetch
+					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_diff_file_list_this_and_prior_commits
+					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_fetch
 				  else
 					git diff --stat=200 --color | sed -n '$! p' || return
 					echo -e -n "\n${cyan}FETCH${norm} $prj_name: $prj_path" 
@@ -663,15 +672,22 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			curr_remote=`current_remote`
 			echo -e -n "\n  Ask ${green}$curr_remote${norm} for last commit .. " 1>&2
 			REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
+			res_code=$?
+			log_print "[cmd_project_sync] res_code: $res_code"
+			log_print "[cmd_project_sync] REMOTE: $REMOTE"
+			if [ "$REMOTE" == "" ]; then
+				error "NO UPSTREAM"
+				return 1
+			  fi
 
 			if [[ "$changes" != "0" ]]; then
 				# append_and_commit
 				log_print "commit changes"
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					echo 
-					cmd_utils_git_wrapper cmd_git_status_with_untracked
+					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_status_with_untracked
 					echo 
-					cmd_utils_git_wrapper cmd_git_append_and_commit "$msg" 
+					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_append_and_commit "$msg" 
 				  else
 					git status -s --untracked-files 
 					echo 
@@ -709,6 +725,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 		"full") # psync
 			cmd_project_sync $prj_name $prj_path "fix" $msg
 			cmd_project_sync $prj_name $prj_path "pull" $msg
+			[ "$?" != "0" ] && return
 			cmd_project_sync $prj_name $prj_path "push" $msg
 			return
 
@@ -728,14 +745,14 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			#sync_status=`eval echo $sync_status`
 			if [[ "$sync_status" == "pull" || "$sync_status" == "diverged" ]];then
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-					cmd_utils_git_wrapper cmd_git_pull all
+					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_pull all
 				  else
 					git pull # pull when need
 				  fi
 			  fi
 			if [[ "$sync_status" == "push" || "$sync_status" == "diverged" ]]; then
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-					cmd_utils_git_wrapper cmd_git_push all
+					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_push all
 				  else
 					git remote | xargs -L1 git push --all --quiet -u #git push # push when need
 				  fi
