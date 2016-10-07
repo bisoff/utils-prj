@@ -600,66 +600,71 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			  fi
 			;;
 		"pull") # pget
-			local LOCAL1 # old
-			local LOCAL2 # after pull 
-			local BASE
-			local REMOTE
-			[ "$changes" != "0" ] && echo -e -n "\n${red_back}NEEDS COMMIT FIRST${norm}" 
-			LOCAL1=$(git rev-parse HEAD)
-			BASE=`git merge-base @ @{u} 2> /dev/null` 
-			curr_remote=`current_remote`
-			echo -e -n "\n  Ask ${green}$curr_remote${norm} for last commit .. " 1>&2
+			#local LOCAL1 # old
+			#local LOCAL2 # after pull 
+			#local BASE
+			#local REMOTE
+			#[ "$changes" != "0" ] && echo -e -n "\n${red_back}NEEDS COMMIT FIRST${norm}" 
+			#echo
+			sync_status=$(get_sync_status "remote" notice)
 
-			REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
-			res_code=$?
-			log_print "[cmd_project_sync] REMOTE: $REMOTE"
-			log_print "[cmd_project_sync] res_code: $res_code"
-			if [ "$REMOTE" == "" ]; then
-				echo
-				error "NO UPSTREAM"
-				return 1
-			  fi
+			#LOCAL1=$(git rev-parse HEAD)
+			#BASE=`git merge-base @ @{u} 2> /dev/null` 
+			#curr_remote=`current_remote`
+
+			#echo -e -n "\n  Ask ${green}$curr_remote${norm} for last commit .. " 1>&2
+			#REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
+			#res_code=$?
+			#log_print "[cmd_project_sync] REMOTE: $REMOTE"
+			#log_print "[cmd_project_sync] res_code: $res_code"
+			#if [ "$REMOTE" == "" ]; then
+			#	echo
+			#	error "NO UPSTREAM"
+			#	return 1
+			#  fi
 
 			if [ "$changes" == "0" ]; then
-				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-					if [ "$BASE" != "$REMOTE" ]; then
+				if [ "$sync_status" == "pull" ]; then
+					if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 						echo 
 						cmd_git_pull
 					  #else
 					  #	notice "Remote is actual"
+					  else
+						echo -e "\n${cyan}PULL${norm} $prj_name: $prj_path" 
+						git pull --all --no-rebase # --stat --all --quiet -vv 
 					  fi
-				  else
-					echo -e "\n${cyan}PULL${norm} $prj_name: $prj_path" 
-					git pull --all --no-rebase # --stat --all --quiet -vv 
 				  fi
 					# -vv   list out your local branches with more information including what each branch is tracking and if your local branch is ahead, behind or both.
 				#echo LOCAL1: $LOCAL1 1>&2
 				#echo LOCAL2: $LOCAL2 1>&2
-				LOCAL2=$(git rev-parse HEAD)
-				if [ "$LOCAL1" == "$LOCAL2" ]; then
-					echo -e -n "\n${yellow}Changes not found ${norm}" 
+				#LOCAL2=$(git rev-parse HEAD)
+				#if [ "$LOCAL1" == "$LOCAL2" ]; then
+				#	echo -e -n "\n${green}Same${norm}" 
 				#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
-				  fi
+				#  fi
 			  else
 				echo
-				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-					echo 
-					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_diff_file_list_this_and_prior_commits
-					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_fetch
-				  else
-					git diff --stat=200 --color | sed -n '$! p' || return
-					echo -e -n "\n${cyan}FETCH${norm} $prj_name: $prj_path" 
-					git fetch || return # && git diff remote ??
+				git diff --stat=200 --color | sed -n '$! p' || return
+				if [ "$sync_status" == "pull" ]; then
+					if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+						# echo 
+						UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_diff_file_list_this_and_prior_commits
+						UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_fetch
+					  else
+						echo -e -n "\n${cyan}FETCH${norm} $prj_name: $prj_path" 
+						git fetch || return # && git diff remote ??
+					  fi
 				  fi
-				local LOCAL2=$(git rev-parse HEAD)
-				#echo LOCAL1: $LOCAL1 1>&2
-				#echo LOCAL2: $LOCAL2 1>&2
-				if [ "$LOCAL1" == "$LOCAL2" ]; then
-					echo -e -n "\n${yellow}Remote not changed${norm}" 
+				#local LOCAL2=$(git rev-parse HEAD)
+					#echo LOCAL1: $LOCAL1 1>&2
+					#echo LOCAL2: $LOCAL2 1>&2
+				#if [ "$LOCAL1" == "$LOCAL2" ]; then
+				#	echo -e -n "\n${yellow}Remote not changed${norm}" 
 				#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
-				  else
-				  	echo -e -n "\n${red_blink}NEEDS_COMMIT${norm}" 
-				  fi
+				#  else
+				#  	echo -e -n "\n${red_blink}NEEDS_COMMIT${norm}" 
+				#  fi
 			  fi
 			#echo
 			;;
@@ -706,7 +711,9 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				#return #&& echo -e "${red}FIXING${norm}" 
 			  fi
 			#git remote | xargs -L1 git push --all --quiet -u
-			if [[ "$BASE" != "$REMOTE" || "$BASE" != "$LOCAL" || "$changes" != "0" ]]; then
+			if [[ "$BASE" == "$REMOTE" && "$BASE" == "$LOCAL" && "$changes" == "0" ]]; then
+				echo -e -n "\n  ${green}Changes not found ${norm}" 
+			  else
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 				  	UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_push all
 				  else
@@ -718,8 +725,6 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 						git push "$name" "$curr_branch" #all --all
 					  done
 				  fi
-			  else
-				echo -e -n "\n  ${yellow}Changes not found ${norm}" 
 			  fi
 			#echo -e "${red}PUSHING${norm}"
 			#cmd_git_commit_and_push "$msg"
@@ -952,17 +957,17 @@ get_sync_status(){		# <remote_mode>
 	  else				  	status="diverged"
 	  fi
 
-	local changes=`echo $(git status -s --untracked-files | wc -l)` # cut tab
+	local changes=`git status -s --untracked-files | wc -l` # cut tab
 	if [ "$result_format" == "notice" ]; then
-		[[ "$status" == "ok" && "$changes" != "0" ]] 	&& echo -e "\n${red_back}NEED TO COMMIT AND PUSH${norm}" 1>&2
-		[[ "$status" == "ok" && "$changes" == "0" ]]	&& echo -e "\n${green}same${norm}" 1>&2
-		[ "$status" == "pull" ] 			&& echo -e "\n${red_back}NEED TO PULL !${norm}" 1>&2
-		[ "$status" == "push" ] 			&& echo -e "\n${red_back}NEED TO PUSH${norm}" 1>&2
-		[ "$status" == "diverged" ] 			&& echo -e "\n${red_back}DIVERGED !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
-		[ "$status" == "no_upstream" ] 			&& echo -e "\n${red_back}NO UPSTREAM !!${norm}" 1>&2 # ! NEED TO PUSH AFTER
+		[[ "$status" == "ok" && "$changes" != "0" ]] 	&& echo -n -e "${red_back} NEED TO COMMIT AND PUSH ${norm}" 1>&2
+		[[ "$status" == "ok" && "$changes" == "0" ]]	&& echo -n -e "${green}same${norm}" 1>&2
+		[ "$status" == "pull" ] 			&& echo -n -e "${red_back} NEEDS PULL ${norm}" 1>&2
+		[ "$status" == "push" ] 			&& echo -n -e "${red_back} NEEDS PUSH ${norm}" 1>&2
+		[ "$status" == "diverged" ] 			&& echo -n -e "${red_back} DIVERGED ${norm}" 1>&2 # ! NEED TO PUSH AFTER
+		[ "$status" == "no_upstream" ] 			&& echo -n -e "${red_back} NO UPSTREAM ${norm}" 1>&2 # ! NEED TO PUSH AFTER
 	  fi
 	log_print "[get_sync_status] status:\t\t[get_sync_status] $status" 1>&2
 	log_print "[get_sync_status] changes:\t[get_sync_status] $changes" 1>&2
-	echo "$status" # for extra handle
+	echo -n "$status" # for extra handle
 	}
 
