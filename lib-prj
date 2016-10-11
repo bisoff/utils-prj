@@ -568,6 +568,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 	case "$cmd" in
 		"local"|"remote") # st[x]
 			# state
+			sync_status=$(get_sync_status "$cmd" notice) # notice/silent NO_UTILS_PRJ_TRACE
+			
 			echo
 			if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 				UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_status_with_untracked
@@ -575,7 +577,6 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				git status -s --untracked-files # "$*" - mask  echo "$gis" #
 			  fi
 				#echo -e -n "Ask ${yellow}$cmd${norm} for last commit .. "  #[ "$remote_mode" = "remote" ] && 
-			sync_status=$(get_sync_status "$cmd" notice) # notice/silent NO_UTILS_PRJ_TRACE
 				#[ "$sync_status" == "ok" ] && echo -e "${green}same${norm}"
 				#[[ "$sync_status" = "remote" && "$sync_status" == "ok" ]] && echo -e "${green}same${norm}"
 			#if [ "$sync_status" == "no_upstream" ]; then
@@ -669,10 +670,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			#echo
 			;;
 		"push") # commit and push (psave*)
-			sync_status=$(get_sync_status "remote" notice)
 
-			if [ "$sync_status" == "push" ]; then
-				if [[ "$changes" != "0" ]]; then
+			if [[ "$changes" != "0" ]]; then
 				# append_and_commit
 				log_print "commit changes"
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
@@ -686,33 +685,34 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 					git add -A .
 					git commit -m "$msg"
 				  fi
+			  fi
+			sync_status=$(get_sync_status "remote" notice)
+			if [ "$sync_status" == "ok" ]; then
+				if [ "$changes" == "0" ]; then
+					#echo -e -n "\n  ${green}Changes not found ${norm}" 
+					return
+				  fi
+			  else
 				#echo 
 				# git config --global pull.rebase false
 				# git config pull.rebase false
 				# rebase = false
 				# git push --quiet # cmd_git_push 
-			  #else
-				#echo -e "\n${yellow}Changes not found ${norm}" 
-				#return #&& echo -e "${red}FIXING${norm}" 
-			  fi
-			#git remote | xargs -L1 git push --all --quiet -u
+				  #else
+					#echo -e "\n${yellow}Changes not found ${norm}" 
+					#return #&& echo -e "${red}FIXING${norm}" 
+				#git remote | xargs -L1 git push --all --quiet -u
 
-			if [ "$sync_status" == "ok" ]; then
-				if [ "$changes" == "0" ]; then 
-					echo -e -n "\n  ${green}Changes not found ${norm}" 
+				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+				  	UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_push all
 				  else
-					if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-						UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_append_and_commit "$msg" 
-					  	UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_push all
-					  else
-					  	log_print "local push"
-					  	remotes=$(git remote show)
-					  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
-						for name in $remotes; do 
-							echo -e "git ${red}PUSH${norm} to ${green}$name$norm: $green$curr_branch$norm"  #-u
-							git push "$name" "$curr_branch" #all --all
-						  done
-					  fi
+				  	log_print "local push"
+				  	remotes=$(git remote show)
+				  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
+					for name in $remotes; do 
+						echo -e "git ${red}PUSH${norm} to ${green}$name$norm: $green$curr_branch$norm"  #-u
+						git push "$name" "$curr_branch" #all --all
+					  done
 				  fi
 			  fi
 			#echo -e "${red}PUSHING${norm}"
