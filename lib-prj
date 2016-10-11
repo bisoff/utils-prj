@@ -694,7 +694,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				  fi
 				echo
 			  fi
-			sync_status=$(get_sync_status "remote" notice)
+			sync_status=$(get_sync_status "remote" silent)
 			if [ "$sync_status" == "ok" ]; then
 				if [ "$changes" == "0" ]; then
 					#echo -e -n "\n  ${green}Changes not found ${norm}" 
@@ -714,6 +714,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 				  	echo
+				  	
 					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_push all
 				  else
 				  	echo
