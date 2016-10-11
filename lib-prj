@@ -956,8 +956,10 @@ get_sync_status(){		# <remote_mode>
 	  elif [ "$REMOTE" == "$BASE" ]; then	status="push"
 	  else				  	status="diverged"
 	  fi
-
-	local changes=`git status -s --untracked-files | wc -l` # cut tab
+	log_print "[get_sync_status] status: $status"
+	local changes
+	changes=$(echo `git status -s --untracked-files | wc -l`) # WARNING!! -  $() used to cut tab
+	log_print "[get_sync_status] changes: $changes"
 	if [ "$result_format" == "notice" ]; then
 		[[ "$status" == "ok" && "$changes" != "0" ]] 	&& echo -n -e "${red_back} NEED TO COMMIT AND PUSH ${norm}" 1>&2
 		[[ "$status" == "ok" && "$changes" == "0" ]]	&& echo -n -e "${green}same${norm}" 1>&2
@@ -970,4 +972,3 @@ get_sync_status(){		# <remote_mode>
 	log_print "[get_sync_status] changes:\t[get_sync_status] $changes" 1>&2
 	echo -n "$status" # for extra handle
 	}
-
