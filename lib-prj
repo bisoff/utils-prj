@@ -679,7 +679,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 
 			if [[ "$changes" != "0" ]]; then
 				# append_and_commit
-				echo -e "${red_back} NEED TO COMMIT${norm}" 1>&2 
+				echo -e " ${red_back} NEED TO COMMIT${norm}" 1>&2 
 				log_print "commit changes"
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					echo 
@@ -692,6 +692,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 					git add -A .
 					git commit -m "$msg"
 				  fi
+				echo
 			  fi
 			sync_status=$(get_sync_status "remote" notice)
 			if [ "$sync_status" == "ok" ]; then
