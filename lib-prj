@@ -668,26 +668,11 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			  fi
 			#echo
 			;;
-		"push") # psave
-			local LOCAL
-			local BASE
-			local REMOTE
-			LOCAL=$(git rev-parse HEAD)
-			BASE=`git merge-base @ @{u} 2> /dev/null` 
+		"push") # commit and push (psave*)
+			sync_status=$(get_sync_status "remote" notice)
 
-			curr_remote=`current_remote`
-			echo -e -n "\n  Ask ${green}$curr_remote${norm} for last commit .. " 1>&2
-			REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
-			res_code=$?
-			log_print "[cmd_project_sync] res_code: $res_code"
-			log_print "[cmd_project_sync] REMOTE: $REMOTE"
-			if [ "$REMOTE" == "" ]; then
-				echo
-				error "NO UPSTREAM"
-				return 1
-			  fi
-
-			if [[ "$changes" != "0" ]]; then
+			if [ "$sync_status" == "push" ]; then
+				if [[ "$changes" != "0" ]]; then
 				# append_and_commit
 				log_print "commit changes"
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
@@ -711,19 +696,23 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				#return #&& echo -e "${red}FIXING${norm}" 
 			  fi
 			#git remote | xargs -L1 git push --all --quiet -u
-			if [[ "$BASE" == "$REMOTE" && "$BASE" == "$LOCAL" && "$changes" == "0" ]]; then
-				echo -e -n "\n  ${green}Changes not found ${norm}" 
-			  else
-				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-				  	UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_push all
+
+			if [ "$sync_status" == "ok" ]; then
+				if [ "$changes" == "0" ]; then 
+					echo -e -n "\n  ${green}Changes not found ${norm}" 
 				  else
-				  	log_print "local push"
-				  	remotes=$(git remote show)
-				  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
-					for name in $remotes; do 
-						echo -e "git ${red}PUSH${norm} to ${green}$name$norm: $green$curr_branch$norm"  #-u
-						git push "$name" "$curr_branch" #all --all
-					  done
+					if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+						UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_append_and_commit "$msg" 
+					  	UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_push all
+					  else
+					  	log_print "local push"
+					  	remotes=$(git remote show)
+					  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
+						for name in $remotes; do 
+							echo -e "git ${red}PUSH${norm} to ${green}$name$norm: $green$curr_branch$norm"  #-u
+							git push "$name" "$curr_branch" #all --all
+						  done
+					  fi
 				  fi
 			  fi
 			#echo -e "${red}PUSHING${norm}"
