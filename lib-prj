@@ -693,8 +693,10 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 					git add -A .
 					git commit -m "$msg"
 				  fi
+			  else
+			  	echo -e -n ' '
 			  fi
-			echo -e -n "${cyan} Check remote.. ${norm}"
+			echo -e -n "${cyan}Check remote.. ${norm}"
 			sync_status=$(get_sync_status "remote" silent)
 			if [ "$sync_status" == "ok" ]; then
 				if [ "$changes" == "0" ]; then
