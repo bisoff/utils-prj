@@ -680,7 +680,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			if [[ "$changes" != "0" ]]; then
 				# append_and_commit
 				#echo -e " ${red_back} NEED TO COMMIT${norm}" 1>&2 
-				echo -e -n "${yellow} found unsaved work ${norm}"
+				echo -e -n "\n${yellow}found unsaved work ${norm}"
 				log_print "commit changes"
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					echo 
