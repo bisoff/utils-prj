@@ -693,6 +693,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 					git add -A .
 					git commit -m "$msg"
 				  fi
+				echo
 			  else
 			  	echo -e -n ' '
 			  fi
