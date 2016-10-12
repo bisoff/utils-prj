@@ -696,11 +696,13 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 					git commit -m "$msg"
 				  fi
 				echo
+				sync_status="push"
 			  else
 			  	echo -e -n ' '
+				curr_remote=`current_remote`
+				echo -e -n "Ask ${green}$curr_remote${norm} for last commit.. " 1>&2
+				sync_status=$(get_sync_status "remote" silent)
 			  fi
-			echo -e -n "${cyan}Check remote.. ${norm}"
-			sync_status=$(get_sync_status "remote" silent)
 			if [ "$sync_status" == "ok" ]; then
 				if [ "$changes" == "0" ]; then
 					echo -e -n "${green}same${norm}"
