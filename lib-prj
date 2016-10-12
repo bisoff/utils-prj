@@ -641,6 +641,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 						echo -e "\n${cyan}PULL${norm} $prj_name: $prj_path" 
 						git pull --all --no-rebase # --stat --all --quiet -vv 
 					  fi
+				  else
+				  	echo
 				  fi
 					# -vv   list out your local branches with more information including what each branch is tracking and if your local branch is ahead, behind or both.
 				#echo LOCAL1: $LOCAL1 1>&2
