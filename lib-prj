@@ -565,9 +565,10 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 	eval cd "$prj_path"
 
 	#local gis=$(git status -s --untracked-files)
-	local changes
-	changes=$(echo `git status -s --untracked-files | wc -l`)
-	log_print "\nlocal changes:\t-$changes-"
+	local changed_files
+	changed_files=$(echo `git status -s --untracked-files | wc -l`)
+	log_print "\nlocal changed_files:\t-$changed_files-"
+	log_print "\nUTILS_PRJ_USE_UTILS_GIT:\t$UTILS_PRJ_USE_UTILS_GIT"
 	local sync_status
 	local curr_remote
 	local UTILS_GIT_TRACE=0
@@ -591,7 +592,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				# [ "$compare_status" == "diverged" ] && echo -e "${red_bright}DIVERGED ! NEED TO PUSH AFTER ${norm}" # 
 	  		;;
 		"fix") # pfix	
-			if [ "$changes" != "0" ]; then 
+			if [ "$changed_files" != "0" ]; then 
 				echo -e "\n${cyan}FIXING${norm}" 
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_status_with_untracked
@@ -607,82 +608,83 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			  fi
 			;;
 		"pull") # pget
-			#local LOCAL1 # old
-			#local LOCAL2 # after pull 
-			#local BASE
-			#local REMOTE
-			#[ "$changes" != "0" ] && echo -e -n "\n${red_back}NEEDS COMMIT FIRST${norm}" 
-			#echo
-			sync_status=$(get_sync_status "remote" notice)
+				#local LOCAL1 # old
+				#local LOCAL2 # after pull 
+				#local BASE
+				#local REMOTE
+				#[ "$changed_files" != "0" ] && echo -e -n "\n${red_back}NEEDS COMMIT FIRST${norm}" 
+				#echo
+			# sync_status=$(get_sync_status "remote" notice)
 
-			#LOCAL1=$(git rev-parse HEAD)
-			#BASE=`git merge-base @ @{u} 2> /dev/null` 
-			#curr_remote=`current_remote`
+				#LOCAL1=$(git rev-parse HEAD)
+				#BASE=`git merge-base @ @{u} 2> /dev/null` 
+				#curr_remote=`current_remote`
 
-			#echo -e -n "\n  Ask ${green}$curr_remote${norm} for last commit .. " 1>&2
-			#REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
-			#res_code=$?
-			#log_print "[cmd_project_sync] REMOTE: $REMOTE"
-			#log_print "[cmd_project_sync] res_code: $res_code"
-			#if [ "$REMOTE" == "" ]; then
-			#	echo
-			#	error "NO UPSTREAM"
-			#	return 1
-			#  fi
+				#echo -e -n "\n  Ask ${green}$curr_remote${norm} for last commit .. " 1>&2
+				#REMOTE=`git ls-remote 2>/dev/null | awk '/HEAD/ {print $1}'` # from remote host
+				#res_code=$?
+				#log_print "[cmd_project_sync] REMOTE: $REMOTE"
+				#log_print "[cmd_project_sync] res_code: $res_code"
+				#if [ "$REMOTE" == "" ]; then
+				#	echo
+				#	error "NO UPSTREAM"
+				#	return 1
+				#  fi
 
-			if [ "$changes" == "0" ]; then
-				if [ "$sync_status" == "pull" ]; then
+			if [ "$changed_files" == "0" ]; then
+				#if [ "$sync_status" == "pull" ]; then
 					if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 						echo 
-						cmd_git_pull
+						UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_pull all
 					  #else
 					  #	notice "Remote is actual"
 					  else
 						echo -e "\n${cyan}PULL${norm} $prj_name: $prj_path" 
-						git pull --all --no-rebase # --stat --all --quiet -vv 
+						git pull --no-rebase # --stat --all --quiet -vv 
 					  fi
-				  else
-				  	echo
-				  fi
-					# -vv   list out your local branches with more information including what each branch is tracking and if your local branch is ahead, behind or both.
-				#echo LOCAL1: $LOCAL1 1>&2
-				#echo LOCAL2: $LOCAL2 1>&2
-				#LOCAL2=$(git rev-parse HEAD)
-				#if [ "$LOCAL1" == "$LOCAL2" ]; then
-				#	echo -e -n "\n${green}Same${norm}" 
-				#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
+				#  else
+				#  	echo
 				#  fi
+					# -vv   list out your local branches with more information including what each branch is tracking and if your local branch is ahead, behind or both.
+					#echo LOCAL1: $LOCAL1 1>&2
+					#echo LOCAL2: $LOCAL2 1>&2
+					#LOCAL2=$(git rev-parse HEAD)
+					#if [ "$LOCAL1" == "$LOCAL2" ]; then
+					#	echo -e -n "\n${green}Same${norm}" 
+					#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
+					#  fi
 			  else
 				echo
-				git diff --stat=200 --color | sed -n '$! p' || return
-				if [ "$sync_status" == "pull" ]; then
+				#if [ "$sync_status" == "pull" ]; then
 					if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 						# echo 
-						UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_diff_file_list_this_and_prior_commits
-						UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_fetch
+						#UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_diff_file_list_this_and_prior_commits
+						UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_fetch all
 					  else
 						echo -e -n "\n${cyan}FETCH${norm} $prj_name: $prj_path" 
 						git fetch || return # && git diff remote ??
 					  fi
-				  fi
-				#local LOCAL2=$(git rev-parse HEAD)
-					#echo LOCAL1: $LOCAL1 1>&2
-					#echo LOCAL2: $LOCAL2 1>&2
-				#if [ "$LOCAL1" == "$LOCAL2" ]; then
-				#	echo -e -n "\n${yellow}Remote not changed${norm}" 
-				#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
-				#  else
-				#  	echo -e -n "\n${red_blink}NEEDS_COMMIT${norm}" 
+				echo -e "${red_back} BEFORE MERGE NEEDS TO COMMIT LOCAL CHANGES FIRST -> ${norm}"
+				git diff --stat=200 --color | sed -n '$! p' || return
 				#  fi
+					#local LOCAL2=$(git rev-parse HEAD)
+						#echo LOCAL1: $LOCAL1 1>&2
+						#echo LOCAL2: $LOCAL2 1>&2
+					#if [ "$LOCAL1" == "$LOCAL2" ]; then
+					#	echo -e -n "\n${yellow}Remote not changed${norm}" 
+					#	git diff HEAD~1 HEAD --stat=200 --color | sed -n '$! p' || return
+					#  else
+					#  	echo -e -n "\n${red_blink}NEEDS_COMMIT${norm}" 
+					#  fi
 			  fi
 			#echo
 			;;
 		"push") # commit and push (psave*)
 
-			if [[ "$changes" != "0" ]]; then
+			if [[ "$changed_files" != "0" ]]; then
 				# append_and_commit
 				#echo -e " ${red_back} NEED TO COMMIT${norm}" 1>&2 
-				log_print "commit changes"
+				log_print "commit changed_files"
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					echo 
 					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_status_with_untracked
@@ -706,7 +708,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				sync_status=$(get_sync_status "remote" silent)
 			  fi
 			if [ "$sync_status" == "ok" ]; then
-				if [ "$changes" == "0" ]; then
+				if [ "$changed_files" == "0" ]; then
 					echo -e -n "${green}same${norm}"
 					echo
 					return
@@ -746,7 +748,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 			cmd_project_sync $prj_name $prj_path "push" $msg
 			return
 
-			if [ "$changes" != "0" ]; then
+			if [ "$changed_files" != "0" ]; then
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 				  	cmd_git_append_and_commit "$msg"
 				  else
@@ -971,10 +973,10 @@ get_sync_status(){		# <remote_mode>
 	changes=$(echo `git status -s --untracked-files | wc -l`) # WARNING!! -  $() used to cut tab
 	log_print "[get_sync_status] changes: $changes"
 	if [ "$result_format" == "notice" ]; then
-		[[ "$status" == "ok" && "$changes" != "0" ]] 	&& echo -n -e "${red_back} NEED TO COMMIT AND PUSH ${norm}" 1>&2
+		[[ "$status" == "ok" && "$changes" != "0" ]] 	&& echo -n -e "${red_back} NEED TO COMMIT FIRST${norm}" 1>&2
 		[[ "$status" == "ok" && "$changes" == "0" ]]	&& echo -n -e "${green}same${norm}" 1>&2
-		[ "$status" == "pull" ] 			&& echo -n -e "${red_back} NEEDS PULL ${norm}" 1>&2
-		[ "$status" == "push" ] 			&& echo -n -e "${red_back} NEEDS PUSH ${norm}" 1>&2
+		[ "$status" == "pull" ] 			&& echo -n -e "${yellow} NEEDS PULL ${norm}" 1>&2
+		[ "$status" == "push" ] 			&& echo -n -e "${yellow} NEEDS PUSH ${norm}" 1>&2
 		[ "$status" == "diverged" ] 			&& echo -n -e "${red_back} DIVERGED ${norm}" 1>&2 # ! NEED TO PUSH AFTER
 		[ "$status" == "no_upstream" ] 			&& echo -n -e "${red_back} NO UPSTREAM ${norm}" 1>&2 # ! NEED TO PUSH AFTER
 	  fi
