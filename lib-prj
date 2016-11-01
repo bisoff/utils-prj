@@ -76,12 +76,19 @@ cmd_utils_prj_wrapper(){
 	shift
 	local params
 	while :	;do
-		#echo "arg: $1"
+		#echo "arg: $1" - -v not active yet
 		case "$1" in
 			#-h|--help) ;;
 			-v) UTILS_PRJ_TRACE=1 ;;
 			#-*) echo "invalid argument $1";;
-			?*) params="$params $1" ;;
+			?*) 
+				if [[ $1 =~ [[:space:]] ]]; then 
+					params="$params '$1'"
+				  else
+					params="$params $1"
+				  fi 
+				;;
+
 			"") break ;;
 		  esac
 		shift
