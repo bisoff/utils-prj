@@ -395,7 +395,7 @@ cmd_set_enum(){			# pset psets
 	#echo prj_to: $prj_to
 	#echo -e "\n${grey_back}          project sets          ${norm}"
 	local find_path="find" # linux/osx
-	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find" # in windows $EXEPATH ex. C:\app\git - std env by git bash
+	[[ "$TERM" == "cygwin" ]] && find_path="/usr/bin/find.exe" # $(cygpath -m "$EXEPATH")  in windows $EXEPATH ex. C:\app\git - std env by git bash
 	log_print "find_path:\t$find_path [cmd_set_enum]" 1>&2
 	local set_default=$(get_current_set)
 	#echo set_default: $set_default
@@ -857,7 +857,7 @@ get_project_name(){		# <project_path>
 	(
 	cd "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST" #[ $UTILS_PRJ_TRACE -eq 1 ] &&  pwd 
 	find_path="find"
-	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find"
+	[[ "$TERM" == "cygwin" ]] && find_path="/usr/bin/find.exe" #$(cygpath-m "$EXEPATH")
 	log_print "find_path:\t[get_project_name] $find_path" 1>&2
 	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default -exec basename "{}" ';'); do # all files w/o extensions | sed 's/^\.\///'
 		log_print "prj_loop:\t[get_project_name] $prj_loop" 1>&2
@@ -901,7 +901,7 @@ get_object_type(){		# <prj|list>
 	[ "$obj" == "" ] && echo -e "${red}[get_object_type] param 'obj' is missed !${norm}" 1>&2 && return 
 
 	local find_path="find" # linux/osx
-	[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find" # in windows $EXEPATH ex. C:\app\git - std env by git bash
+	[[ "$TERM" == "cygwin" ]] && find_path="/usr/bin/find.exe" # in windows $EXEPATH ex. C:\app\git - std env by git bash   $(cygpath-m "$EXEPATH")
 	log_print "find_path:\t[get_object_type] $find_path" 1>&2
 
 	(
