@@ -7,11 +7,12 @@
 
 utils-prj is a set of shell scripts for:
 
-	* rapid control dozens of projects in different contexts
-		** define and switch context (cmd: psw <context>). Context describes set of project
-		** go to project home folder. Project points to some folder (ex git repo)
-		** bulk operation with context projects or overall (like review state of all projects in context, pull or fix changes, full sync with remotes)
-	* simple way to change current folder in terminal using project alias (ex. 'padd prj1' will add alias for current folder and 'pgo prj1' will change current folder)
+	* rapid control for dozens of code projects in different contexts (personal, job, community, etc..)
+		** define context - set of projects
+		** define code project by alias, path and context 
+		** switch context for bulk operations
+		** execute bulk operation with set of projects or separate project by alias (such as review state, pull, fix, push or sync)
+	* simple way to change current folder in console using project alias 
 
 == Terms
 
@@ -19,43 +20,44 @@ utils-prj is a set of shell scripts for:
 
 *set* - a group of projects (context), ex. in different context (ex job, my_utils, my_studies, etc.)
 
+== Example
+
+$ psetadd -cmn	# add set of projects
+$ psw		# show all sets
+$ padd prj1 	# add alias for current folder (code project)
+$ cd $HOME	# move to any folder
+$ plist 	# enlist current set
+$ pst1		# show status of prj1 
+$ pgo prj1	# change current path to prj1 home path
 
 == Setup
 
-=== Prerequisites
+=== Prerequisites (external tools)
 
-==== Mandatory:
-	* coreutils, one of:
-		** msys on Windows, ex:
-			*** git 1.7?.5? (msys 32bit)
-			*** git 2.0.0 (msys 64bit)
-			*** msys
-			*** msys2
-			*** mingw (msys 32bit)
-			*** mingw64
-		** bash 3.2??+ (linux ??)
-	** gnu-sed (for osx only) (brew install coreutils)
+	* git
+	* coreutils
+	* msys2 (Windows only) MSYS2 can't be installed on FAT* partitions or WinXP
+	* gnu-sed (OSX only)
 
-==== Optional:
-	* utils-env library - to print colored messages requires (you may don't install them, then messages just willn't in color)
-	* utils-git library - to fix in vcs(git) or sync with remotes (bash script library to manupulate of git repositories in simple manner)
-		** cmd_state_of_one_project	gis
-		** cmd_save_all_projects		gis,gok
-		** cmd_save_project_at_local	gac
-	* project tools (accessable by PATH var)
-		** git
-		** rsync (cwRsync) - in dev
-		** subversion - in dev
+=== Recommendations 
+
+	* ConEmu (Windows only)
+	* utils-env - shell utility for print colored messages - https://github.com/bisoff/utils-env
+	* utils-git - shell utility for work with git (to work with repository in simple manner) - https://github.com/bisoff/utils-git
 
 === How to install
-
-	coreutils
-	git
-
-	$ cd <my_utils> # ex cd $HOME
-	$ clone ..
-	$ setup
-	setup 		# it makes configs in user's home within <host_name> subfolder and default set of projects
+	
+	* osx
+		** brew install coreutils
+	* windows
+		** download and install - https://sourceforge.net/projects/msys2/files/latest/download
+		** pacman -Syu		# re-run console
+		** pacman -S git	# if absent
+	* shell
+		$ cd <folder with utils>  # ex cd $HOME
+		$ git clone https://github.com/bisoff/utils-prj.git
+		$ cd utils-prj
+		$ ./setup # it makes configs in user's home within <host_name> subfolder and default set of projects
 
 === How to uninstall
 
