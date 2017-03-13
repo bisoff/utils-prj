@@ -889,7 +889,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 					#echo -e -n "\n${green}work saved${norm}"
 					echo
 					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_append_and_commit "$msg"
-					result "Work COMMITED to "`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
+					result "Work FIXED"
 				  else
 					git status -s --untracked-files
 					echo
