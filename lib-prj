@@ -136,37 +136,51 @@ cmd_utils_prj_setup(){
 	#[ ! -d ~/.utils-git ] && echo "to run commands on git repos required utils-git"
 	#[ ! -d ~/.utils-env ] && echo "to get messages in colored manner required utils-env"
 
+
 	[ ! -d "$HOME/.utils-prj" ] && mkdir "$HOME/.utils-prj"
-	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE" ] && cp "$UTILS_PRJ_HOME/$UTILS_PRJ_INCLUDE" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
+	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE" ] && cp "$UTILS_PRJ_HOME/templates/$UTILS_PRJ_INCLUDE" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
 	# REPLACE '$UTILS_ROOT' in 'export UTILS_PRJ_HOME="$UTILS_ROOT/utils-prj' to "$UTILS_PRJ_HOME"
-	sed -E -i 's|^(export UTILS_PRJ_HOME=")(\$UTILS_ROOT\/utils-prj)|\1'"$UTILS_PRJ_HOME"'|' "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
-	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES" ] && cp "$UTILS_PRJ_HOME/$UTILS_PRJ_ALIASES" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
+	case "$UTILS_PRJ_THE_OS" in
+		MINGW*)
+			UTILS_PRJ_SED_BACKUP=""
+			alias sed='sed'
+			;;
+		Darwin)
+			UTILS_PRJ_SED_BACKUP="''"
+			alias sed='gsed'
+	  esac
+	sed -E -i $UTILS_PRJ_SED_BACKUP 's|^(export UTILS_PRJ_HOME=")(\$UTILS_ROOT\/utils-prj)|\1'"$UTILS_PRJ_HOME"'|' "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
+	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES" ] && cp "$UTILS_PRJ_HOME/templates/$UTILS_PRJ_ALIASES" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
 	local bash_profile=$HOME/.bash_profile # fix ~ bug
 	touch "$bash_profile"
 
 	# append include to .bash_profile
+	type sed
+	#set -x
 	sed -E -n '/^\. "\$HOME\/\.utils-prj\/utils-prj-include"/{q111}' "$HOME/.bash_profile" #; echo $?
+	#set +x
 	if [ "$?" != "111" ]; then
 		echo "" >> "$bash_profile"
 		echo '[[ $- == *i* ]] && echo "Loading $HOME/.utils-prj/utils-prj-include .. "' >> "$bash_profile"
 		echo '. "$HOME/.utils-prj/utils-prj-include"' >> "$bash_profile"
 	  fi
-	mkdir "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST"
-	if [ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" ];then
+	mkdir "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST" 2> /dev/null
+	if [ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" ];then
 		cp "$UTILS_PRJ_HOME/default" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default"
 		touch "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/-my_projects" # default set
 	  fi
-	notice "basic commands:"
-	echo "'pshow' - print current configuration (config files, project sets with projects)"
-	echo "'padd project_alias' - add alias and current folder to projects list (at start - 'default')"
-	echo "'plist' - review assigned aliases for current set"
-	echo "'pgo project_alias' - go home path for project"
-	echo "'pfix project_alias' - commit changes at local repository"
-	echo "'psave1 ' - save current project and sync with remote repository"
-	echo "'psave project_alias' - save any project and sync with remote repository"
-	echo "'pget project_alias' - pull project from remote repository"
-	echo "'psavea set_alias' - commit and push all projects for current context"
-	echo "'phelp' - commands overview"
+	#cmd_utils_prj_notice "basic commands:"
+	#echo "'pshow' - print current configuration (config files, project sets with projects)"
+	#echo "'padd project_alias' - add alias and current folder to projects list (at start - 'default')"
+	#echo "'plist' - review assigned aliases for current set"
+	#echo "'pgo project_alias' - go home path for project"
+	#echo "'pfix project_alias' - commit changes at local repository"
+	#echo "'psave1 ' - save current project and sync with remote repository"
+	#echo "'psave project_alias' - save any project and sync with remote repository"
+	#echo "'pget project_alias' - pull project from remote repository"
+	#echo "'psavea set_alias' - commit and push all projects for current context"
+	#echo "'phelp' - commands overview"
+	#cmd_utils_prj_help
 	}
 cmd_utils_prj_uninstall(){
 	# cut '. ~/.utils-prj/include' from .bash_profile

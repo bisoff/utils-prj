@@ -1,0 +1,12 @@
+#!/bin/bash
+
+#[ "$UTILS_ROOT" == "" ] && UTILS_ROOT="$HOME"
+#export UTILS_PRJ_HOME="$UTILS_ROOT/utils-prj" # $UTILS_ROOT defined in ~/.utils-env/utils-env-include
+
+export UTILS_PRJ_HOME="$UTILS_ROOT/utils-prj"
+
+#export PATH=$PATH:$HOME_UTILS_PRJ
+
+. "$UTILS_PRJ_HOME/lib-prj"
+. "$HOME/.utils-prj/utils-prj-aliases"
+

@@ -1,0 +1,62 @@
+#!/bin/bash
+
+#<obj> = <list>/<prj> | <list>/ | /<prj> | <prj> | . | .. | / | ...
+# service
+	alias       pshow='cmd_utils_prj_wrapper cmd_show_current_config'				#
+	alias        pupd='. "$HOME/.utils-prj/utils-prj-aliases"; . "$HOME/.utils-prj/utils-prj-include"' # 			reload lib and aliases
+	alias       phelp='cmd_utils_prj_help'								#			view readme
+	alias  puninstall='cmd_utils_prj_uninstall'										#
+# edit
+	alias         pel='cmd_utils_env_ed "$UTILS_PRJ_HOME/lib-prj"'					# 			edit library (lib-prj) # to find it needs chmod +x lib-prj
+	#alias        ped='cmd_utils_env_ed "$UTILS_PRJ_CONFIGS/$utils_prj_the_host/default"'		#			useless. instead use 'pshow'. 'plist'. 'psets' or 'psw'
+	alias         pea='cmd_utils_env_ed "$HOME/.utils-prj/utils-prj-aliases"'			#
+	alias         pei='cmd_utils_env_ed "$HOME/.utils-prj/utils-prj-include"'			#
+	alias         peh='cmd_utils_env_ed "$UTILS_PRJ_HOME/help.clr"'					#
+	alias         per='cmd_utils_env_ed "$UTILS_PRJ_HOME/readme.adoc"'				#
+	alias         pet='cmd_utils_env_ed "$UTILS_PRJ_HOME/utils-prj.todo"'				#
+# project
+	alias        padd='cmd_utils_prj_wrapper cmd_project_add'					# <obj>
+	alias        pdel='cmd_utils_prj_wrapper cmd_project_delete'					# <obj> 		from list|default_list
+	alias        pren='cmd_utils_prj_wrapper cmd_project_rename'					# <prj>			rename project (rename alias and replace it in list)
+	alias       pmove='cmd_utils_prj_wrapper cmd_project_move'					# <obj>
+# enum
+	alias       plist='cmd_utils_prj_wrapper cmd_project_enum ..'					# <obj> 		list projects (from <the_host>.<list|default_list>): <alias>: home path
+	alias      plists='cmd_utils_prj_wrapper cmd_project_enum ...'					# <obj>			list all projects
+	alias        pset='cmd_utils_prj_wrapper cmd_set_enum $*'					# <obj> 		list projects (from <the_host>.<list|default_list>): <alias>: home path
+	alias       psets='cmd_utils_prj_wrapper cmd_set_enum $*'					# <obj>    		list projects (from <the_host>.<list|default_list>): <alias>: home path
+# set
+	alias     psetadd='cmd_utils_prj_wrapper cmd_set_add'						# <list>
+	alias     psetdel='cmd_utils_prj_wrapper cmd_set_delete'					# <list>
+	alias     psetren='cmd_utils_prj_wrapper cmd_set_rename'					# <list>
+# context
+	alias         pgo='cmd_utils_prj_wrapper cmd_project_go'					# <prj>			change current dir to project home dir
+	alias         psw='cmd_utils_prj_wrapper cmd_set_switch'					# <obj>			a-la pgo only for set (change context)
+	alias       pexec='cmd_utils_prj_wrapper cmd_project_exec'					# <prj> <cmd>		execute passed shell command in project's path
+# status
+	alias         pst='cmd_utils_prj_wrapper cmd_project_action local'				# [<obj>]		projects_state $prj_list $remote_mode $trace		remote_mode=local; cmd_state_of_all_projects
+	alias        pst1='cmd_utils_prj_wrapper cmd_project_action local .'				# [<obj>]		projects_state $prj_list $remote_mode $trace		remote_mode=local; cmd_state_of_all_projects
+	alias        psta='cmd_utils_prj_wrapper cmd_project_action local ..'				# [<obj>]		projects_state $prj_list $remote_mode $trace		remote_mode=local; cmd_state_of_all_projects
+
+	alias        pstx='cmd_utils_prj_wrapper cmd_project_action remote'				# <obj> [<msg>]									remote_mode=remote; cmd_state_of_all_projects
+	alias       pstx1='cmd_utils_prj_wrapper cmd_project_action remote .'				# [<msg>]									remote_mode=remote; cmd_state_of_all_projects
+	alias       pstxa='cmd_utils_prj_wrapper cmd_project_action remote ..'				# [<msg>]									remote_mode=remote; cmd_state_of_all_projects
+# actions
+	alias        pfix='cmd_utils_prj_wrapper cmd_project_action fix'				# <obj> [<msg>]		add, commit
+	alias       pfix1='cmd_utils_prj_wrapper cmd_project_action fix .'				# [<msg>]		add, commit
+	alias       pfixa='cmd_utils_prj_wrapper cmd_project_action fix ..'				# [<msg>]		add, commit
+
+	alias        pget='cmd_utils_prj_wrapper cmd_project_action pull'				# <obj> [<msg>]
+	alias       pget1='cmd_utils_prj_wrapper cmd_project_action pull .'				# [<msg>]
+	alias       pgeta='cmd_utils_prj_wrapper cmd_project_action pull ..'				# [<msg>]
+
+	alias       psave='cmd_utils_prj_wrapper cmd_project_action push'				# <obj> [<msg>]
+	alias      psave1='cmd_utils_prj_wrapper cmd_project_action push .'				# [<msg>]
+	alias      psavea='cmd_utils_prj_wrapper cmd_project_action push ..'				# [<msg>]
+
+	alias       psync='cmd_utils_prj_wrapper cmd_project_action full'				# <obj> [<msg>]
+	alias      psync1='cmd_utils_prj_wrapper cmd_project_action full .'				# [<msg>]
+	alias      psynca='cmd_utils_prj_wrapper cmd_project_action full ..'				# [<msg>]
+
+	# unalias pstate; unalias pstatex; unalias pfixall; unalias pgetall; unalias psaveall; unalias psyncall
+
+	#alias pstl2='cmd_utils_prj_wrapper cmd_project_action local ..'
