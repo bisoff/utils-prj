@@ -23,11 +23,17 @@ utils-prj is a set of shell scripts for:
 == Example
 
 $ psetadd -cmn	# add set of projects
+
 $ psw		# show all sets
+
 $ padd prj1 	# add alias for current folder (code project)
+
 $ cd $HOME	# move to any folder
+
 $ plist 	# enlist current set
+
 $ pst1		# show status of prj1 
+
 $ pgo prj1	# change current path to prj1 home path
 
 == Setup
