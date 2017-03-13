@@ -41,7 +41,34 @@ case "$UTILS_PRJ_THE_OS" in
 		# fail !
   esac
 alias log_print='[ "$UTILS_PRJ_TRACE" == "1" ] && echo -e 1>&2 '
+
 alias error='cmd_utils_prj_error'
+alias warning='cmd_utils_prj_warning'
+alias notice='cmd_utils_prj_notice'
+alias result='cmd_utils_prj_result'
+function cmd_utils_prj_error(){
+	local msg
+	msg="$*"
+	#log_print "msg: $msg"
+	echo -e "${red}$msg${norm}"
+	}
+function cmd_utils_prj_warning(){
+	local msg
+	msg="$*"
+	echo -e "${yellow}$msg${norm}"
+	}
+function cmd_utils_prj_notice(){
+	local msg
+	msg="$*"
+	#log_print "msg: $msg"
+	echo -e "${cyan}$msg ${norm}"
+	}
+function cmd_utils_prj_result(){
+	local msg
+	msg="$*"
+	#log_print "msg: $msg"
+	echo -e "${green}$msg${norm}"
+	}
 
 if [ "`type -t cmd_utils_git_wrapper`" == "function" ]; then
 	UTILS_PRJ_USE_UTILS_GIT=true
@@ -153,12 +180,7 @@ cmd_utils_prj_rpad(){
 	line=`printf "%-${pad}s" "$msg"`
 	printf "%s%s" $msg "${line:${#msg}}"
 	}
-cmd_utils_prj_error(){
-	local msg
-	msg="$*"
-	#log_print "msg: $msg"
-	echo -e "${red}$msg${norm}"
-	}
+
 get_current_set(){
 	#local project_list=$1
 	#if [[ "$project_list" == "" ]]; then
@@ -862,7 +884,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				log_print "commit changed_files"
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					echo
-					result "unstaged work found:"
+					notice "unstaged work found:"
 					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_status_with_untracked
 					#echo -e -n "\n${green}work saved${norm}"
 					echo
@@ -899,19 +921,19 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 						#return #&& echo -e "${red}FIXING${norm}"
 					#git remote | xargs -L1 git push --all --quiet -u
 
-				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-				  	echo
-					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_push all
-				  else
-				  	echo
-					log_print "local push"
-				  	remotes=$(git remote show)
-				  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
-					for name in $remotes; do
-						echo -e "git ${red}PUSH${norm} to ${green}$name$norm: $green$curr_branch$norm"  #-u
-						git push "$name" "$curr_branch" #all --all
-					  done
-				  fi
+			if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+			  	echo
+				UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_push all # to all remotes
+			  else
+			  	echo
+				log_print "local push"
+			  	remotes=$(git remote show)
+			  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
+				for name in $remotes; do
+					echo -e "git ${red}PUSH${norm} to ${green}$name$norm: $green$curr_branch$norm"  #-u
+					git push "$name" "$curr_branch" #all --all
+				  done
+			  fi
 			#  fi
 				#echo -e "${red}PUSHING${norm}"
 				#cmd_git_commit_and_push "$msg"
