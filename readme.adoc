@@ -22,19 +22,13 @@ utils-prj is a set of shell scripts for:
 
 == Example
 
-$ psetadd -cmn	# add set of projects
-
-$ psw		# show all sets
-
-$ padd prj1 	# add alias for current folder (code project)
-
-$ cd $HOME	# move to any folder
-
-$ plist 	# enlist current set
-
-$ pst1		# show status of prj1 
-
-$ pgo prj1	# change current path to prj1 home path
+	$ psetadd -cmn	# add set of projects
+	$ psw		# show all sets
+	$ padd prj1 	# add alias for current folder (code project)
+	$ cd $HOME	# move to any folder
+	$ plist 	# enlist current set
+	$ pst1		# show status of prj1 
+	$ pgo prj1	# change current path to prj1 home path
 
 == Setup
 
@@ -45,30 +39,29 @@ $ pgo prj1	# change current path to prj1 home path
 	* msys2 (Windows only) MSYS2 can't be installed on FAT* partitions or WinXP
 	* gnu-sed (OSX only)
 
-=== Recommendations 
-
-	* ConEmu (Windows only)
-	* utils-env - shell utility for print colored messages - https://github.com/bisoff/utils-env
-	* utils-git - shell utility for work with git (to work with repository in simple manner) - https://github.com/bisoff/utils-git
-
 === How to install
 	
 	* osx
 		** brew install coreutils
 	* windows
 		** download and install - https://sourceforge.net/projects/msys2/files/latest/download
-		** pacman -Syu		# re-run console
-		** pacman -S git	# if absent
+		** pacman -Syu		# then re-run console
+		** pacman -S git	
 	* shell
-		$ cd <folder with utils>  # ex cd $HOME
-		$ git clone https://github.com/bisoff/utils-prj.git
-		$ cd utils-prj
-		$ ./setup # it makes configs in user's home within <host_name> subfolder and default set of projects
+		** $ cd <folder with utils>  # ex cd $HOME
+		** $ git clone https://github.com/bisoff/utils-prj.git
+		** $ cd utils-prj
+		** $ ./setup # it makes configs in user's home within <host_name> subfolder and default set of projects
 
 === How to uninstall
 
-	$ uninstall-utils-prj
+	$ p-uninstall
 
+=== Recommendations 
+
+	* setup ConEmu (Windows only)
+	* setup utils-env - shell utility to print colored messages and much more - https://github.com/bisoff/utils-env
+	* setup utils-git - shell utility with much short commands to work with git repos - https://github.com/bisoff/utils-git
 
 == Ref impl
 
