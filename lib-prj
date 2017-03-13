@@ -896,7 +896,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 					git add -A .
 					git commit -m "$msg"
 				  fi
-				echo
+				#echo
 				sync_status="push"
 			  else
 			  	echo -e -n ' '
