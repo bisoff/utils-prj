@@ -709,7 +709,7 @@ cmd_project_action(){		# prs 		<cmd> <obj> [<msg>]
 		#if [ "$cmd" == "local" ]; then
 		#(current)
 		local tab="        " # mingw didn't background tabs
-		echo -e "\n${black_on_green}${red_on_green} `cmd_utils_prj_rpad $obj 44`$tab${norm}" # $tab$tab $tab$tab ${magenta_on_green}
+		echo -e "\n${black_on_green}${red_on_green} `cmd_utils_prj_rpad $obj `$tab${norm}" # $tab$tab $tab$tab ${magenta_on_green}
 
 		for prj_name in $(cat $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$obj.list | sed -e /^$/d | tr -d '\r' | sort); do
 			#prj_name=`echo $prj_name` # normalize
@@ -862,8 +862,8 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				log_print "commit changed_files"
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					echo
+					result "unstaged work found:"
 					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_status_with_untracked
-					result "unstaged work found"
 					#echo -e -n "\n${green}work saved${norm}"
 					echo
 					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_append_and_commit "$msg"
