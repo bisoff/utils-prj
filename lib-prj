@@ -884,7 +884,7 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				log_print "commit changed_files"
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					echo
-					notice "Unstaged work found"
+					notice "Unstaged work found:"
 					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_status_with_untracked
 					#echo -e -n "\n${green}work saved${norm}"
 					echo
