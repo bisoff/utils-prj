@@ -136,8 +136,11 @@ cmd_utils_prj_setup(){
 	#[ ! -d ~/.utils-git ] && echo "to run commands on git repos required utils-git"
 	#[ ! -d ~/.utils-env ] && echo "to get messages in colored manner required utils-env"
 
-
-	[ ! -d "$HOME/.utils-prj" ] && mkdir "$HOME/.utils-prj"
+	notice "Verifing $HOME/.utils-prj"
+	if [ ! -d "$HOME/.utils-prj" ];then
+		mkdir "$HOME/.utils-prj"
+	  fi
+	notice "Verifing $UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
 	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE" ] && cp "$UTILS_PRJ_HOME/templates/$UTILS_PRJ_INCLUDE" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
 	# REPLACE '$UTILS_ROOT' in 'export UTILS_PRJ_HOME="$UTILS_ROOT/utils-prj' to "$UTILS_PRJ_HOME"
 	case "$UTILS_PRJ_THE_OS" in
@@ -149,7 +152,9 @@ cmd_utils_prj_setup(){
 			UTILS_PRJ_SED_BACKUP="''"
 			alias sed='gsed'
 	  esac
+	notice "Verifing UTILS_PRJ_HOME"
 	sed -E -i $UTILS_PRJ_SED_BACKUP 's|^(export UTILS_PRJ_HOME=")(\$UTILS_ROOT\/utils-prj)|\1'"$UTILS_PRJ_HOME"'|' "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
+	notice "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
 	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES" ] && cp "$UTILS_PRJ_HOME/templates/$UTILS_PRJ_ALIASES" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
 	local bash_profile=$HOME/.bash_profile # fix ~ bug
 	touch "$bash_profile"
