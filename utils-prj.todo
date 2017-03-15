@@ -1,9 +1,15 @@
-	☐	pgeta / psavea 
+	☐	дублируется
+[[ $- == *i* ]] && echo "Loading $HOME/.utils-prj/utils-prj-include .. "
+. "$HOME/.utils-prj/utils-prj-include"
+	☐	pgeta / psavea
 			выделить алиас проекта - cyan?
 			ask bb - bb сделать желтым
 	☐	psavea
-			вместо To https://bisoff@bitbucket.org/bisoff/utils-prj.git  сделать зелёным  bb/master 
+			вместо To https://bisoff@bitbucket.org/bisoff/utils-prj.git  сделать зелёным  bb/master
 	☐	psw без парамеров = psets
+	☐	psta - проверять все remotes
+	☐	psync - убрать лишние заголовки
+	☐	pgeta - merge after fetch - проверять ошибки слияния и автоматически коммитить не запрашивая сообщение
 	☐	pga - go to alias (inside prj)
 	☐	uj - pst* - добавить вывод ветки
 	☐	uj - save & test alias timestamp
@@ -14,9 +20,9 @@
 	☐	если есть diff и local <> remote - Написать красным -> NEEDS COMMIT
 
 	gsed - add alias if linux/mingw
-	
+
 	☐	utils-prj: pmove (поменять путь если имя указано и найдено но пути отличаются)
-	☐	utils_prj: remote - from rebase to merge 
+	☐	utils_prj: remote - from rebase to merge
 	☐	utils-prj: git remote | xargs -L1 git PULL --all --quiet -u ??
 	☐	[<list>/]<prj>
 	☐	pgo - если алиас не найден то поискать в общем списке
@@ -40,14 +46,14 @@
 
 	read params - sed -> func
 	wrapper - test command exists - [ `type -t $1`"" == 'function' ]
-	wrapper 
+	wrapper
 	1st - test cmd
 	next - if defaults -> use
-	next - parse object object 
+	next - parse object object
 		4rd detect msg|cmd
 	pfix1 obj -> cmd_project_action fix default[.] - cmd_project_action fix obj - ok
 	pfix1 msg -> cmd_project_action fix default[.] - cmd_project_action fix msg - ok?
-	cmd => signature[ cmd obj msg] ? 
+	cmd => signature[ cmd obj msg] ?
 	cmd
 	in each command test obj type?
 	if param like 'default={val1:val2}' then if next params is missed or '-' means use default values (here: val1, val2)
@@ -74,14 +80,14 @@
 	.gitignore в папку хоста чтобы не коммитить его в репо
 	cmd_move_set() {		# psetmove	<host>
 	add ppush? = pup
-	<prj> [<list>] переделать  на [<list>/]<prj> 
+	<prj> [<list>] переделать  на [<list>/]<prj>
 	cmd wrapper - if lib timestamp changed (fix when lib load) then reload itself - тоже для aliases
 	prj option - require MSG
 
 	add binds  Ctrl+Shift ??
 	detect project if home path is superfolde
 
-	вынести add prj to set в func - проверять что его там нет 
+	вынести add prj to set в func - проверять что его там нет
 	default переделать на $DEFAULT="~default"
 	psaveall <list1>,<list2>
 	instead get_curtent_set - add verify_set
@@ -98,11 +104,11 @@
 
 	keys(options)
 	в wrapper --help -h -?  -verbose => local UTILS_PRJ_TRACE=1
-	
+
 	... - all sets
 	 'set/prj' syntax
 
-	support named params style: -v -h -n: -p: -l:(-s?) -m:"" 
+	support named params style: -v -h -n: -p: -l:(-s?) -m:""
 	 -n=<prj> -p=<path> -t=<type> -r=<remote> -l(s?)=<list(set?)>
 
 	prj - opt: switch to branch (ex v2.0)
@@ -116,7 +122,7 @@
 	reference impl : clone setup psetadd cd padd plist cd- pgo touch pstate pstx pget psave psync pcmd (reset) ...
 	how todo remote commit (w/o push)
 
-	'alias log_print ' переименовать в cmd_utils.. 
+	'alias log_print ' переименовать в cmd_utils..
 
 	utils-prj-setup utils-prj-uninstall - заменит на cmd_utils..
 	get_current_set  get_project_name get_project_path get_object_type get_sync_status - заменить на cmd_..
