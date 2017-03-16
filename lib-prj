@@ -25,7 +25,7 @@ case "$UTILS_PRJ_THE_OS" in
 	MINGW*)
 		UTILS_PRJ_SED_BACKUP="" #|MSYS*
 		 #UTILS_PRJ_SED="sed"
-		alias sed='sed'
+		#alias sed='sed'
 		UTILS_PRJ_TIMESTAMP=`stat -c %y $HOME_UTILS_PRJ/lib-prj`
 		UTILS_PRJ_ALIAS_TIMESTAMP=`stat -c %y $HOME/.utils-prj/$UTILS_PRJ_ALIASES`
 		;;
@@ -36,9 +36,10 @@ case "$UTILS_PRJ_THE_OS" in
 		UTILS_PRJ_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME_UTILS_PRJ/lib-prj")
 		UTILS_PRJ_ALIAS_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME/.utils-prj/$UTILS_PRJ_ALIASES")
 		;;
-	# linux??)
+	linux)
 		# UTILS_PRJ_SED_BACKUP=??
 		# UTILS_PRJ_TIMESTAMP=??
+		;;
 	*)
 		# fail !
   esac
@@ -49,6 +50,7 @@ alias error='cmd_utils_prj_error'
 alias warning='cmd_utils_prj_warning'
 alias notice='cmd_utils_prj_notice'
 alias result='cmd_utils_prj_result'
+
 function cmd_utils_prj_error(){
 	local msg
 	msg="$*"
@@ -135,34 +137,42 @@ cmd_utils_prj_setup(){
 	# обновляем файлы если уже есть
 	#[ ! -d ~/.utils-git ] && echo "to run commands on git repos required utils-git"
 	#[ ! -d ~/.utils-env ] && echo "to get messages in colored manner required utils-env"
-
-	notice "Verifing $HOME/.utils-prj"
+	case "$UTILS_PRJ_THE_OS" in
+		MINGW*)
+			#UTILS_PRJ_SED_BACKUP=""
+			sedcmd="sed"
+			;;
+		Darwin)
+			cmd_utils_prj_notice "Verifing prerequisites ('gsed') ..."
+			type gsed 1>/dev/null
+			[ "$?" != "0" ] && cmd_utils_prj_error "gsed nod found. Use 'brew install coreutils'" && exit
+			#UTILS_PRJ_SED_BACKUP="''"
+			sedcmd="gsed"
+			;;
+		linux)
+			sedcmd="sed"
+			;;
+	  esac
+	cmd_utils_prj_notice "Verifing $HOME/.utils-prj"
 	if [ ! -d "$HOME/.utils-prj" ];then
 		mkdir "$HOME/.utils-prj"
 	  fi
-	notice "Verifing $UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
+	cmd_utils_prj_notice "Verifing $UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
 	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE" ] && cp "$UTILS_PRJ_HOME/templates/$UTILS_PRJ_INCLUDE" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
 	# REPLACE '$UTILS_ROOT' in 'export UTILS_PRJ_HOME="$UTILS_ROOT/utils-prj' to "$UTILS_PRJ_HOME"
-	case "$UTILS_PRJ_THE_OS" in
-		MINGW*)
-			UTILS_PRJ_SED_BACKUP=""
-			alias sed='sed'
-			;;
-		Darwin)
-			UTILS_PRJ_SED_BACKUP="''"
-			alias sed='gsed'
-	  esac
-	notice "Verifing UTILS_PRJ_HOME"
-	sed -E -i $UTILS_PRJ_SED_BACKUP 's|^(export UTILS_PRJ_HOME=")(\$UTILS_ROOT\/utils-prj)|\1'"$UTILS_PRJ_HOME"'|' "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
-	notice "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
+
+	cmd_utils_prj_notice "Verifing UTILS_PRJ_HOME"
+	#set -x
+	$sedcmd -E -i 's|^(export UTILS_PRJ_HOME=")(\$UTILS_ROOT\/utils-prj)|\1'"$UTILS_PRJ_HOME"'|' "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE" # $UTILS_PRJ_SED_BACKUP
+	#set +x
+	#cmd_utils_prj_notice "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
 	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES" ] && cp "$UTILS_PRJ_HOME/templates/$UTILS_PRJ_ALIASES" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
 	local bash_profile=$HOME/.bash_profile # fix ~ bug
 	touch "$bash_profile"
 
 	# append include to .bash_profile
-	type sed
 	#set -x
-	sed -E -n '/^\. "\$HOME\/\.utils-prj\/utils-prj-include"/{q111}' "$HOME/.bash_profile" #; echo $?
+	$sedcmd -E -n '/^\. "\$HOME\/\.utils-prj\/utils-prj-include"/{q111}' "$HOME/.bash_profile" #; echo $?
 	#set +x
 	if [ "$?" != "111" ]; then
 		echo "" >> "$bash_profile"
@@ -185,7 +195,7 @@ cmd_utils_prj_setup(){
 	#echo "'pget project_alias' - pull project from remote repository"
 	#echo "'psavea set_alias' - commit and push all projects for current context"
 	#echo "'phelp' - commands overview"
-	#cmd_utils_prj_help
+	cmd_utils_prj_help
 	}
 cmd_utils_prj_uninstall(){
 	# cut '. ~/.utils-prj/include' from .bash_profile

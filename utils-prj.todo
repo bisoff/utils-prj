@@ -1,6 +1,4 @@
-	☐	дублируется
-[[ $- == *i* ]] && echo "Loading $HOME/.utils-prj/utils-prj-include .. "
-. "$HOME/.utils-prj/utils-prj-include"
+	☐	setup (pupdate?) - обновить параметры установки при переносе утилиты (.bash_profile)
 	☐	pgeta / psavea
 			выделить алиас проекта - cyan?
 			ask bb - bb сделать желтым
