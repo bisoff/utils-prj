@@ -15,15 +15,17 @@
 UTILS_PRJ_TRACE=0
 UTILS_PRJ_HOME=$(dirname ${BASH_SOURCE[0]})
 #UTILS_PRJ_CONFIGS=`eval echo $HOME/.utils-prj` # fix '~' bug
+UTILS_PRJ_CONFIGS=$HOME/.utils-prj
 UTILS_PRJ_THE_HOST=$(uname -n)
 UTILS_PRJ_THE_OS=$(uname -s)
 UTILS_PRJ_INCLUDE="utils-prj-include"
 UTILS_PRJ_ALIASES="utils-prj-aliases"
+
 case "$UTILS_PRJ_THE_OS" in
 	MINGW*)
 		UTILS_PRJ_SED_BACKUP="" #|MSYS*
 		 #UTILS_PRJ_SED="sed"
-		alias sed='sed'
+		#alias sed='sed'
 		UTILS_PRJ_TIMESTAMP=`stat -c %y $HOME_UTILS_PRJ/lib-prj`
 		UTILS_PRJ_ALIAS_TIMESTAMP=`stat -c %y $HOME/.utils-prj/$UTILS_PRJ_ALIASES`
 		;;
@@ -34,14 +36,44 @@ case "$UTILS_PRJ_THE_OS" in
 		UTILS_PRJ_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME_UTILS_PRJ/lib-prj")
 		UTILS_PRJ_ALIAS_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME/.utils-prj/$UTILS_PRJ_ALIASES")
 		;;
-	# linux??)
+	linux)
 		# UTILS_PRJ_SED_BACKUP=??
 		# UTILS_PRJ_TIMESTAMP=??
+		;;
 	*)
 		# fail !
   esac
+
 alias log_print='[ "$UTILS_PRJ_TRACE" == "1" ] && echo -e 1>&2 '
+
 alias error='cmd_utils_prj_error'
+alias warning='cmd_utils_prj_warning'
+alias notice='cmd_utils_prj_notice'
+alias result='cmd_utils_prj_result'
+
+function cmd_utils_prj_error(){
+	local msg
+	msg="$*"
+	#log_print "msg: $msg"
+	echo -e "${red}$msg${norm}"
+	}
+function cmd_utils_prj_warning(){
+	local msg
+	msg="$*"
+	echo -e "${yellow}$msg${norm}"
+	}
+function cmd_utils_prj_notice(){
+	local msg
+	msg="$*"
+	#log_print "msg: $msg"
+	echo -e "${cyan}$msg ${norm}"
+	}
+function cmd_utils_prj_result(){
+	local msg
+	msg="$*"
+	#log_print "msg: $msg"
+	echo -e "${green}$msg${norm}"
+	}
 
 if [ "`type -t cmd_utils_git_wrapper`" == "function" ]; then
 	UTILS_PRJ_USE_UTILS_GIT=true
@@ -103,29 +135,67 @@ cmd_utils_prj_wrapper(){
 # === install ===
 cmd_utils_prj_setup(){
 	# обновляем файлы если уже есть
-	[ ! -d ~/.utils-git ] && echo "to run commands on git repos required utils-git"
-	[ ! -d ~/.utils-env ] && echo "to get messages in colored manner required utils-env"
+	#[ ! -d ~/.utils-git ] && echo "to run commands on git repos required utils-git"
+	#[ ! -d ~/.utils-env ] && echo "to get messages in colored manner required utils-env"
+	case "$UTILS_PRJ_THE_OS" in
+		MINGW*)
+			#UTILS_PRJ_SED_BACKUP=""
+			sedcmd="sed"
+			;;
+		Darwin)
+			cmd_utils_prj_notice "Verifing prerequisites ('gsed') ..."
+			type gsed 1>/dev/null
+			[ "$?" != "0" ] && cmd_utils_prj_error "gsed nod found. Use 'brew install coreutils'" && exit
+			#UTILS_PRJ_SED_BACKUP="''"
+			sedcmd="gsed"
+			;;
+		linux)
+			sedcmd="sed"
+			;;
+	  esac
+	cmd_utils_prj_notice "Verifing $HOME/.utils-prj"
+	if [ ! -d "$HOME/.utils-prj" ];then
+		mkdir "$HOME/.utils-prj"
+	  fi
+	cmd_utils_prj_notice "Verifing $UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
+	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE" ] && cp "$UTILS_PRJ_HOME/templates/$UTILS_PRJ_INCLUDE" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
+	# REPLACE '$UTILS_ROOT' in 'export UTILS_PRJ_HOME="$UTILS_ROOT/utils-prj' to "$UTILS_PRJ_HOME"
 
-	[ ! -d "$HOME/.utils-prj" ] && mkdir "$HOME/.utils-prj"
-	[ ! -f "UTILS_PRJ_CONFIGS/$utils_include" ] && 	copy "$UTILS_PRJ_HOME/$UTILS_PRJ_INCLUDE" "UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE"
-	# sed REPLACE path in 'export HOME_UTILS_PRJ= ex to "/C/app/utils-prj"
-	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES" ] && copy "$UTILS_PRJ_HOME/$UTILS_PRJ_ALIASES" "UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
-	# sed UTILS_PRJ_HOME in 'include' # to include lib to shell and some commands (ex. pel, p-help)
-	local bash_profile=`eval echo ~/.bash_profile` # fix ~ bug
+	cmd_utils_prj_notice "Verifing UTILS_PRJ_HOME"
+	#set -x
+	$sedcmd -E -i 's|^(export UTILS_PRJ_HOME=")(\$UTILS_ROOT\/utils-prj)|\1'"$UTILS_PRJ_HOME"'|' "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_INCLUDE" # $UTILS_PRJ_SED_BACKUP
+	#set +x
+	#cmd_utils_prj_notice "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
+	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES" ] && cp "$UTILS_PRJ_HOME/templates/$UTILS_PRJ_ALIASES" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_ALIASES"
+	local bash_profile=$HOME/.bash_profile # fix ~ bug
 	touch "$bash_profile"
-	# [ if not found '. ~/.utils-prj/include ] && echo '. ~/.utils-prj/include' >> .bash_profile
-	# echo "add to PATH?" read  [] echo "export PATH=$PATH:$UTILS_PRJ_HOME" >> $utils_include
-	mkdir "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST"
-	[ ! -f "UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" ] && copy "$UTILS_PRJ_HOME/default" "UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default"
-	touch "UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/!projects"
-	echo "'p-help' - print readme.adoc"
-	echo "'pshow' - print current configuration (config files, project sets with projects)"
-	echo "'padd my_alias' - add alias and current folder to projects list (at start - 'default')"
-	echo "'plist' - review assigned aliases"
-	echo "'pgo my_alias' - cmd_project_go home"
-	echo "'pfix my_alias' - save project at local repository"
-	echo "'psave my_alias' - save project and sync with remote repository"
-	echo "'pget my_alias' - pull project from remote repository"
+
+	# append include to .bash_profile
+	#set -x
+	$sedcmd -E -n '/^\. "\$HOME\/\.utils-prj\/utils-prj-include"/{q111}' "$HOME/.bash_profile" #; echo $?
+	#set +x
+	if [ "$?" != "111" ]; then
+		echo "" >> "$bash_profile"
+		echo '[[ $- == *i* ]] && echo "Loading $HOME/.utils-prj/utils-prj-include .. "' >> "$bash_profile"
+		echo '. "$HOME/.utils-prj/utils-prj-include"' >> "$bash_profile"
+	  fi
+	mkdir "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST" 2> /dev/null
+	if [ ! -f "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default" ];then
+		cp "$UTILS_PRJ_HOME/default" "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/default"
+		touch "$UTILS_PRJ_CONFIGS/$UTILS_PRJ_THE_HOST/-my_projects" # default set
+	  fi
+	#cmd_utils_prj_notice "basic commands:"
+	#echo "'pshow' - print current configuration (config files, project sets with projects)"
+	#echo "'padd project_alias' - add alias and current folder to projects list (at start - 'default')"
+	#echo "'plist' - review assigned aliases for current set"
+	#echo "'pgo project_alias' - go home path for project"
+	#echo "'pfix project_alias' - commit changes at local repository"
+	#echo "'psave1 ' - save current project and sync with remote repository"
+	#echo "'psave project_alias' - save any project and sync with remote repository"
+	#echo "'pget project_alias' - pull project from remote repository"
+	#echo "'psavea set_alias' - commit and push all projects for current context"
+	#echo "'phelp' - commands overview"
+	cmd_utils_prj_help
 	}
 cmd_utils_prj_uninstall(){
 	# cut '. ~/.utils-prj/include' from .bash_profile
@@ -153,12 +223,7 @@ cmd_utils_prj_rpad(){
 	line=`printf "%-${pad}s" "$msg"`
 	printf "%s%s" $msg "${line:${#msg}}"
 	}
-cmd_utils_prj_error(){
-	local msg
-	msg="$*"
-	#log_print "msg: $msg"
-	echo -e "${red}$msg${norm}"
-	}
+
 get_current_set(){
 	#local project_list=$1
 	#if [[ "$project_list" == "" ]]; then
@@ -317,9 +382,9 @@ get_sync_status(){		# <remote_mode>
 
 # === config ===
 cmd_show_current_config(){	# pshow  green
-	echo -e "${red_on_green}  Overview:  ${norm}\nutils-prj - version 1.0\nUse 'p-help' for more\n"
+	echo -e "${red_on_green}  Overview:  ${norm}\nutils-prj - version 1.0\nUse 'phelp' for more\n"
 	echo -e "${red_on_green}  Where installed (\$UTILS_PRJ_HOME):  ${norm}\n$UTILS_PRJ_HOME/\n"
-	echo -e "${red_on_green}  How inited (position in $HOME/.bash_profile):  ${norm}\n$(grep -n -A 2 '.utils-prj' ~/.bash_profile)\n"
+	echo -e "${red_on_green}  .bash_profile lines :  ${norm}\n$(grep -n -A 2 -B 1 '.utils-prj' ~/.bash_profile)\n"
 	echo -e "${red_on_green}  Settings:  ${norm}\n$HOME/.utils-prj/$UTILS_PRJ_INCLUDE\n$HOME/.utils-prj/$UTILS_PRJ_ALIASES\n$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/*"
 
 	cmd_project_enum ..
@@ -709,7 +774,7 @@ cmd_project_action(){		# prs 		<cmd> <obj> [<msg>]
 		#if [ "$cmd" == "local" ]; then
 		#(current)
 		local tab="        " # mingw didn't background tabs
-		echo -e "\n${black_on_green}${red_on_green} `cmd_utils_prj_rpad $obj 44`$tab${norm}" # $tab$tab $tab$tab ${magenta_on_green}
+		echo -e "\n${black_on_green}${red_on_green} `cmd_utils_prj_rpad $obj `$tab${norm}" # $tab$tab $tab$tab ${magenta_on_green}
 
 		for prj_name in $(cat $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$obj.list | sed -e /^$/d | tr -d '\r' | sort); do
 			#prj_name=`echo $prj_name` # normalize
@@ -862,19 +927,19 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 				log_print "commit changed_files"
 				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
 					echo
+					notice "Unstaged work found:"
 					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_status_with_untracked
-					result "unstaged work found"
 					#echo -e -n "\n${green}work saved${norm}"
 					echo
 					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_append_and_commit "$msg"
-					result "work saved"
+					result "Work FIXED"
 				  else
 					git status -s --untracked-files
 					echo
 					git add -A .
 					git commit -m "$msg"
 				  fi
-				echo
+				#echo
 				sync_status="push"
 			  else
 			  	echo -e -n ' '
@@ -899,19 +964,19 @@ cmd_project_sync(){		# 		<prj> <path> <cmd> <msg>
 						#return #&& echo -e "${red}FIXING${norm}"
 					#git remote | xargs -L1 git push --all --quiet -u
 
-				if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
-				  	echo
-					UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_push all
-				  else
-				  	echo
-					log_print "local push"
-				  	remotes=$(git remote show)
-				  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
-					for name in $remotes; do
-						echo -e "git ${red}PUSH${norm} to ${green}$name$norm: $green$curr_branch$norm"  #-u
-						git push "$name" "$curr_branch" #all --all
-					  done
-				  fi
+			if [ "$UTILS_PRJ_USE_UTILS_GIT" == "true" ]; then
+			  	echo
+				UTILS_GIT_TRACE=$UTILS_PRJ_TRACE cmd_utils_git_wrapper cmd_git_push all # to all remotes
+			  else
+			  	echo
+				log_print "local push"
+			  	remotes=$(git remote show)
+			  	curr_branch=`echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)`
+				for name in $remotes; do
+					echo -e "git ${red}PUSH${norm} to ${green}$name$norm: $green$curr_branch$norm"  #-u
+					git push "$name" "$curr_branch" #all --all
+				  done
+			  fi
 			#  fi
 				#echo -e "${red}PUSHING${norm}"
 				#cmd_git_commit_and_push "$msg"
