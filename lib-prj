@@ -26,14 +26,14 @@ case "$UTILS_PRJ_THE_OS" in
 		UTILS_PRJ_SED_BACKUP="" #|MSYS*
 		 #UTILS_PRJ_SED="sed"
 		#alias sed='sed'
-		UTILS_PRJ_TIMESTAMP=`stat -c %y $HOME_UTILS_PRJ/lib-prj`
+		UTILS_PRJ_TIMESTAMP=`stat -c %y $UTILS_PRJ_HOME/lib-prj`
 		UTILS_PRJ_ALIAS_TIMESTAMP=`stat -c %y $HOME/.utils-prj/$UTILS_PRJ_ALIASES`
 		;;
 	Darwin)
 		UTILS_PRJ_SED_BACKUP="''"
 		# UTILS_PRJ_SED="gsed"
 		alias sed='gsed'
-		UTILS_PRJ_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME_UTILS_PRJ/lib-prj")
+		UTILS_PRJ_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$UTILS_PRJ_HOME/lib-prj")
 		UTILS_PRJ_ALIAS_TIMESTAMP=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME/.utils-prj/$UTILS_PRJ_ALIASES")
 		;;
 	linux)
@@ -86,11 +86,11 @@ cmd_utils_prj_wrapper(){
 	local utils_prj_timestamp_current
 	case "$UTILS_PRJ_THE_OS" in
 		MINGW*)
-			utils_prj_timestamp_current=`stat -c %y $HOME_UTILS_PRJ/lib-prj`
+			utils_prj_timestamp_current=`stat -c %y $UTILS_PRJ_HOME/lib-prj`
 			utils_prj_alias_timestamp_current=`stat -c %y $HOME/.utils-prj/$UTILS_PRJ_ALIASES`
 			;;
 		Darwin)
-			utils_prj_timestamp_current=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME_UTILS_PRJ/lib-prj")
+			utils_prj_timestamp_current=$(stat -f "%Sm" -t "%h %U %G %s" "$UTILS_PRJ_HOME/lib-prj")
 			utils_prj_alias_timestamp_current=$(stat -f "%Sm" -t "%h %U %G %s" "$HOME/.utils-prj/$UTILS_PRJ_ALIASES")
 			;;
 		# linux??)
@@ -101,7 +101,7 @@ cmd_utils_prj_wrapper(){
 	#echo -e "utils_prj_timestamp_current:\t$utils_prj_timestamp_current"
 	#echo -e "UTILS_PRJ_TIMESTAMP:\t\t$UTILS_PRJ_TIMESTAMP"
 
-	[ "$utils_prj_timestamp_current" != "$UTILS_PRJ_TIMESTAMP" ] && echo "Updating commands..." && source "$HOME_UTILS_PRJ/lib-prj"
+	[ "$utils_prj_timestamp_current" != "$UTILS_PRJ_TIMESTAMP" ] && echo "Updating commands..." && source "$UTILS_PRJ_HOME/lib-prj"
 	[ "$utils_prj_alias_timestamp_current" != "$UTILS_PRJ_ALIAS_TIMESTAMP" ] && echo "Updating aliases..." && source "$HOME/.utils-prj/$UTILS_PRJ_ALIASES"
 	#echo "wrapper2"
 	#echo "arg: $1"
@@ -1077,23 +1077,23 @@ get_current_set(){
 	}
 get_project_name(){		# <project_path>
 	# to test - bp; UTILS_PRJ_TRACE=1;get_project_name "/c/app/utils-env"
-	local project_path="$1" 
+	local project_path="$1"
 	[ "$2" != "" ] && local UTILS_PRJ_TRACE=$2
-	#log_print "root:\t\t$HOME/.utils-prj/$UTILS_PRJ_THE_HOST" 1>&2 # local root=$1; 
+	#log_print "root:\t\t$HOME/.utils-prj/$UTILS_PRJ_THE_HOST" 1>&2 # local root=$1;
 	#log_print "project_path:\t$project_path [get_project_name]" 1>&2
 	#[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT BY PATH] root for project is missed !" 1>&2 && return
 	[[ "$project_path" == "" ]] && echo -e "${red}[get_project_name] param 'project_path' is missed !${norm}" 1>&2 && return # project_path=$(pwd)
 	log_print "project_path:\t[get_project_name] $project_path" 1>&2
 		#echo "[get_project_name] project_path is missed !" 1>&2 && return
-	
+
 	(
-	cd "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST" #[ $UTILS_PRJ_TRACE -eq 1 ] &&  pwd 
+	cd "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST" #[ $UTILS_PRJ_TRACE -eq 1 ] &&  pwd
 	find_path="find"
 	[[ "$TERM" == "cygwin" ]] && find_path="/usr/bin/find.exe" #$(cygpath-m "$EXEPATH")
 	log_print "find_path:\t[get_project_name] $find_path" 1>&2
 	for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default -exec basename "{}" ';'); do # all files w/o extensions | sed 's/^\.\///'
 		log_print "prj_loop:\t[get_project_name] $prj_loop" 1>&2
-		looped_path=`eval echo $(sed -E -n 's/^path=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_loop | tr -d '\r')` 
+		looped_path=`eval echo $(sed -E -n 's/^path=([^#]+).*/\1/p' $HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_loop | tr -d '\r')`
 		log_print "looped_path:\t[get_project_name] $looped_path" 1>&2
 		if [[ "$project_path" == "$looped_path" ]]; then
 			echo $prj_loop
@@ -1106,10 +1106,10 @@ get_project_path(){		# <prj>
 	local prj_name="$1"
 	[ "$2" != "" ] && local UTILS_PRJ_TRACE="$2"
 	local extra=$3
-	[ "$extra" != "" ] && echo "[get_project_path] extra param is invalid!" 1>&2 && (log_print "extra:\t[get_project_path] $extra" 1>&2) && return 
+	[ "$extra" != "" ] && echo "[get_project_path] extra param is invalid!" 1>&2 && (log_print "extra:\t[get_project_path] $extra" 1>&2) && return
 	#[[ "$root" == "" ]] && echo "[LIB: FIND PROJECT PATH] root for project is missed !" 1>&2 && return ; log_print "root:\t\t$root [get_project_path]" 1>&2
 	[[ "$prj_name" == "" ]] && echo "[get_project_path] project name is missed !" 1>&2 && (log_print "prj_name:\t\t[get_project_path] $prj_name" 1>&2) && return
-	
+
 	#(	cd "$HOME/.utils-prj/$UTILS_PRJ_THE_HOST"
 		#local find_path="find"
 		#[[ "$TERM" == "cygwin" ]] && find_path="$(cygpath-m "$EXEPATH")/usr/bin/find"
@@ -1117,7 +1117,7 @@ get_project_path(){		# <prj>
 
 	local prj_file="$HOME/.utils-prj/$UTILS_PRJ_THE_HOST/$prj_name"
 	[ ! -f "$prj_file" ] && echo -e "${red} Project file '$prj_file' not found !${norm}" 1>&2 && return
-		#for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default -exec basename "{}" ';'); do  #| tr -d '\r' | sed 's/^\.\///' 
+		#for prj_loop in $($find_path . -maxdepth 1 -type f ! -name "*.*" -a ! -name default -exec basename "{}" ';'); do  #| tr -d '\r' | sed 's/^\.\///'
 		#	log_print "prj_loop:\t[get_project_path] $prj_loop" 1>&2
 		#	if [[ "$prj_name" == "$prj_loop" ]]; then
 				local prj_path=`eval echo $(sed -E -n 's/^path=([^# ]+).*/\1/p' $prj_file | tr -d '\r')` # remove tilda for home path's
@@ -1130,7 +1130,7 @@ get_project_path(){		# <prj>
 get_object_type(){		# <prj|list>
 	local obj=$1  	# project_or_list
 	[ "$2" == "NO_UTILS_PRJ_TRACE" ] && local UTILS_PRJ_TRACE=0 # true / false
-	[ "$obj" == "" ] && echo -e "${red}[get_object_type] param 'obj' is missed !${norm}" 1>&2 && return 
+	[ "$obj" == "" ] && echo -e "${red}[get_object_type] param 'obj' is missed !${norm}" 1>&2 && return
 
 	local find_path="find" # linux/osx
 	[[ "$TERM" == "cygwin" ]] && find_path="/usr/bin/find.exe" # in windows $EXEPATH ex. C:\app\git - std env by git bash   $(cygpath-m "$EXEPATH")
@@ -1159,7 +1159,7 @@ get_sync_status(){		# <remote_mode>
 	# ex. get_sync_status true # to compare with last commit from remote host
 	# ??todo: return two out param ???  array?  or  pull/push/both/diverged only?
 	local use_remote_host="$1"  	# true / false
-	local result_format="$2" 		# when 'silent' then print yes/no else print msg for user 
+	local result_format="$2" 		# when 'silent' then print yes/no else print msg for user
 	[ "$3" != "" ] && local UTILS_PRJ_TRACE=$3
 	log_print "use_remote_host: $use_remote_host" #1>&2
 	[ "$use_remote_host" == "" ] && use_remote_host=local
@@ -1195,7 +1195,7 @@ get_sync_status(){		# <remote_mode>
 	log_print "[get_sync_status] REMOTE: $REMOTE"
 	log_print "[get_sync_status] git merge-base @ @{u}"
 	local BASE
-	BASE=`git merge-base @ @{u} 2> /dev/null` # merge-base возвращает ближайшего общего предка для двух веток, то есть sha-id какого-то комита;   @{u} = @{upstream}  
+	BASE=`git merge-base @ @{u} 2> /dev/null` # merge-base возвращает ближайшего общего предка для двух веток, то есть sha-id какого-то комита;   @{u} = @{upstream}
 	res_code=$?
 	log_print "[get_sync_status] res_code: $res_code"
 	log_print "[get_sync_status] BASE: $BASE"
